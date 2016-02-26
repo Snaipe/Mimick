@@ -56,6 +56,7 @@ mmk_mock mmk_mock_create (const char *name, const char *path, mmk_fn fn)
         .offset = off,
     };
     ctx->trampoline = create_trampoline(ctx, (plt_fn *) fn);
+    *off = ctx->trampoline;
 
     return ctx;
 }
