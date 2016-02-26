@@ -6,6 +6,7 @@
 
 void *malloc_mock (size_t size)
 {
+    (void) size;
     return JUNK_PTR;
 }
 
