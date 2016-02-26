@@ -1,4 +1,7 @@
 #ifndef CONFIG_H_IN_
 # define CONFIG_H_IN_
 
+#cmakedefine MMK_ARCH "@MMK_ARCH@"
+#cmakedefine MMK_BITS @MMK_BITS@
+
 #endif /* !CONFIG_H_IN_ */

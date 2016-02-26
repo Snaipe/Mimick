@@ -27,7 +27,20 @@
 #include <string.h>
 #include "plt-elf.h"
 #include "trampoline.h"
+#include "config.h"
 #define HAVE__R_DEBUG 1
+
+#if MMK_BITS == 32
+typedef ElfW(Word) ElfWord;
+typedef ElfW(Sword) ElfSWord;
+# define ELF_R_SYM(i) ELF32_R_SYM(i)
+#elif MMK_BITS == 64
+typedef ElfW(Xword) ElfWord;
+typedef ElfW(Sxword) ElfSWord;
+# define ELF_R_SYM(i) ELF64_R_SYM(i)
+#else
+# error Unsupported architecture
+#endif
 
 extern char **environ;
 
@@ -36,7 +49,7 @@ static void *lib_dt_lookup(plt_lib lib, ElfW(Sxword) tag)
     for (ElfW(Dyn) *dyn = lib->l_ld; dyn->d_tag != DT_NULL; ++dyn) {
         if (dyn->d_tag == tag) {
             if (dyn->d_un.d_ptr >= lib->l_addr
-                    && ((ElfW(Sxword)) dyn->d_un.d_ptr) >= 0)
+                    && ((ElfSWord) dyn->d_un.d_ptr) >= 0)
                 return (void*) dyn->d_un.d_ptr;
             else
                 return (char*) lib->l_addr + dyn->d_un.d_ptr;
@@ -133,7 +146,7 @@ static uintptr_t get_offset(struct rel_info *info, ElfW(Sym) *symtab,
     for (ElfW(Xword) i = 0; i < info->size / info->entry_sz;
             ++i, rel = (void*)(((char *) rel) + info->entry_sz))
     {
-        ElfW(Sym) *sym = &symtab[ELF64_R_SYM(rel->r_info)];
+        ElfW(Sym) *sym = &symtab[ELF_R_SYM(rel->r_info)];
 
         if (!strcmp(strtab + sym->st_name, name))
             return (uintptr_t) rel->r_offset;
@@ -145,11 +158,11 @@ plt_fn **plt_get_offset(plt_lib lib, const char *name)
 {
     ElfW(Sym) *symtab   = (ElfW(Sym)*)  lib_dt_lookup(lib, DT_SYMTAB);
     const char *strtab  = (const char*) lib_dt_lookup(lib, DT_STRTAB);
-    ElfW(Sxword) type = (ElfW(Sxword)) lib_dt_lookup(lib, DT_PLTREL);
+    ElfSWord type = (ElfSWord) lib_dt_lookup(lib, DT_PLTREL);
 
     ElfW(Rel)   *rel = lib_dt_lookup(lib, DT_JMPREL);
-    ElfW(Xword) rel_sz = (ElfW(Xword)) lib_dt_lookup(lib, DT_PLTRELSZ);
-    ElfW(Xword) relent_sz = (ElfW(Xword)) lib_dt_lookup(lib, type + 2);
+    ElfWord rel_sz = (ElfWord) lib_dt_lookup(lib, DT_PLTRELSZ);
+    ElfWord relent_sz = (ElfWord) lib_dt_lookup(lib, type + 2);
 
     if (!symtab || !strtab || !type || !rel || !rel_sz || !relent_sz)
         return NULL;
