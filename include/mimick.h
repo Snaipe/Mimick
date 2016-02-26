@@ -21,13 +21,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef PLT_H_
-# define PLT_H_
+#ifndef MIMICK_H_
+# define MIMICK_H_
 
-# include "plt-elf.h"
+# include <stdint.h>
+# include <stddef.h>
 
-plt_ctx plt_init_ctx(void);
-plt_lib plt_get_lib(plt_ctx ctx, const char *name);
-plt_fn **plt_get_offset(plt_lib lib, const char *name);
+typedef struct mmk_mock *mmk_mock;
+extern mmk_mock mmk_ctx;
 
-#endif /* !PLT_H_ */
+typedef void (*mmk_fn)(void);
+
+void mmk_init (void);
+mmk_mock mmk_mock_create (const char *name, const char *path, mmk_fn fn);
+void mmk_mock_destroy (mmk_mock mock);
+
+#endif /* !MIMICK_H_ */

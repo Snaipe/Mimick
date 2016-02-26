@@ -31,3 +31,5 @@ include_directories(include src)
 add_subdirectory (src)
 
 add_library (mimick STATIC ${SOURCE_FILES})
+
+add_subdirectory (test)
