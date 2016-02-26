@@ -2,20 +2,21 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
-#include <link.h>
+#include "plt-elf.h"
+#include "trampoline.h"
 #define HAVE__R_DEBUG 1
 
 extern char **environ;
 
-static void *dt_lookup(void *base, ElfW(Dyn) *dyn, ElfW(Sxword) tag)
+static void *lib_dt_lookup(plt_lib lib, ElfW(Sxword) tag)
 {
-    for (; dyn->d_tag != DT_NULL; ++dyn) {
+    for (ElfW(Dyn) *dyn = lib->l_ld; dyn->d_tag != DT_NULL; ++dyn) {
         if (dyn->d_tag == tag) {
-            if ((void *) dyn->d_un.d_ptr >= base
+            if (dyn->d_un.d_ptr >= lib->l_addr
                     && ((ElfW(Sxword)) dyn->d_un.d_ptr) >= 0)
                 return (void*) dyn->d_un.d_ptr;
             else
-                return (char*) base + dyn->d_un.d_ptr;
+                return (char*) lib->l_addr + dyn->d_un.d_ptr;
         }
     }
     return NULL;
@@ -76,16 +77,6 @@ static struct r_debug *get_r_debug (void)
     return dbg;
 }
 
-typedef struct link_map *plt_lib;
-typedef struct r_debug *plt_ctx;
-typedef void *plt_got;
-typedef void (plt_fn)(void);
-
-static inline void *lib_dt_lookup(plt_lib lib, ElfW(Sxword) tag)
-{
-    return dt_lookup((void*) lib->l_addr, lib->l_ld, tag);
-}
-
 plt_ctx plt_init_ctx(void)
 {
     static struct r_debug *dbg = NULL;
@@ -106,18 +97,14 @@ plt_lib plt_get_lib(plt_ctx ctx, const char *name)
     return NULL;
 }
 
-void *plt_get_got(plt_lib lib)
-{
-    return dt_lookup((void*) lib->l_addr, lib->l_ld, DT_PLTGOT);
-}
-
 struct rel_info {
     ElfW(Rel) *tab;
     ElfW(Xword) size;
     ElfW(Xword) entry_sz;
 };
 
-static uintptr_t get_offset(struct rel_info *info, ElfW(Sym) *symtab, const char *strtab, const char *name)
+static uintptr_t get_offset(struct rel_info *info, ElfW(Sym) *symtab,
+        const char *strtab, const char *name)
 {
     ElfW(Rel) *rel = info->tab;
     for (ElfW(Xword) i = 0; i < info->size / info->entry_sz;
