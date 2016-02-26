@@ -5,8 +5,7 @@
 if (MSVC)
     set (ASM_FILES src/asm/trampoline-win-${MMK_ARCH}.asm)
 else ()
-    set (ASM_FILES)
-    list (APPEND ASM_FILES src/asm/trampoline-${MMK_ARCH}.S)
+    set (ASM_FILES src/asm/trampoline-${MMK_ARCH}.S)
 endif ()
 
 set (SOURCE_FILES ${ASM_FILES}
