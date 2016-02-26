@@ -28,7 +28,6 @@
 #include "plt-elf.h"
 #include "trampoline.h"
 #include "config.h"
-#define HAVE__R_DEBUG 1
 
 #if MMK_BITS == 32
 typedef ElfW(Word) ElfWord;

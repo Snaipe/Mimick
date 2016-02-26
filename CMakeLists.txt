@@ -6,6 +6,8 @@ cmake_minimum_required (VERSION 2.8)
 
 project (Mimick C)
 
+include (CheckSymbolExists)
+
 set (MODULE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/.cmake/Modules")
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${MODULE_DIR})
 
@@ -32,6 +34,9 @@ else ()
         message (FATAL_ERROR "Architecture '${CMAKE_SYSTEM_PROCESSOR}' not supported.")
     endif ()
 endif ()
+
+check_symbol_exists(_r_debug link.h HAVE__R_DEBUG)
+check_symbol_exists(_DYNAMIC link.h HAVE__DYNAMIC)
 
 include_directories(include src)
 add_subdirectory (src)

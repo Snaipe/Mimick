@@ -3,5 +3,7 @@
 
 #cmakedefine MMK_ARCH "@MMK_ARCH@"
 #cmakedefine MMK_BITS @MMK_BITS@
+#cmakedefine HAVE__R_DEBUG @HAVE__R_DEBUG@
+#cmakedefine HAVE__DYNAMIC @HAVE__DYNAMIC@
 
 #endif /* !CONFIG_H_IN_ */
