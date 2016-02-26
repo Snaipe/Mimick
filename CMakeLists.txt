@@ -17,6 +17,8 @@ if (MSVC)
         set (MMK_ARCH "x86_64")
     endif ()
 else ()
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -Wall -Wextra")
+
     enable_language (ASM)
     if (CMAKE_SYSTEM_PROCESSOR MATCHES "^i[3-7]86$")
         set (MMK_ARCH "i386")
