@@ -9,6 +9,7 @@
 !*.c
 !*.h
 !*.S
+!*.asm
 !*.in
 !.cmake/Modules/*.cmake
 
