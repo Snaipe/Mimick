@@ -177,3 +177,8 @@ plt_fn **plt_get_offset(plt_lib lib, const char *name)
         return (plt_fn **) (off + lib->l_addr);
     return NULL;
 }
+
+void plt_set_offset(plt_fn **offset, plt_fn *newval)
+{
+    *offset = newval;
+}

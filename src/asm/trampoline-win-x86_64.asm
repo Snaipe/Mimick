@@ -23,30 +23,23 @@
 ;
 .CODE
 
-extern _mmk_ctx:qword
+extern mmk_ctx:qword
 
-mmk_trampoline proc
-option prologue:none, epilogue:none
-start:
+mmk_trampoline label far
   call    next                                      ; Retrieve IP
 next:
   pop     rax
 
-  add     rax, start
-  sub     rax, next
-  push    rax                                       ; Setup mock context
-  mov     rax, qword ptr [rax - 10h]
+  and     rax, 0fffffc00h
+  push    rax
+  mov     rax, qword ptr [rax]                      ; Setup mock context
   mov     mmk_ctx, rax
 
-  pop     rax
-  mov     rax, qword ptr [rax - 8h]                 ; Retrieve offset at
-                                                    ; the start of the map
-  jmp     qword ptr [rax]
-mmk_trampoline endp
+  pop     rax                                       ; Retrieve offset at
+  jmp     qword ptr [rax + 8h]                      ; the start of the map
+mmk_trampoline_end label far
 
-mmk_trampoline_end proc
-option prologue:none, epilogue:none
-  nop
-mmk_trampoline_end endp
+public mmk_trampoline
+public mmk_trampoline_end
 
 end

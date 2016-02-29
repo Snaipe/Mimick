@@ -22,33 +22,26 @@
 ; THE SOFTWARE.
 ;
 .386
-.MODEL FLAT
+.MODEL FLAT, C
 .CODE
 
-extern _mmk_ctx:dword
+extern mmk_ctx:dword
 
-_mmk_trampoline proc
-option prologue:none, epilogue:none
-start:
+mmk_trampoline label far
   call    next                                      ; Retrieve IP
 next:
   pop     eax
 
-  add     eax, start
-  sub     eax, next
-  push    eax                                       ; Setup mock context
-  mov     eax, dword ptr [eax - 8h]
-  mov     _mmk_ctx, eax
+  and     eax, 0fffffc00h
+  push    eax
+  mov     eax, dword ptr [eax]                      ; Setup mock context
+  mov     mmk_ctx, eax
 
-  pop     eax
-  mov     eax, dword ptr [eax - 4h]                 ; Retrieve offset at
-                                                    ; the start of the map
-  jmp     dword ptr [eax]
-_mmk_trampoline endp
+  pop     eax                                       ; Retrieve offset at
+  jmp     dword ptr [eax + 4h]                      ; the start of the map
+mmk_trampoline_end label far
 
-_mmk_trampoline_end proc
-option prologue:none, epilogue:none
-  nop
-_mmk_trampoline_end endp
+public mmk_trampoline
+public mmk_trampoline_end
 
 end

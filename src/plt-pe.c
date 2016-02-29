@@ -73,3 +73,11 @@ plt_fn **plt_get_offset (plt_lib lib, const char *name)
     }
     return NULL;
 }
+
+void plt_set_offset(plt_fn **offset, plt_fn *newval)
+{
+    DWORD old;
+    VirtualProtect(offset, sizeof (void*), PAGE_EXECUTE_READWRITE, &old);
+    *offset = newval;
+    VirtualProtect(offset, sizeof (void*), old, &old);
+}
