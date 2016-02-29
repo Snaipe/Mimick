@@ -34,12 +34,14 @@ start:
 next:
   pop     eax
 
+  add     eax, start
+  sub     eax, next
   push    eax                                       ; Setup mock context
-  mov     eax, dword ptr [eax + start - next - 8h]
+  mov     eax, dword ptr [eax - 8h]
   mov     _mmk_ctx, eax
 
   pop     eax
-  mov     eax, dword ptr [eax + start - next - 4h]  ; Retrieve offset at
+  mov     eax, dword ptr [eax - 4h]                 ; Retrieve offset at
                                                     ; the start of the map
   jmp     dword ptr [eax]
 _mmk_trampoline endp

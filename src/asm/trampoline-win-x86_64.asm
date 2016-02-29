@@ -32,12 +32,14 @@ start:
 next:
   pop     rax
 
+  add     rax, start
+  sub     rax, next
   push    rax                                       ; Setup mock context
-  mov     rax, qword ptr [rax + start - next - 10h]
+  mov     rax, qword ptr [rax - 10h]
   mov     mmk_ctx, rax
 
   pop     rax
-  mov     rax, qword ptr [rax + start - next - 8h]  ; Retrieve offset at
+  mov     rax, qword ptr [rax - 8h]                 ; Retrieve offset at
                                                     ; the start of the map
   jmp     qword ptr [rax]
 mmk_trampoline endp
