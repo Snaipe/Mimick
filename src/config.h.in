@@ -3,6 +3,8 @@
 
 #cmakedefine MMK_ARCH "@MMK_ARCH@"
 #cmakedefine MMK_BITS @MMK_BITS@
+#cmakedefine MMK_EXE_FMT_ELF @MMK_EXE_FMT_ELF@
+#cmakedefine MMK_EXE_FMT_PE @MMK_EXE_FMT_PE@
 #cmakedefine HAVE__R_DEBUG @HAVE__R_DEBUG@
 #cmakedefine HAVE__DYNAMIC @HAVE__DYNAMIC@
 

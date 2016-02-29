@@ -114,8 +114,8 @@ static struct r_debug *get_r_debug (void)
 
 plt_ctx plt_init_ctx(void)
 {
-    static struct r_debug *dbg = NULL;
-    if (!dbg)
+    static struct r_debug *dbg = (void*) -1;
+    if (dbg == (void*) -1)
         dbg = get_r_debug();
     return dbg;
 }

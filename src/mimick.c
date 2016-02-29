@@ -39,7 +39,7 @@ static plt_ctx plt;
 void mmk_init (void)
 {
     plt = plt_init_ctx();
-    assert(plt != NULL);
+    assert(plt != (void*) -1);
 }
 
 mmk_mock mmk_mock_create (const char *name, const char *path, mmk_fn fn)
