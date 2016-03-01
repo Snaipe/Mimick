@@ -32,7 +32,7 @@ mmk_trampoline label far
 next:
   pop     eax
 
-  and     eax, 0fffffc00h
+  and     eax, 0fffff000h
   push    eax
   mov     eax, dword ptr [eax]                      ; Setup mock context
   mov     mmk_ctx, eax

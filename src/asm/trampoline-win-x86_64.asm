@@ -30,7 +30,7 @@ mmk_trampoline label far
 next:
   pop     rax
 
-  and     rax, 0fffffc00h
+  and     rax, 0fffffffffffff000h
   push    rax
   mov     rax, qword ptr [rax]                      ; Setup mock context
   mov     mmk_ctx, rax
