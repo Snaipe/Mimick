@@ -5,18 +5,18 @@ sudo: false
 addons:
   apt:
     packages:
-      - qemu-system-${ARCH}
+      - qemu-user
 
-env:
-  matrix:
+matrix:
+  include:
     # i386
-    - CONFIGURATION=Debug           ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-i686
-    - CONFIGURATION=Release         ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-i686
-    - CONFIGURATION=RelWithDebInfo  ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-i686
+    - env: CONFIGURATION=Debug           ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-i686
+    - env: CONFIGURATION=Release         ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-i686
+    - env: CONFIGURATION=RelWithDebInfo  ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-i686
     # x86_64
-    - CONFIGURATION=Debug           ARCH=x86 TARGET=x86_64
-    - CONFIGURATION=Release         ARCH=x86 TARGET=x86_64
-    - CONFIGURATION=RelWithDebInfo  ARCH=x86 TARGET=x86_64
+    - env: CONFIGURATION=Debug           ARCH=x86 TARGET=x86_64
+    - env: CONFIGURATION=Release         ARCH=x86 TARGET=x86_64
+    - env: CONFIGURATION=RelWithDebInfo  ARCH=x86 TARGET=x86_64
 
 before_install:
   - if [ -z "${TARGET}" ]; then export TARGET=${ARCH}; fi
@@ -36,7 +36,6 @@ script:
       -Wno-dev
       -DCMAKE_BUILD_TYPE=${CONFIGURATION}
       -DCMAKE_INSTALL_PREFIX=criterion-${TRAVIS_TAG}
-      -DUSE_QEMU=ON
       ${CMAKE_OPTS}
       ..
   - TERM=dumb cmake --build . -- -j4
