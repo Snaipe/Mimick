@@ -19,7 +19,7 @@ env:
     - CONFIGURATION=RelWithDebInfo  ARCH=x86 TARGET=x86_64
 
 before_install:
-  - '[ -z "${TARGET}" ] && export TARGET=${ARCH}'
+  - if [ -z "${TARGET}" ]; then export TARGET=${ARCH}; fi
 
 script:
   - mkdir -p build && cd $_
