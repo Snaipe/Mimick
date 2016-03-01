@@ -9,14 +9,14 @@ addons:
 
 matrix:
   include:
+    # x86_64
+    - env: CONFIGURATION=Debug
+    - env: CONFIGURATION=Release
+    - env: CONFIGURATION=RelWithDebInfo
     # i386
     - env: CONFIGURATION=Debug           ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-i686
     - env: CONFIGURATION=Release         ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-i686
     - env: CONFIGURATION=RelWithDebInfo  ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-i686
-    # x86_64
-    - env: CONFIGURATION=Debug           ARCH=x86 TARGET=x86_64
-    - env: CONFIGURATION=Release         ARCH=x86 TARGET=x86_64
-    - env: CONFIGURATION=RelWithDebInfo  ARCH=x86 TARGET=x86_64
 
 before_install:
   - if [ -z "${TARGET}" ]; then export TARGET=${ARCH}; fi
@@ -25,12 +25,12 @@ script:
   - mkdir -p build && cd $_
   - |
       if [ -n "${TOOLCHAIN}" ]; then
-        export CMAKE_OPTS="${CMAKE_OPTS} \
-         -DARCH=${ARCH} \
-         -DTARGET=${TARGET} \
-         -DSYSTEM=Linux \
-         -DCMAKE_TOOLCHAIN_FILE=../.cmake/Toolchains/Toolchain-${TOOLCHAIN}.cmake"
-      endif
+        TC_FILE="../.cmake/Toolchains/Toolchain-${TOOLCHAIN}.cmake"
+        export CMAKE_OPTS="${CMAKE_OPTS} -DARCH=${ARCH}"
+        export CMAKE_OPTS="${CMAKE_OPTS} -DTARGET=${TARGET}"
+        export CMAKE_OPTS="${CMAKE_OPTS} -DSYSTEM=Linux"
+        export CMAKE_OPTS="${CMAKE_OPTS} -DCMAKE_TOOLCHAIN_FILE=${TC_FILE}"
+      fi
   - >
       cmake
       -Wno-dev
