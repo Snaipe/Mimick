@@ -21,49 +21,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <stdlib.h>
-#include <assert.h>
-#include "mimick.h"
-#include "plt.h"
-#include "trampoline.h"
+#ifndef PLT_PE_H_
+# define PLT_PE_H_
 
-struct mmk_mock {
-    plt_fn *orig;
-    plt_fn **offset;
-    plt_fn *trampoline;
-};
+# include <windows.h>
 
-struct mmk_mock *mmk_ctx;
-static plt_ctx plt;
+typedef void *plt_ctx;
+typedef HANDLE plt_lib;
+typedef void (plt_fn)(void);
 
-void mmk_init (void)
-{
-    plt = plt_init_ctx();
-    assert(plt != (void*) -1);
-}
-
-mmk_mock mmk_mock_create (const char *name, const char *path, mmk_fn fn)
-{
-    plt_lib self = plt_get_lib(plt, path);
-    assert(self != NULL);
-
-    plt_fn **off = plt_get_offset(self, name);
-    assert (off != NULL);
-
-    mmk_mock ctx = malloc (sizeof (struct mmk_mock));
-    *ctx = (struct mmk_mock) {
-        .orig = *off,
-        .offset = off,
-    };
-    ctx->trampoline = create_trampoline(ctx, (plt_fn *) fn);
-    plt_set_offset(off, ctx->trampoline);
-
-    return ctx;
-}
-
-void mmk_mock_destroy (mmk_mock mock)
-{
-    plt_set_offset(mock->offset, mock->orig);
-    destroy_trampoline(mock->trampoline);
-    free(mock);
-}
+#endif /* !PLT_PE_H_ */

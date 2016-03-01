@@ -27,6 +27,7 @@
 
 #include <string.h>
 #include "trampoline.h"
+#define PAGE_SIZE 0x1000
 
 extern void mmk_trampoline();
 extern void mmk_trampoline_end();
@@ -35,13 +36,12 @@ extern void mmk_trampoline_end();
 # include <unistd.h>
 # include <sys/mman.h>
 
-# define PAGE_SIZE 0x400
-
 plt_fn *create_trampoline (void *ctx, plt_fn *routine)
 {
     uintptr_t trampoline_sz = (uintptr_t) mmk_trampoline_end
                             - (uintptr_t) mmk_trampoline;
 
+    assert (trampoline_sz < PAGE_SIZE);
     void **map = mmap (NULL, PAGE_SIZE,
             PROT_READ | PROT_WRITE | PROT_EXEC,
             MAP_PRIVATE | MAP_ANONYMOUS,
@@ -57,6 +57,32 @@ plt_fn *create_trampoline (void *ctx, plt_fn *routine)
 void destroy_trampoline (plt_fn *trampoline)
 {
     munmap ((void **) trampoline - 2, PAGE_SIZE);
+}
+#elif defined _WIN32
+# include <windows.h>
+# include <assert.h>
+
+plt_fn *create_trampoline (void *ctx, plt_fn *routine)
+{
+    uintptr_t trampoline_sz = (uintptr_t) mmk_trampoline_end
+                            - (uintptr_t) mmk_trampoline;
+
+    assert (trampoline_sz < PAGE_SIZE);
+    void **map = VirtualAlloc (NULL, PAGE_SIZE,
+            MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+
+    *map = ctx;
+    *(map + 1) = (void *) routine;
+    memcpy (map + 2, mmk_trampoline, trampoline_sz);
+
+    DWORD old;
+    VirtualProtect (map, PAGE_SIZE, PAGE_EXECUTE_READ, &old);
+    return (plt_fn *) (map + 2);
+}
+
+void destroy_trampoline (plt_fn *trampoline)
+{
+    VirtualFree ((void **) trampoline - 2, 0, MEM_RELEASE);
 }
 #else
 # error Unsupported platform

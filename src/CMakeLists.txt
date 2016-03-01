@@ -12,8 +12,8 @@ set (SOURCE_FILES ${ASM_FILES}
     src/config.h
     src/mimick.c
     src/plt.h
-    src/plt-elf.c
-    src/plt-elf.h
+    src/plt-${MMK_EXE_FORMAT}.c
+    src/plt-${MMK_EXE_FORMAT}.h
     src/trampoline.c
     src/trampoline.h
 )

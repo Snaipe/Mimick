@@ -24,10 +24,17 @@
 #ifndef PLT_H_
 # define PLT_H_
 
-# include "plt-elf.h"
+# include "config.h"
+
+# if defined MMK_EXE_FMT_ELF
+#  include "plt-elf.h"
+# elif defined MMK_EXE_FMT_PE
+#  include "plt-pe.h"
+# endif
 
 plt_ctx plt_init_ctx(void);
 plt_lib plt_get_lib(plt_ctx ctx, const char *name);
 plt_fn **plt_get_offset(plt_lib lib, const char *name);
+void plt_set_offset(plt_fn **offset, plt_fn *newval);
 
 #endif /* !PLT_H_ */

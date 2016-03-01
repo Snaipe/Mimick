@@ -114,8 +114,8 @@ static struct r_debug *get_r_debug (void)
 
 plt_ctx plt_init_ctx(void)
 {
-    static struct r_debug *dbg = NULL;
-    if (!dbg)
+    static struct r_debug *dbg = (void*) -1;
+    if (dbg == (void*) -1)
         dbg = get_r_debug();
     return dbg;
 }
@@ -176,4 +176,9 @@ plt_fn **plt_get_offset(plt_lib lib, const char *name)
     if (off)
         return (plt_fn **) (off + lib->l_addr);
     return NULL;
+}
+
+void plt_set_offset(plt_fn **offset, plt_fn *newval)
+{
+    *offset = newval;
 }
