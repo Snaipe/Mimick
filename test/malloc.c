@@ -1,3 +1,4 @@
+#undef NDEBUG
 #include <stdlib.h>
 #include <assert.h>
 #include "mimick.h"
@@ -18,7 +19,11 @@ int main (void)
 
     mmk_mock m = mmk_mock_create ("malloc", NULL, (mmk_fn) malloc_mock);
 
-    assert (malloc (4) == JUNK_PTR);
+    /* We need volatile here because GCC aggressively optimises the code
+       to always fail, since it isn't expected for malloc to return a
+       fixed value like JUNK_PTR */
+    void *volatile ptr = malloc (4);
+    assert (ptr == JUNK_PTR);
 
     mmk_mock_destroy (m);
 

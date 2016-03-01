@@ -1,0 +1,47 @@
+language: c
+compiler: gcc
+
+sudo: false
+
+addons:
+  apt:
+    packages:
+      - qemu-user
+      - gcc-multilib
+
+matrix:
+  include:
+    # x86_64
+    - env: CONFIGURATION=Debug
+    - env: CONFIGURATION=Release
+    - env: CONFIGURATION=RelWithDebInfo
+    # i386
+    - env: CONFIGURATION=Debug           ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-i686
+    - env: CONFIGURATION=Release         ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-i686
+    - env: CONFIGURATION=RelWithDebInfo  ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-i686
+
+before_install:
+  - if [ -z "${TARGET}" ]; then export TARGET=${ARCH}; fi
+
+script:
+  - mkdir -p build && cd $_
+  - |
+      if [ -n "${TOOLCHAIN}" ]; then
+        TC_FILE="../.cmake/Toolchains/Toolchain-${TOOLCHAIN}.cmake"
+        export CMAKE_OPTS="${CMAKE_OPTS} -DARCH=${ARCH}"
+        export CMAKE_OPTS="${CMAKE_OPTS} -DTARGET=${TARGET}"
+        export CMAKE_OPTS="${CMAKE_OPTS} -DSYSTEM=Linux"
+        export CMAKE_OPTS="${CMAKE_OPTS} -DCMAKE_TOOLCHAIN_FILE=${TC_FILE}"
+      fi
+  - >
+      cmake
+      -Wno-dev
+      -DCMAKE_BUILD_TYPE=${CONFIGURATION}
+      -DCMAKE_INSTALL_PREFIX=mimick-${TRAVIS_TAG}
+      ${CMAKE_OPTS}
+      ..
+  - TERM=dumb cmake --build . -- -j4
+  - |
+      if [ "${TESTS:-ON}" = "ON" ]; then
+        ctest
+      fi
