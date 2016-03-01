@@ -35,6 +35,8 @@ else ()
     endif ()
 endif ()
 
+option (USE_QEMU "Use QEMU to run the tests" OFF)
+
 check_symbol_exists(_r_debug link.h HAVE__R_DEBUG)
 check_symbol_exists(_DYNAMIC link.h HAVE__DYNAMIC)
 
@@ -43,4 +45,5 @@ add_subdirectory (src)
 
 add_library (mimick STATIC ${SOURCE_FILES})
 
+enable_testing ()
 add_subdirectory (test)
