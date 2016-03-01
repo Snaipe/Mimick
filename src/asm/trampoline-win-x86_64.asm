@@ -23,7 +23,9 @@
 ;
 .CODE
 
-extern mmk_ctx:qword
+; mmk_ctx defined as proc instead of qword to avoid
+; MASM's relative addressing bullshit
+extern mmk_ctx:proc
 
 mmk_trampoline label far
   call    next                                      ; Retrieve IP
@@ -33,7 +35,10 @@ next:
   and     rax, 0fffffffffffff000h
   push    rax
   mov     rax, qword ptr [rax]                      ; Setup mock context
-  mov     mmk_ctx, rax
+  push    rbx
+  mov     rbx, mmk_ctx
+  mov     [rbx], rax
+  pop     rbx
 
   pop     rax                                       ; Retrieve offset at
   jmp     qword ptr [rax + 8h]                      ; the start of the map
