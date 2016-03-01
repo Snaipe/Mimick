@@ -10,7 +10,7 @@
 !*.h
 !*.S
 !*.in
-!.cmake/Modules/*.cmake
+!.cmake/*/*.cmake
 
 !LICENSE
 !ChangeLog
