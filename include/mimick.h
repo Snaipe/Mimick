@@ -85,7 +85,7 @@ struct mmk_item *mmk_pop_params (void);
         MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_FIELD, Name, __VA_ARGS__)) \
     }; \
     extern struct mmk_offset Name ## _offsets_[]; \
-    static inline ReturnType Name(void *ptr, size_t size) { \
+    static inline ReturnType Name(MMK_EXPAND(MMK_PARAM_LIST(__VA_ARGS__))) { \
         struct mmk_item *it = mmk_pop_params (); \
         assert (it != NULL); \
         struct Name ## _params_ *params = mmk_cont(it, struct Name ## _params_, it_); \
@@ -107,7 +107,7 @@ struct mmk_item *mmk_pop_params (void);
         MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_FIELD, Name, __VA_ARGS__)) \
     }; \
     extern struct mmk_offset Name ## _offsets_[]; \
-    static inline void Name(void *ptr, size_t size) { \
+    static inline void Name(MMK_EXPAND(MMK_PARAM_LIST(__VA_ARGS__))) { \
         struct mmk_item *it = mmk_pop_params (); \
         assert (it != NULL); \
         struct Name ## _params_ *params = mmk_cont(it, struct Name ## _params_, it_); \
