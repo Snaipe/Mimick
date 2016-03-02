@@ -25,16 +25,11 @@
 # define MIMICK_H_
 
 # include <stdint.h>
-# include <stddef.h>
 # include <stdbool.h>
 # include <string.h>
 # include "mimick/preprocess.h"
-
-struct mmk_offset {
-    const char *name;
-    size_t offset;
-    size_t present_offset;
-};
+# include "mimick/item.h"
+# include "mimick/offset.h"
 
 typedef void (*mmk_fn)(void);
 
@@ -52,24 +47,6 @@ mmk_mock mmk_mock_create (const char *name, const char *path, struct mmk_offset 
 void mmk_mock_destroy (mmk_mock mock);
 void mmk_bind (mmk_mock mock, const char **params_str, void *params);
 
-# define mmk_field_(Type, Var, Offset) \
-    (*(Type*) ((char *) (Var) + (Offset)))
-
-static inline struct mmk_offset *mmk_offsetof (struct mmk_offset *off, const char *name, size_t len)
-{
-    for (size_t i = 0; off->name; ++i, ++off) {
-        if (!strncmp(off->name, name, len))
-            return off;
-    }
-    return NULL;
-}
-
-# define mmk_cont(Var, Type, Field) \
-    ((Type*)((char *) (Var) - offsetof (Type, Field)))
-
-struct mmk_item {
-    struct mmk_item *next;
-};
 
 struct mmk_item *mmk_pop_params (void);
 
