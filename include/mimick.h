@@ -36,11 +36,16 @@ struct mmk_offset {
     size_t present_offset;
 };
 
-typedef struct mmk_mock *mmk_mock;
-
-extern mmk_mock mmk_ctx;
-
 typedef void (*mmk_fn)(void);
+
+typedef struct mmk_mock *mmk_mock;
+typedef struct mmk_stub *mmk_stub;
+
+void *mmk_stub_context (mmk_stub stub);
+mmk_stub mmk_stub_create (const char *name, const char *path, mmk_fn fn, void *ctx);
+void mmk_stub_destroy (mmk_stub stub);
+
+extern mmk_stub mmk_ctx;
 
 void mmk_init (void);
 mmk_mock mmk_mock_create (const char *name, const char *path, struct mmk_offset *offsets, mmk_fn fn);
@@ -66,7 +71,7 @@ struct mmk_item {
     struct mmk_item *next;
 };
 
-struct mmk_item *mmk_pop_params(mmk_mock mock);
+struct mmk_item *mmk_pop_params (void);
 
 # define MMK_MK_ARG_STR_(X) #X
 # define MMK_MK_ARG_STR(_, X) MMK_MK_ARG_STR_(X),
@@ -101,7 +106,7 @@ struct mmk_item *mmk_pop_params(mmk_mock mock);
     }; \
     extern struct mmk_offset Name ## _offsets_[]; \
     static inline ReturnType Name(void *ptr, size_t size) { \
-        struct mmk_item *it = mmk_pop_params (mmk_ctx); \
+        struct mmk_item *it = mmk_pop_params (); \
         assert (it != NULL); \
         struct Name ## _params_ *params = mmk_cont(it, struct Name ## _params_, it_); \
         MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_ASSERT, params, __VA_ARGS__)) \
@@ -120,7 +125,7 @@ struct mmk_item *mmk_pop_params(mmk_mock mock);
     }; \
     extern struct mmk_offset Name ## _offsets_[]; \
     static inline void Name(void *ptr, size_t size) { \
-        struct mmk_item *it = mmk_pop_params (mmk_ctx); \
+        struct mmk_item *it = mmk_pop_params (); \
         assert (it != NULL); \
         struct Name ## _params_ *params = mmk_cont(it, struct Name ## _params_, it_); \
         MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_ASSERT, params, __VA_ARGS__)) \
