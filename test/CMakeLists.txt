@@ -12,4 +12,4 @@ function (add_mimick_test _NAME)
     endif ()
 endfunction ()
 
-add_mimick_test (malloc malloc.c)
+add_mimick_test (sample sample.c)

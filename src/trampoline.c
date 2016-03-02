@@ -26,6 +26,7 @@
 #endif
 
 #include <string.h>
+#include <assert.h>
 #include "trampoline.h"
 #define PAGE_SIZE 0x1000
 
