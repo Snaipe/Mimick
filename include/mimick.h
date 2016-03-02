@@ -47,6 +47,7 @@ mmk_mock mmk_mock_create (const char *name, const char *path, struct mmk_offset 
 void mmk_mock_destroy (mmk_mock mock);
 void mmk_bind (mmk_mock mock, const char **params_str, void *params);
 
+# define mmk_mock_create(Name, Path, Id) mmk_mock_create((Name), (Path), Id ## _offsets_, (mmk_fn) Id)
 
 struct mmk_item *mmk_pop_params (void);
 

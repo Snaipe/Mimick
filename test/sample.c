@@ -9,7 +9,7 @@ int main(void)
 {
     mmk_init ();
 
-    mmk_mock m = mmk_mock_create ("realloc", NULL, realloc_mock_offsets_, (mmk_fn) realloc_mock);
+    mmk_mock m = mmk_mock_create ("realloc", NULL, realloc_mock);
     mmk_expect (m, realloc_mock, .size = 42, .ptr = NULL);
 
     void *ptr = realloc(NULL, 42);

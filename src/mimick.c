@@ -27,6 +27,8 @@
 #include "plt.h"
 #include "trampoline.h"
 
+#undef mmk_mock_create
+
 struct mmk_stub {
     void *ctx;
     plt_fn *orig;
