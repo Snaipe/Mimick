@@ -41,6 +41,7 @@ struct mmk_mock {
     struct mmk_offset *offsets;
     struct mmk_item *params;
     struct mmk_item *cur_params;
+    long cur_params_it;
     struct mmk_stub stub;
 };
 
@@ -57,8 +58,31 @@ struct mmk_item *mmk_pop_params (void)
 {
     mmk_mock mock = mmk_stub_context (mmk_ctx);
     struct mmk_item *cur = mock->cur_params;
-    if (cur != NULL)
+    if (cur != NULL) {
+        struct mmk_offset *off = mmk_offsetof (mock->offsets, "times", 5);
+
+        // not specifiying .times is treated as .times = 1
+        if (mmk_field_ (bool, cur, off->present_offset)) {
+            long times = mmk_field_ (long, cur, off->offset);
+
+            if (times < 0)
+                return cur;
+
+            if (times > 0 && times > mock->cur_params_it) {
+                ++mock->cur_params_it;
+                return cur;
+            }
+
+            // explicitely specifiying .times = 0 skips the entry
+            if (times == 0) {
+                mock->cur_params = cur->next;
+                mock->cur_params_it = 1;
+                return mmk_pop_params ();
+            }
+        }
         mock->cur_params = cur->next;
+        mock->cur_params_it = 1;
+    }
     return cur;
 }
 

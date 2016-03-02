@@ -11,9 +11,13 @@ int main(void)
 
     mmk_mock m = mmk_mock_create ("realloc", NULL, realloc_mock);
     mmk_expect (m, realloc_mock, .size = 42, .ptr = NULL);
+    mmk_expect (m, realloc_mock, .times = 3, .returning = (void*) 0x42);
+    mmk_expect (m, realloc_mock, .times = 0, .returning = (void*) 0x43);
+    mmk_expect (m, realloc_mock, .times = 2, .returning = (void*) 0x44);
+    mmk_expect (m, realloc_mock, .times = -1, .returning = (void*) 0x10);
 
-    void *ptr = realloc(NULL, 42);
-    printf("%p\n", ptr);
+    for (int i = 0; i < 10; ++i)
+        printf("%p\n", realloc(NULL, 42));
     mmk_mock_destroy (m);
     return 0;
 }

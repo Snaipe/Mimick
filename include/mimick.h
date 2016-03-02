@@ -79,6 +79,8 @@ struct mmk_item *mmk_pop_params (void);
     struct Name ## _params_ { \
         struct mmk_item it_; \
         MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_PRESENT, _, __VA_ARGS__)) \
+        bool times_present_; \
+        long times; \
         ReturnType returning; \
         MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_FIELD, Name, __VA_ARGS__)) \
     }; \
@@ -92,6 +94,7 @@ struct mmk_item *mmk_pop_params (void);
     } \
     struct mmk_offset Name ## _offsets_[] = { \
         MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_OFFSET, Name, __VA_ARGS__)) \
+        MMK_DEF_OFFSET(Name, _, times) \
         { NULL, 0, 0 } \
     }
 
@@ -99,6 +102,8 @@ struct mmk_item *mmk_pop_params (void);
     struct Name ## _params_ { \
         struct mmk_item it_; \
         MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_PRESENT, _, __VA_ARGS__)) \
+        bool times_present_; \
+        long times; \
         MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_FIELD, Name, __VA_ARGS__)) \
     }; \
     extern struct mmk_offset Name ## _offsets_[]; \
@@ -110,6 +115,7 @@ struct mmk_item *mmk_pop_params (void);
     } \
     struct mmk_offset Name ## _offsets_[] = { \
         MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_OFFSET, Name, __VA_ARGS__)) \
+        MMK_DEF_OFFSET(Name, _, times) \
         { NULL, 0, 0 } \
     }
 
