@@ -144,6 +144,7 @@
 # define MMK_APPLY(Macro, ...) MMK_EXPAND(MMK_APPLY_(Macro, MMK_VA_NARGS(__VA_ARGS__), __VA_ARGS__))
 
 # define MMK_PAIR_APPLY_1(Macro, Prefix, ...)
+# define MMK_PAIR_APPLY_2(Macro, Prefix, ...)
 # define MMK_PAIR_APPLY_3(Macro, Prefix, First, Second, ...) Macro(Prefix, First, Second) MMK_EXPAND(MMK_PAIR_APPLY_1(Macro, Prefix, __VA_ARGS__))
 # define MMK_PAIR_APPLY_5(Macro, Prefix, First, Second, ...) Macro(Prefix, First, Second) MMK_EXPAND(MMK_PAIR_APPLY_3(Macro, Prefix, __VA_ARGS__))
 # define MMK_PAIR_APPLY_7(Macro, Prefix, First, Second, ...) Macro(Prefix, First, Second) MMK_EXPAND(MMK_PAIR_APPLY_5(Macro, Prefix, __VA_ARGS__))

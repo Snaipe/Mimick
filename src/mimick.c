@@ -27,8 +27,6 @@
 #include "plt.h"
 #include "trampoline.h"
 
-#undef mmk_mock_create
-
 struct mmk_stub {
     void *ctx;
     plt_fn *orig;
@@ -37,7 +35,6 @@ struct mmk_stub {
 };
 
 struct mmk_mock {
-    const char *name;
     struct mmk_offset *offsets;
     struct mmk_item *params;
     struct mmk_item *cur_params;
@@ -148,14 +145,23 @@ void mmk_stub_destroy (mmk_stub stub)
     free (stub);
 }
 
-mmk_mock mmk_mock_create (const char *name, const char *path, struct mmk_offset *offsets, mmk_fn fn)
+mmk_mock mmk_mock_create_internal (const char *target, struct mmk_offset *offsets, mmk_fn fn)
 {
+    char *dup = malloc (strlen(target) + 1);
+    strcpy(dup, target);
+
+    char *path = NULL;
+    char *delim = strchr(dup, '@');
+    if (delim != NULL) {
+        *delim = 0;
+        path = delim + 1;
+    }
+
     mmk_mock ctx = malloc (sizeof (struct mmk_mock));
     *ctx = (struct mmk_mock) {
-        .name = name,
         .offsets = offsets,
     };
-    mmk_stub_create_static (&ctx->stub, name, path, fn, ctx);
+    mmk_stub_create_static (&ctx->stub, dup, path, fn, ctx);
 
     return ctx;
 }
@@ -163,4 +169,5 @@ mmk_mock mmk_mock_create (const char *name, const char *path, struct mmk_offset 
 void mmk_mock_destroy (mmk_mock mock)
 {
     mmk_stub_destroy_static (&mock->stub);
+    free (mock);
 }

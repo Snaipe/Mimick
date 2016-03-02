@@ -1,3 +1,5 @@
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic -Werror")
+
 add_custom_target(mimick_tests ALL)
 
 function (add_mimick_test _NAME)

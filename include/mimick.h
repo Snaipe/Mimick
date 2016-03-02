@@ -31,92 +31,30 @@
 # include "mimick/item.h"
 # include "mimick/offset.h"
 
-typedef void (*mmk_fn)(void);
+void mmk_init (void);
 
-typedef struct mmk_mock *mmk_mock;
+/* Stub API */
+
+typedef void (*mmk_fn)(void);
 typedef struct mmk_stub *mmk_stub;
+
+extern mmk_stub mmk_ctx;
 
 void *mmk_stub_context (mmk_stub stub);
 mmk_stub mmk_stub_create (const char *name, const char *path, mmk_fn fn, void *ctx);
 void mmk_stub_destroy (mmk_stub stub);
 
-extern mmk_stub mmk_ctx;
+/* Mock API */
 
-void mmk_init (void);
-mmk_mock mmk_mock_create (const char *name, const char *path, struct mmk_offset *offsets, mmk_fn fn);
+typedef struct mmk_mock *mmk_mock;
+
+# define mmk_mock_create(Target, Id) <internal>
+# define mmk_mock_define(Id, ReturnType, ...) <internal>
+# define mmk_mock_define_void(Id, ReturnType, ...) <internal>
+# define mmk_expect(Id, Mock, ...) <internal>
+
 void mmk_mock_destroy (mmk_mock mock);
-void mmk_bind (mmk_mock mock, const char **params_str, void *params);
 
-# define mmk_mock_create(Name, Path, Id) mmk_mock_create((Name), (Path), Id ## _offsets_, (mmk_fn) Id)
-
-struct mmk_item *mmk_pop_params (void);
-
-# define MMK_MK_ARG_STR_(X) #X
-# define MMK_MK_ARG_STR(_, X) MMK_MK_ARG_STR_(X),
-
-# define mmk_expect(Mock, Name, ...) mmk_bind((Mock),                        \
-        (const char *[]) { MMK_APPLY(MMK_MK_ARG_STR, _, __VA_ARGS__) NULL }, \
-        &(struct Name ## _params_) { __VA_ARGS__ }                           \
-    )
-
-# define MMK_DEF_PRESENT_(X) bool X ## _present_;
-# define MMK_DEF_PRESENT(_, T, X) MMK_DEF_PRESENT_(X)
-
-# define MMK_DEF_FIELD_(T, X) T X;
-# define MMK_DEF_FIELD(_, T, X) MMK_DEF_FIELD_(T, X)
-
-# define MMK_DEF_OFFSET_(Name, T, X) { \
-        #X, \
-        offsetof (struct Name ## _params_, X), \
-        offsetof (struct Name ## _params_, X ## _present_) \
-    },
-# define MMK_DEF_OFFSET(Name, T, X) MMK_DEF_OFFSET_(Name, T, X)
-
-# define MMK_DEF_ASSERT_(Var, X) if ((Var)->X ## _present_) assert (X == (Var)->X);
-# define MMK_DEF_ASSERT(Var, T, X) MMK_DEF_ASSERT_(Var, X)
-
-# define mmk_mock_define(Name, ReturnType, ...) \
-    struct Name ## _params_ { \
-        struct mmk_item it_; \
-        MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_PRESENT, _, __VA_ARGS__)) \
-        bool times_present_; \
-        long times; \
-        ReturnType returning; \
-        MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_FIELD, Name, __VA_ARGS__)) \
-    }; \
-    extern struct mmk_offset Name ## _offsets_[]; \
-    static inline ReturnType Name(MMK_EXPAND(MMK_PARAM_LIST(__VA_ARGS__))) { \
-        struct mmk_item *it = mmk_pop_params (); \
-        assert (it != NULL); \
-        struct Name ## _params_ *params = mmk_cont(it, struct Name ## _params_, it_); \
-        MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_ASSERT, params, __VA_ARGS__)) \
-        return params->returning; \
-    } \
-    struct mmk_offset Name ## _offsets_[] = { \
-        MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_OFFSET, Name, __VA_ARGS__)) \
-        MMK_DEF_OFFSET(Name, _, times) \
-        { NULL, 0, 0 } \
-    }
-
-# define mmk_mock_define_void(Name, ...) \
-    struct Name ## _params_ { \
-        struct mmk_item it_; \
-        MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_PRESENT, _, __VA_ARGS__)) \
-        bool times_present_; \
-        long times; \
-        MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_FIELD, Name, __VA_ARGS__)) \
-    }; \
-    extern struct mmk_offset Name ## _offsets_[]; \
-    static inline void Name(MMK_EXPAND(MMK_PARAM_LIST(__VA_ARGS__))) { \
-        struct mmk_item *it = mmk_pop_params (); \
-        assert (it != NULL); \
-        struct Name ## _params_ *params = mmk_cont(it, struct Name ## _params_, it_); \
-        MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_ASSERT, params, __VA_ARGS__)) \
-    } \
-    struct mmk_offset Name ## _offsets_[] = { \
-        MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_OFFSET, Name, __VA_ARGS__)) \
-        MMK_DEF_OFFSET(Name, _, times) \
-        { NULL, 0, 0 } \
-    }
+# include "mimick/mock.h"
 
 #endif /* !MIMICK_H_ */
