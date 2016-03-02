@@ -29,6 +29,8 @@
 
 struct mmk_stub {
     void *ctx;
+    char *name;
+    char *path;
     plt_fn *orig;
     plt_fn **offset;
     plt_fn *trampoline;
@@ -109,8 +111,18 @@ void *mmk_stub_context (mmk_stub stub)
     return stub->ctx;
 }
 
-void mmk_stub_create_static (mmk_stub stub, const char *name, const char *path, mmk_fn fn, void *ctx)
+void mmk_stub_create_static (mmk_stub stub, const char *target, mmk_fn fn, void *ctx)
 {
+    char *name = malloc (strlen(target) + 1);
+    strcpy(name, target);
+
+    char *path = NULL;
+    char *delim = strchr(name, '@');
+    if (delim != NULL) {
+        *delim = 0;
+        path = delim + 1;
+    }
+
     plt_lib self = plt_get_lib(plt, path);
     assert(self != NULL);
 
@@ -119,6 +131,8 @@ void mmk_stub_create_static (mmk_stub stub, const char *name, const char *path, 
 
     *stub = (struct mmk_stub) {
         .ctx = ctx,
+        .name = name,
+        .path = path,
         .orig = *off,
         .offset = off,
     };
@@ -126,10 +140,10 @@ void mmk_stub_create_static (mmk_stub stub, const char *name, const char *path, 
     plt_set_offset(off, stub->trampoline);
 }
 
-mmk_stub mmk_stub_create (const char *name, const char *path, mmk_fn fn, void *ctx)
+mmk_stub mmk_stub_create (const char *target, mmk_fn fn, void *ctx)
 {
     mmk_stub stub = malloc (sizeof (struct mmk_stub));
-    mmk_stub_create_static (stub, name, path, fn, ctx);
+    mmk_stub_create_static (stub, target, fn, ctx);
     return stub;
 }
 
@@ -137,6 +151,7 @@ void mmk_stub_destroy_static (mmk_stub stub)
 {
     plt_set_offset (stub->offset, stub->orig);
     destroy_trampoline (stub->trampoline);
+    free (stub->name);
 }
 
 void mmk_stub_destroy (mmk_stub stub)
@@ -147,22 +162,11 @@ void mmk_stub_destroy (mmk_stub stub)
 
 mmk_mock mmk_mock_create_internal (const char *target, struct mmk_offset *offsets, mmk_fn fn)
 {
-    char *dup = malloc (strlen(target) + 1);
-    strcpy(dup, target);
-
-    char *path = NULL;
-    char *delim = strchr(dup, '@');
-    if (delim != NULL) {
-        *delim = 0;
-        path = delim + 1;
-    }
-
     mmk_mock ctx = malloc (sizeof (struct mmk_mock));
     *ctx = (struct mmk_mock) {
         .offsets = offsets,
     };
-    mmk_stub_create_static (&ctx->stub, dup, path, fn, ctx);
-
+    mmk_stub_create_static (&ctx->stub, target, fn, ctx);
     return ctx;
 }
 
