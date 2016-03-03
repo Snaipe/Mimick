@@ -24,6 +24,9 @@
 #ifndef MIMICK_MOCK_H_
 # define MIMICK_MOCK_H_
 
+# include <stdlib.h>
+# include <stdio.h>
+
 # undef mmk_mock_create
 # define mmk_mock_create(Target, Id) mmk_mock_create_internal((Target), Id ## _offsets_, (mmk_fn) Id)
 
