@@ -27,6 +27,52 @@
 # undef mmk_mock_create
 # define mmk_mock_create(Target, Id) mmk_mock_create_internal((Target), Id ## _offsets_, (mmk_fn) Id)
 
+# ifndef MMK_ASSERT_FAILED
+#  if defined MMK_DEFAULT_ASSERT_FORMAT && __STDC_VERSION__ >= 201100L
+
+#   define MMK_ASSERT_FORMAT(Name) _Generic((Name), \
+        char: "%c", \
+        signed char: "%hhd", \
+        unsigned char: "%hhu", \
+        short: "%hd", \
+        unsigned short: "%hu", \
+        int: "%d", \
+        unsigned: "%u", \
+        long: "%ld", \
+        unsigned long: "%lu", \
+        long long: "%lld", \
+        unsigned long long: "%llu", \
+        float: "%f", \
+        double: "%f", \
+        long double: "%f", \
+        char *: "%s", \
+        const char *: "%s", \
+        void *: "%p", \
+        const void *: "%p", \
+        default: "%p" \
+    )
+
+#   define MMK_ASSERT_FAILED(Name, Actual, Expected) do {                      \
+        char fmt[128];                                                         \
+        snprintf(fmt, sizeof (fmt) - 1, "%%s:%%d: "                            \
+                "Assertion failed in '%%s': expected field '%%s' to be %s"     \
+                ", got %s instead.\n",                                         \
+                MMK_ASSERT_FORMAT(Actual),                                     \
+                MMK_ASSERT_FORMAT(Expected));                                  \
+        fmt[127] = 0;                                                          \
+        fprintf(stderr, fmt, __FILE__, __LINE__, #Name, #Actual,               \
+                Actual, Expected);                                             \
+        abort();                                                               \
+    } while (0)
+#  else
+#   define MMK_ASSERT_FAILED(Name, Actual, Expected) do {                      \
+        fprintf(stderr, "%s:%d: Assertion failed in '%s': unexpected value "   \
+                "for field '%s'.\n", __FILE__, __LINE__, #Name, #Actual);      \
+        abort();                                                               \
+    } while (0)
+#  endif
+# endif
+
 # define MMK_MK_ARG_STR_(X) #X
 # define MMK_MK_ARG_STR(_, X) MMK_MK_ARG_STR_(X),
 
@@ -52,8 +98,14 @@
     },
 # define MMK_DEF_OFFSET(Name, T, X) MMK_DEF_OFFSET_(Name, T, X)
 
-# define MMK_DEF_ASSERT_(Var, X) if ((Var)->X ## _present_) assert (X == (Var)->X);
-# define MMK_DEF_ASSERT(Var, T, X) MMK_DEF_ASSERT_(Var, X)
+# define MMK_DEF_ASSERT_(Name, X) \
+    if (params->X ## _present_) { \
+        (void) X; \
+        if (X != params->X) { \
+            MMK_ASSERT_FAILED(Name, X, params->X); \
+        } \
+    }
+# define MMK_DEF_ASSERT(Name, T, X) MMK_DEF_ASSERT_(Name, X)
 
 # undef mmk_mock_define
 # define mmk_mock_define(Name, ...) \
@@ -70,7 +122,7 @@
         struct mmk_item *it = mmk_pop_params (); \
         assert (it != NULL); \
         struct MMK_MANGLE(Name, params) *params = mmk_cont(it, struct MMK_MANGLE(Name, params), it_); \
-        MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_ASSERT, params, MMK_VA_TAIL(__VA_ARGS__))) \
+        MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_ASSERT, Name, MMK_VA_TAIL(__VA_ARGS__))) \
         return params->returning; \
     } \
     struct mmk_offset MMK_MANGLE(Name, offsets)[] = { \
@@ -94,7 +146,7 @@
         assert (it != NULL); \
         struct MMK_MANGLE(MMK_VA_HEAD(__VA_ARGS__), params) *params = mmk_cont(it, struct MMK_MANGLE(MMK_VA_HEAD(__VA_ARGS__), params), it_); \
         (void) params; \
-        MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_ASSERT, params, MMK_VA_TAIL(__VA_ARGS__))) \
+        MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_ASSERT, MMK_VA_HEAD(__VA_ARGS__), MMK_VA_TAIL(__VA_ARGS__))) \
     } \
     struct mmk_offset MMK_MANGLE(MMK_VA_HEAD(__VA_ARGS__), offsets)[] = { \
         MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_OFFSET, MMK_VA_HEAD(__VA_ARGS__), MMK_VA_TAIL(__VA_ARGS__))) \
