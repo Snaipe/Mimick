@@ -57,6 +57,16 @@ static void *lib_dt_lookup(plt_lib lib, ElfW(Sxword) tag)
     return NULL;
 }
 
+static ElfWord lib_dt_lookup_val(plt_lib lib, ElfW(Sxword) tag)
+{
+    for (ElfW(Dyn) *dyn = lib->l_ld; dyn->d_tag != DT_NULL; ++dyn) {
+        if (dyn->d_tag == tag) {
+            return dyn->d_un.d_val;
+        }
+    }
+    return 0;
+}
+
 static ElfW(Addr) get_auxval(ElfW(auxv_t) *auxv, ElfW(Off) tag)
 {
     for (; auxv->a_type != AT_NULL; auxv++) {
@@ -157,11 +167,11 @@ plt_fn **plt_get_offset(plt_lib lib, const char *name)
 {
     ElfW(Sym) *symtab   = (ElfW(Sym)*)  lib_dt_lookup(lib, DT_SYMTAB);
     const char *strtab  = (const char*) lib_dt_lookup(lib, DT_STRTAB);
-    ElfSWord type = (ElfSWord) lib_dt_lookup(lib, DT_PLTREL);
+    ElfSWord type = (ElfSWord) lib_dt_lookup_val(lib, DT_PLTREL);
 
     ElfW(Rel)   *rel = lib_dt_lookup(lib, DT_JMPREL);
-    ElfWord rel_sz = (ElfWord) lib_dt_lookup(lib, DT_PLTRELSZ);
-    ElfWord relent_sz = (ElfWord) lib_dt_lookup(lib, type + 2);
+    ElfWord rel_sz = lib_dt_lookup_val(lib, DT_PLTRELSZ);
+    ElfWord relent_sz = lib_dt_lookup_val(lib, type + 2);
 
     if (!symtab || !strtab || !type || !rel || !rel_sz || !relent_sz)
         return NULL;
