@@ -41,91 +41,26 @@ void *mmk_mock_params_next(mmk_mock mock, void *prev);
 # undef mmk_mock_create
 # define mmk_mock_create(Target, Id) mmk_mock_create_internal((Target), (mmk_fn) MMK_MANGLE(Id, stub))
 
-# define MMK_ASSERT(Cond, Id, Name, Actual, Expected) do { \
-        if (!(Cond)) \
-            MMK_ASSERT_FAILED(Id, Name, Actual, Expected); \
-    } while (0)
-
-# ifndef MMK_ASSERT_FAILED
-#  if defined MMK_DEFAULT_ASSERT_FORMAT && __STDC_VERSION__ >= 201100L
-
-#   define MMK_ASSERT_FORMAT(Name) _Generic((Name), \
-        char: "%c", \
-        signed char: "%hhd", \
-        unsigned char: "%hhu", \
-        short: "%hd", \
-        unsigned short: "%hu", \
-        int: "%d", \
-        unsigned: "%u", \
-        long: "%ld", \
-        unsigned long: "%lu", \
-        long long: "%lld", \
-        unsigned long long: "%llu", \
-        float: "%f", \
-        double: "%f", \
-        long double: "%f", \
-        char *: "%s", \
-        const char *: "%s", \
-        void *: "%p", \
-        const void *: "%p", \
-        default: "%p" \
-    )
-
-#   define MMK_ASSERT_FAILED(Id, Name, Actual, Expected) do {                  \
-        char fmt[128];                                                         \
-        snprintf(fmt, sizeof (fmt) - 1, "%%s:%%d: "                            \
-                "Assertion failed in '%%s': expected field '%%s' to be %s"     \
-                ", got %s instead.\n",                                         \
-                MMK_ASSERT_FORMAT(Actual),                                     \
-                MMK_ASSERT_FORMAT(Expected));                                  \
-        fmt[127] = 0;                                                          \
-        fprintf(stderr, fmt, __FILE__, __LINE__, #Id, Name,                    \
-                Actual, Expected);                                             \
-        abort();                                                               \
-    } while (0)
-#  else
-#   define MMK_ASSERT_FAILED(Id, Name, Actual, Expected) do {                  \
-        fprintf(stderr, "%s:%d: Assertion failed in '%s': unexpected value "   \
-                "for field '%s'.\n", __FILE__, __LINE__, #Id, Name);           \
-        abort();                                                               \
-    } while (0)
-#  endif
-# endif
+/* We use the macro naming convention so it can actually be overriden by a
+   macro. */
+static inline void MMK_VERIFY_FAILED(const char *id, const char *param_str)
+{
+    fprintf(stderr, "%s:%d: Assertion failed in mock '%s': there were no "
+            "interaction matching '%s'.\n", __FILE__, __LINE__,
+            id, param_str);
+    abort();
+}
 
 # define MMK_MK_ARG_STR(_, X) #X,
 
 # define MMK_MANGLE_(Id, Name) mmkuser_ ## Id ## _ ## Name
 # define MMK_MANGLE(Id, Name) MMK_MANGLE_(Id, Name)
 
-# undef mmk_verify
-# define mmk_verify(Id, Mock, ...) mmk_bind((Mock),                          \
-        (const char *[]) { MMK_APPLY(MMK_MK_ARG_STR, _, __VA_ARGS__) NULL }, \
-        &(struct MMK_MANGLE(Id, verify_params)) { __VA_ARGS__ }              \
-    )
-
-# define MMK_DEF_VERIFY_PRESENT_(X) bool X ## _present_;
-# define MMK_DEF_VERIFY_PRESENT(_, T, X) MMK_DEF_VERIFY_PRESENT_(X)
-
 # define MMK_DEF_VERIFY_FIELD_(T, X) T that_ ## X;
 # define MMK_DEF_VERIFY_FIELD(_, T, X) MMK_DEF_VERIFY_FIELD_(T, X)
 
 # define MMK_DEF_VERIFY_PARAM_(X) .that_ ## X = X,
 # define MMK_DEF_VERIFY_PARAM(_, T, X) MMK_DEF_VERIFY_PARAM_(X)
-
-# define MMK_DEF_OFFSET_(Name, T, X) { \
-        #X, \
-        offsetof (struct MMK_MANGLE(Name, verify_params), that_ ## X), \
-    },
-# define MMK_DEF_OFFSET(Name, T, X) MMK_DEF_OFFSET_(Name, T, X)
-
-# define MMK_DEF_ASSERT_(Name, X) \
-    if (params->X ## _present_) { \
-        (void) X; \
-        if (X != params->X) { \
-            MMK_ASSERT_FAILED(Name, X, params->X); \
-        } \
-    }
-# define MMK_DEF_ASSERT(Name, T, X) MMK_DEF_ASSERT_(Name, X)
 
 # define MMK_TRYMATCH(Name, Type, Param) do { \
         if (markmask & 1) { \
@@ -225,8 +160,10 @@ void *mmk_mock_params_next(mmk_mock mock, void *prev);
         unsigned int markmask = (unsigned int) m->kind;                        \
         MMK_PAIR_APPLY(MMK_MARK_BITS, Id, MMK_VA_TAIL(__VA_ARGS__))            \
     }                                                                          \
-    void MMK_MANGLE(Id, verify)(                                               \
-        mmk_mock mock, struct MMK_MANGLE(Id, verify_params) *ref)              \
+    int MMK_MANGLE(Id, verify)(                                                \
+        mmk_mock mock,                                                         \
+        struct MMK_MANGLE(Id, verify_params) *ref,                             \
+        const char *params)                                                    \
     {                                                                          \
         struct mmk_matcher *matcher_ctx = mmk_matcher_ctx();                   \
         size_t times = ref->times;                                             \
@@ -242,7 +179,11 @@ void *mmk_mock_params_next(mmk_mock mock, void *prev);
     fail:                                                                      \
             continue;                                                          \
         }                                                                      \
-        mmk_assert (times == 0);                                               \
+        mmk_matcher_term();                                                    \
+        if (times != 0) {                                                      \
+            MMK_VERIFY_FAILED(#Id, params);                                    \
+        }                                                                      \
+        return times == 0;                                                     \
     }                                                                          \
     MMK_MANGLE(Id, returntype) MMK_MANGLE(Id, stub)(                           \
         MMK_EXPAND(MMK_PARAM_LIST(MMK_VA_TAIL(__VA_ARGS__))))                  \
@@ -272,14 +213,12 @@ void mmk_when_impl (mmk_mock mock, struct mmk_params *params);
 # define mmk_when(Instance, Id, CallExpr, ...) \
         (mmk_matcher_init(__COUNTER__, &(struct mmk_matcher) { 0 }, #CallExpr), \
         mmkuser_ ## Id ## _ ## CallExpr, \
-        mmk_when_impl((Instance), (struct mmk_params *) &(struct mmkuser_ ## Id ## _params) { .result = { __VA_ARGS__ } }), \
-        mmk_matcher_term())
+        mmk_when_impl((Instance), (struct mmk_params *) &(struct mmkuser_ ## Id ## _params) { .result = { __VA_ARGS__ } }))
 
 # undef mmk_verify
 # define mmk_verify(Instance, Id, ...) \
         (mmk_matcher_init_verify(&(struct mmk_matcher) { 0 }, MMK_MANGLE(Id, verify_order), (char *[]) { MMK_APPLY(MMK_MK_ARG_STR, _, __VA_ARGS__) NULL }), \
-        MMK_MANGLE(Id, verify)((Instance), &(struct MMK_MANGLE(Id, verify_params)) { __VA_ARGS__ }), \
-        mmk_matcher_term())
+        MMK_MANGLE(Id, verify)((Instance), &(struct MMK_MANGLE(Id, verify_params)) { __VA_ARGS__ }, #__VA_ARGS__))
 
 mmk_mock mmk_mock_create_internal (const char *target, mmk_fn fn);
 struct mmk_item *mmk_pop_params (void);

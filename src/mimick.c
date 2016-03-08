@@ -68,6 +68,7 @@ void mmk_when_impl (mmk_mock mock, struct mmk_params *params)
     params->matcher_ctx = mmk_matcher_ctx();
     params->next = mock->params;
     mock->params = params;
+    mmk_matcher_term ();
 }
 
 struct mmk_params *mmk_mock_get_params(void)
