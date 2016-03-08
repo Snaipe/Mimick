@@ -142,8 +142,14 @@ plt_lib plt_get_lib(plt_ctx ctx, const char *name)
             if (strstr(lm->l_name, "/libc.so")
              || strstr(lm->l_name, "/musl.so"))
                 return lm;
-        } else if (!strcmp(name, lm->l_name)) {
-            return lm;
+        } else {
+            if (*name != '/') {
+                char *start = strrchr(lm->l_name, '/');
+                if (start && strstr(start + 1, name))
+                    return lm;
+            }
+            if (!strcmp(name, lm->l_name))
+                return lm;
         }
     }
     return NULL;
