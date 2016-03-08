@@ -48,7 +48,10 @@ static void *lib_dt_lookup(plt_lib lib, ElfW(Sxword) tag)
     for (ElfW(Dyn) *dyn = lib->l_ld; dyn->d_tag != DT_NULL; ++dyn) {
         if (dyn->d_tag == tag) {
             if (dyn->d_un.d_ptr >= lib->l_addr
-                    && ((ElfSWord) dyn->d_un.d_ptr) >= 0)
+#if MMK_BITS == 64
+                    && ((ElfSWord) dyn->d_un.d_ptr) >= 0
+#endif
+                    )
                 return (void*) dyn->d_un.d_ptr;
             else
                 return (char*) lib->l_addr + dyn->d_un.d_ptr;
