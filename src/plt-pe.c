@@ -24,7 +24,7 @@
 #include "assert.h"
 #include <stdint.h>
 
-#include "plt-pe.h"
+#include "plt.h"
 #include <tlhelp32.h>
 
 #define IDIR_IMPORT 1 // Index of the import directory entry
@@ -33,10 +33,54 @@ plt_ctx plt_init_ctx (void) {
     return NULL;
 }
 
+static plt_fn **plt_find_offset (const char *name, plt_lib *lib)
+{
+    HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,
+            GetCurrentProcessId());
+    mmk_assert (snap != INVALID_HANDLE_VALUE);
+
+    MODULEENTRY32 mod;
+    for (BOOL more = Module32First(snap, &mod); more;
+            more = Module32Next(snap, &mod))
+    {
+        plt_fn **fn = plt_get_offset (mod.hModule, name);
+        if (fn) {
+            if (lib)
+                *lib = mod.hModule;
+            return fn;
+        }
+    }
+    mmk_assert (GetLastError() == ERROR_NO_MORE_FILES);
+    return NULL;
+}
+
 plt_lib plt_get_lib (plt_ctx ctx, const char *name)
 {
     (void) ctx;
-    return GetModuleHandle(name);
+    if (!name)
+        name = "self";
+
+    if (!strcmp(name, "self"))
+        return GetModuleHandle(NULL);
+
+    if (!strncmp(name, "file:", 5) || !strncmp(name, "lib:", 4))
+        return GetModuleHandle(name + 5);
+    else if (strncmp(name, "sym:", 4)) {
+        plt_lib lib;
+        plt_fn **fn = plt_find_offset (name + 4, &lib);
+        if (fn)
+            return lib;
+        return NULL;
+    } else {
+        char *end_sel = strchr(name, ':');
+        if (end_sel) {
+            size_t len = (size_t) (end_sel - name + 1);
+            fprintf(stderr, "mimick: unknown '%.*s' selector.\n", (int) len, name);
+        } else {
+            fprintf(stderr, "mimick: unknown target kind '%s'.\n", name);
+        }
+    }
+    abort ();
 }
 
 static inline PIMAGE_NT_HEADERS nt_header_from_lib (plt_lib lib)
@@ -86,19 +130,8 @@ void plt_set_offset(plt_fn **offset, plt_fn *newval)
 plt_fn *plt_get_real_fn(plt_ctx ctx, const char *name)
 {
     (void) ctx;
-
-    HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,
-            GetCurrentProcessId());
-    mmk_assert (snap != INVALID_HANDLE_VALUE);
-
-    MODULEENTRY32 mod;
-    for (BOOL more = Module32First(snap, &mod); more;
-            more = Module32Next(snap, &mod))
-    {
-        plt_fn **fn = plt_get_offset (mod.hModule, name);
-        if (fn)
-            return *fn;
-    }
-    mmk_assert (GetLastError() == ERROR_NO_MORE_FILES);
+    plt_fn **fn = plt_find_offset (name + 4, NULL);
+    if (fn)
+        return *fn;
     return NULL;
 }

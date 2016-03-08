@@ -136,22 +136,56 @@ plt_ctx plt_init_ctx(void)
 plt_lib plt_get_lib(plt_ctx ctx, const char *name)
 {
     if (!name)
-        name = "";
+        name = "self";
 
-    int libc = !strcmp(name, "libc");
+    enum selector {
+        NONE, LIB, FILE, SYM
+    };
+
+    enum selector sel = NONE;
+    if (!strncmp(name, "lib:", 4))
+        sel = LIB;
+    else if (!strncmp(name, "file:", 5))
+        sel = FILE;
+    else if (!strncmp(name, "sym:", 5))
+        sel = SYM;
+    else if (!strcmp(name, "self"))
+        name = "";
+    else {
+
+        char *end_sel = strchr(name, ':');
+        if (end_sel) {
+            size_t len = (size_t) (end_sel - name + 1);
+            fprintf(stderr, "mimick: unknown '%.*s' selector.\n", (int) len, name);
+        } else {
+            fprintf(stderr, "mimick: unknown target kind '%s'.\n", name);
+        }
+        abort ();
+    }
+
+    const char *val = sel == NONE ? name : strchr(name, ':') + 1;
+    size_t val_len = strlen(val);
+    int libc = !strcmp(val, "c");
 
     for (struct link_map *lm = ctx->r_map; lm != NULL; lm = lm->l_next) {
-        if (libc) {
-            if (strstr(lm->l_name, "/libc.so")
-             || strstr(lm->l_name, "/musl.so"))
-                return lm;
-        } else {
-            if (*name != '/') {
-                char *start = strrchr(lm->l_name, '/');
-                if (start && strstr(start + 1, name))
+        if (sel == LIB) {
+            if (libc) {
+                if (strstr(lm->l_name, "/libc.so")
+                 || strstr(lm->l_name, "/musl.so"))
+                    return lm;
+            } else {
+                size_t len = val_len + 8;
+                char pattern[len];
+                snprintf(pattern, len, "/lib%s.so", val);
+                if (strstr(lm->l_name, pattern))
                     return lm;
             }
+        } else if (sel == NONE || sel == FILE) {
             if (!strcmp(name, lm->l_name))
+                return lm;
+        } else if (sel == SYM) {
+            plt_fn **sym = plt_get_offset(lm, val);
+            if (sym)
                 return lm;
         }
     }
