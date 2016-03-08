@@ -153,14 +153,14 @@ static inline void MMK_VERIFY_FAILED(const char *id, const char *param_str)
         MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_ORDER, Id, MMK_VA_TAIL(__VA_ARGS__)))\
         NULL                                                                   \
     };                                                                         \
-    void MMK_MANGLE(Id, with)(                                                 \
+    static void MMK_MANGLE(Id, with)(                                          \
         MMK_EXPAND(MMK_PARAM_LIST(MMK_VA_TAIL(__VA_ARGS__))))                  \
     {                                                                          \
         struct mmk_matcher *m = mmk_matcher_ctx();                             \
         unsigned int markmask = (unsigned int) m->kind;                        \
         MMK_PAIR_APPLY(MMK_MARK_BITS, Id, MMK_VA_TAIL(__VA_ARGS__))            \
     }                                                                          \
-    int MMK_MANGLE(Id, verify)(                                                \
+    static int MMK_MANGLE(Id, verify)(                                         \
         mmk_mock mock,                                                         \
         struct MMK_MANGLE(Id, verify_params) *ref,                             \
         const char *params)                                                    \
@@ -185,7 +185,7 @@ static inline void MMK_VERIFY_FAILED(const char *id, const char *param_str)
         }                                                                      \
         return times == 0;                                                     \
     }                                                                          \
-    MMK_MANGLE(Id, returntype) MMK_MANGLE(Id, stub)(                           \
+    static MMK_MANGLE(Id, returntype) MMK_MANGLE(Id, stub)(                    \
         MMK_EXPAND(MMK_PARAM_LIST(MMK_VA_TAIL(__VA_ARGS__))))                  \
     {                                                                          \
         mmk_verify_register_call (&(struct MMK_MANGLE(Id, verify_params)) {    \
