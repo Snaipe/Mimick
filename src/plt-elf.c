@@ -23,7 +23,7 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
-#include <assert.h>
+#include "assert.h"
 #include <string.h>
 #include "plt-elf.h"
 #include "trampoline.h"

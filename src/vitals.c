@@ -1,4 +1,4 @@
-#include <assert.h>
+#include "assert.h"
 #include "vitals.h"
 
 void *(*mmk_malloc)(size_t);
@@ -45,7 +45,7 @@ int mmk_isspace(int c)
 
 void mmk_init_vital_functions (plt_ctx ctx)
 {
-    assert (mmk_malloc  = (void *) plt_get_real_fn(ctx, "malloc"));
-    assert (mmk_realloc = (void *) plt_get_real_fn(ctx, "realloc"));
-    assert (mmk_free    = (void *) plt_get_real_fn(ctx, "free"));
+    mmk_assert (mmk_malloc  = (void *) plt_get_real_fn(ctx, "malloc"));
+    mmk_assert (mmk_realloc = (void *) plt_get_real_fn(ctx, "realloc"));
+    mmk_assert (mmk_free    = (void *) plt_get_real_fn(ctx, "free"));
 }

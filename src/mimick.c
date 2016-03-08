@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 #include <stdlib.h>
-#include <assert.h>
+#include "assert.h"
 #include "mimick.h"
 #include "plt.h"
 #include "trampoline.h"
@@ -53,7 +53,7 @@ static struct {
 void mmk_init (void)
 {
     self.plt = plt_init_ctx();
-    assert(self.plt != (void*) -1);
+    mmk_assert (self.plt != (void*) -1);
 
     mmk_init_vital_functions (self.plt);
 }
@@ -90,10 +90,10 @@ void mmk_stub_create_static (mmk_stub stub, const char *target, mmk_fn fn, void 
     }
 
     plt_lib lib = plt_get_lib(self.plt, path);
-    assert(lib != NULL);
+    mmk_assert (lib != NULL);
 
     plt_fn **off = plt_get_offset(lib, name);
-    assert (off != NULL);
+    mmk_assert (off != NULL);
 
     *stub = (struct mmk_stub) {
         .ctx = ctx,
@@ -129,7 +129,7 @@ void mmk_stub_destroy (mmk_stub stub)
 mmk_mock mmk_mock_create_internal (const char *target, mmk_fn fn)
 {
     mmk_mock ctx = mmk_malloc (sizeof (struct mmk_mock));
-    assert(ctx);
+    mmk_assert (ctx);
     *ctx = (struct mmk_mock) {
         .params = NULL,
     };
@@ -183,7 +183,7 @@ void mmk_verify_register_call (void *params, size_t size)
     mmk_mock mock = mmk_stub_context (mmk_ctx);
     if (!mock->call_data) {
         mock->call_data = mmk_malloc (4096);
-        assert (mock->call_data);
+        mmk_assert (mock->call_data);
         mock->call_data_size = 4096;
     }
 
@@ -195,7 +195,7 @@ void mmk_verify_register_call (void *params, size_t size)
             mock->call_data_size += 4096;
         }
         mock->call_data = mmk_realloc (mock->call_data, mock->call_data_size);
-        assert (mock->call_data);
+        mmk_assert (mock->call_data);
     }
 
     mmk_memcpy(mock->call_data + mock->call_data_top, &size, sizeof (size_t));

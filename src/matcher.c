@@ -23,7 +23,7 @@
  */
 #include <stddef.h>
 #include <stdint.h>
-#include <assert.h>
+#include "assert.h"
 #include "mimick/matcher.h"
 #include "vitals.h"
 
@@ -152,7 +152,7 @@ void mmk_matcher_init_verify(struct mmk_matcher *ctx, const char **order, char *
         char *end = mmk_matcher_findspace(start);
         int submask = 1 << mmk_matcher_get_offset(order, start, end);
         start = mmk_matcher_skipspace(end);
-        assert(*start == '=');
+        mmk_assert (*start == '=');
         start = mmk_matcher_skipspace(start + 1);
 
         if (mmk_strneq(start, "(mmk_", 5))

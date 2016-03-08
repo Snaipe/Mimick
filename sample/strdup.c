@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 #include <mimick.h>
 #include <errno.h>
+#include "assert.h"
 
 mmk_mock_define (malloc, void *, size_t, size);
 

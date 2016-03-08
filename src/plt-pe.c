@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <assert.h>
+#include "assert.h"
 #include <stdint.h>
 
 #include "plt-pe.h"
@@ -49,7 +49,7 @@ static inline PIMAGE_IMPORT_DESCRIPTOR get_first_import_descriptor (plt_lib lib)
 {
     PIMAGE_NT_HEADERS nthdr = nt_header_from_lib (lib);
     DWORD off = nthdr->OptionalHeader.DataDirectory[IDIR_IMPORT].VirtualAddress;
-    assert (off != 0);
+    mmk_assert (off != 0);
     return (PIMAGE_IMPORT_DESCRIPTOR) ((char *) lib + off);
 }
 
@@ -89,7 +89,7 @@ plt_fn *plt_get_real_fn(plt_ctx ctx, const char *name)
 
     HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,
             GetCurrentProcessId());
-    assert(snap != INVALID_HANDLE_VALUE);
+    mmk_assert (snap != INVALID_HANDLE_VALUE);
 
     MODULEENTRY32 mod;
     for (BOOL more = Module32First(snap, &mod); more;
@@ -99,6 +99,6 @@ plt_fn *plt_get_real_fn(plt_ctx ctx, const char *name)
         if (fn)
             return *fn;
     }
-    assert(GetLastError() == ERROR_NO_MORE_FILES);
+    mmk_assert (GetLastError() == ERROR_NO_MORE_FILES);
     return NULL;
 }
