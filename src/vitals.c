@@ -45,6 +45,9 @@ int mmk_isspace(int c)
 
 void mmk_init_vital_functions (plt_ctx ctx)
 {
+    /* Fetch the following function into our own plt */
+    free (realloc (malloc (0), 0));
+
     mmk_assert (mmk_malloc  = (void *) plt_get_real_fn(ctx, "malloc"));
     mmk_assert (mmk_realloc = (void *) plt_get_real_fn(ctx, "realloc"));
     mmk_assert (mmk_free    = (void *) plt_get_real_fn(ctx, "free"));
