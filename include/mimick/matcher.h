@@ -56,7 +56,7 @@ struct mmk_matcher {
 # define mmk_gt(Type, Val)  mmk_matcher_val_(MMK_MATCHER_GT, Type, Val)
 # define mmk_geq(Type, Val) mmk_matcher_val_(MMK_MATCHER_GEQ, Type, Val)
 
-# define mmk_that(Predicate) ((struct mmk_matcher *) &(struct { struct mmk_matcher matcher; void *val; }) { .val = (void *) Predicate })
+# define mmk_that(Predicate) ((struct mmk_matcher *) &(struct { struct mmk_matcher matcher; void (*val)(void); }) { .val = (void (*)(void)) Predicate })
 
 void mmk_matcher_init(int counter, struct mmk_matcher *ctx, char *callexpr);
 void mmk_matcher_init_verify(struct mmk_matcher *ctx, const char **order, char **params);
