@@ -36,5 +36,6 @@ plt_ctx plt_init_ctx(void);
 plt_lib plt_get_lib(plt_ctx ctx, const char *name);
 plt_fn **plt_get_offset(plt_lib lib, const char *name);
 void plt_set_offset(plt_fn **offset, plt_fn *newval);
+plt_fn *plt_get_real_fn(plt_ctx ctx, const char *name);
 
 #endif /* !PLT_H_ */

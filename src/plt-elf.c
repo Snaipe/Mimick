@@ -192,3 +192,13 @@ void plt_set_offset(plt_fn **offset, plt_fn *newval)
 {
     *offset = newval;
 }
+
+plt_fn *plt_get_real_fn(plt_ctx ctx, const char *name)
+{
+    for (struct link_map *lm = ctx->r_map; lm != NULL; lm = lm->l_next) {
+        plt_fn **fn = plt_get_offset (lm, name);
+        if (fn)
+            return *fn;
+    }
+    return NULL;
+}

@@ -14,8 +14,11 @@ set (SOURCE_FILES ${ASM_FILES}
     src/plt.h
     src/plt-${MMK_EXE_FORMAT}.c
     src/plt-${MMK_EXE_FORMAT}.h
+    src/matcher.c
     src/trampoline.c
     src/trampoline.h
+    src/vitals.c
+    src/vitals.h
 )
 
 configure_file(

@@ -26,6 +26,7 @@
 #include "mimick.h"
 #include "plt.h"
 #include "trampoline.h"
+#include "vitals.h"
 
 struct mmk_stub {
     void *ctx;
@@ -37,73 +38,24 @@ struct mmk_stub {
 };
 
 struct mmk_mock {
-    struct mmk_offset *offsets;
-    struct mmk_item *params;
-    struct mmk_item *cur_params;
-    long cur_params_it;
+    struct mmk_params *params;
     struct mmk_stub stub;
+    char *call_data;
+    size_t call_data_top;
+    size_t call_data_size;
 };
 
 mmk_stub mmk_ctx;
-static plt_ctx plt;
+static struct {
+    plt_ctx plt;
+} self;
 
 void mmk_init (void)
 {
-    plt = plt_init_ctx();
-    assert(plt != (void*) -1);
-}
+    self.plt = plt_init_ctx();
+    assert(self.plt != (void*) -1);
 
-struct mmk_item *mmk_pop_params (void)
-{
-    mmk_mock mock = mmk_stub_context (mmk_ctx);
-    struct mmk_item *cur = mock->cur_params;
-    if (cur != NULL) {
-        struct mmk_offset *off = mmk_offsetof (mock->offsets, "times", 5);
-
-        // not specifiying .times is treated as .times = 1
-        if (mmk_field_ (bool, cur, off->present_offset)) {
-            long times = mmk_field_ (long, cur, off->offset);
-
-            if (times < 0)
-                return cur;
-
-            if (times > 0 && times > mock->cur_params_it) {
-                ++mock->cur_params_it;
-                return cur;
-            }
-
-            // explicitely specifiying .times = 0 skips the entry
-            if (times == 0) {
-                mock->cur_params = cur->next;
-                mock->cur_params_it = 1;
-                return mmk_pop_params ();
-            }
-        }
-        mock->cur_params = cur->next;
-        mock->cur_params_it = 1;
-    }
-    return cur;
-}
-
-void mmk_bind (mmk_mock mock, const char **params_str, void *params) {
-    for (const char **ps = params_str; *ps; ++ps) {
-        char *end = strchr (*ps + 1, ' ');
-        size_t len = (size_t) (end - *ps - 1);
-        struct mmk_offset *off = mmk_offsetof (mock->offsets, *ps + 1, len);
-        if (off == NULL)
-            continue;
-        mmk_field_ (bool, params, off->present_offset) = true;
-    }
-    struct mmk_item *it = &mmk_field_ (struct mmk_item, params, 0);
-    struct mmk_item *prev = NULL;
-    for (struct mmk_item *i = mock->params; i; prev = i, i = i->next)
-        continue;
-    if (prev == NULL) {
-        mock->params = it;
-        mock->cur_params = it;
-    } else {
-        prev->next = it;
-    }
+    mmk_init_vital_functions (self.plt);
 }
 
 void *mmk_stub_context (mmk_stub stub)
@@ -111,9 +63,22 @@ void *mmk_stub_context (mmk_stub stub)
     return stub->ctx;
 }
 
+void mmk_when_impl (mmk_mock mock, struct mmk_params *params)
+{
+    params->matcher_ctx = mmk_matcher_ctx();
+    params->next = mock->params;
+    mock->params = params;
+}
+
+struct mmk_params *mmk_mock_get_params(void)
+{
+    mmk_mock mock = mmk_stub_context(mmk_ctx);
+    return mock->params;
+}
+
 void mmk_stub_create_static (mmk_stub stub, const char *target, mmk_fn fn, void *ctx)
 {
-    char *name = malloc (strlen(target) + 1);
+    char *name = mmk_malloc (strlen(target) + 1);
     strcpy(name, target);
 
     char *path = NULL;
@@ -123,10 +88,10 @@ void mmk_stub_create_static (mmk_stub stub, const char *target, mmk_fn fn, void 
         path = delim + 1;
     }
 
-    plt_lib self = plt_get_lib(plt, path);
-    assert(self != NULL);
+    plt_lib lib = plt_get_lib(self.plt, path);
+    assert(lib != NULL);
 
-    plt_fn **off = plt_get_offset(self, name);
+    plt_fn **off = plt_get_offset(lib, name);
     assert (off != NULL);
 
     *stub = (struct mmk_stub) {
@@ -142,7 +107,7 @@ void mmk_stub_create_static (mmk_stub stub, const char *target, mmk_fn fn, void 
 
 mmk_stub mmk_stub_create (const char *target, mmk_fn fn, void *ctx)
 {
-    mmk_stub stub = malloc (sizeof (struct mmk_stub));
+    mmk_stub stub = mmk_malloc (sizeof (struct mmk_stub));
     mmk_stub_create_static (stub, target, fn, ctx);
     return stub;
 }
@@ -151,20 +116,21 @@ void mmk_stub_destroy_static (mmk_stub stub)
 {
     plt_set_offset (stub->offset, stub->orig);
     destroy_trampoline (stub->trampoline);
-    free (stub->name);
+    mmk_free (stub->name);
 }
 
 void mmk_stub_destroy (mmk_stub stub)
 {
     mmk_stub_destroy_static (stub);
-    free (stub);
+    mmk_free (stub);
 }
 
-mmk_mock mmk_mock_create_internal (const char *target, struct mmk_offset *offsets, mmk_fn fn)
+mmk_mock mmk_mock_create_internal (const char *target, mmk_fn fn)
 {
-    mmk_mock ctx = malloc (sizeof (struct mmk_mock));
+    mmk_mock ctx = mmk_malloc (sizeof (struct mmk_mock));
+    assert(ctx);
     *ctx = (struct mmk_mock) {
-        .offsets = offsets,
+        .params = NULL,
     };
     mmk_stub_create_static (&ctx->stub, target, fn, ctx);
     return ctx;
@@ -173,5 +139,68 @@ mmk_mock mmk_mock_create_internal (const char *target, struct mmk_offset *offset
 void mmk_mock_destroy (mmk_mock mock)
 {
     mmk_stub_destroy_static (&mock->stub);
-    free (mock);
+    mmk_free (mock);
+}
+
+static int find_and_inc_call_matching (mmk_mock mock, void *params, size_t size)
+{
+    // skip .times field
+    params = (void*) ((char *) params + sizeof (size_t));
+    size -= sizeof (size_t);
+
+    for (void *p = mmk_mock_params_begin(mock); p;
+            p = mmk_mock_params_next(mock, p))
+    {
+        // compare parameters w/o .times
+        int res = mmk_memcmp((char *) p + sizeof (size_t), params, size);
+        if (!res) {
+            size_t *times = p;
+            ++*times;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void *mmk_mock_params_begin(mmk_mock mock) {
+    if (!mock->call_data)
+        return NULL;
+
+    return mock->call_data + sizeof (size_t);
+}
+
+void *mmk_mock_params_next(mmk_mock mock, void *prev) {
+    char *ptr = prev;
+    if (ptr >= mock->call_data + mock->call_data_top)
+        return NULL;
+    size_t sz = *(size_t*) (ptr - sizeof (size_t));
+    return ptr + sz;
+}
+
+void mmk_verify_register_call (void *params, size_t size)
+{
+    mmk_mock mock = mmk_stub_context (mmk_ctx);
+    if (!mock->call_data) {
+        mock->call_data = mmk_malloc (4096);
+        assert (mock->call_data);
+        mock->call_data_size = 4096;
+    }
+
+    if (find_and_inc_call_matching(mock, params, size))
+        return;
+
+    if (mock->call_data_top + size + sizeof (size_t) >= mock->call_data_size) {
+        while (mock->call_data_top + size + sizeof (size_t) >= mock->call_data_size) {
+            mock->call_data_size += 4096;
+        }
+        mock->call_data = mmk_realloc (mock->call_data, mock->call_data_size);
+        assert (mock->call_data);
+    }
+
+    mmk_memcpy(mock->call_data + mock->call_data_top, &size, sizeof (size_t));
+    size_t *times = mmk_memcpy(mock->call_data + mock->call_data_top
+            + sizeof (size_t), params, size);
+    *times = 1;
+
+    mock->call_data_top += size + sizeof (size_t);
 }

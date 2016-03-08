@@ -31,7 +31,6 @@
 struct mmk_offset {
     const char *name;
     size_t offset;
-    size_t present_offset;
 };
 
 static inline struct mmk_offset *mmk_offsetof (struct mmk_offset *off,
