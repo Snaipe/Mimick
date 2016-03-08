@@ -211,13 +211,13 @@ void mmk_when_impl (mmk_mock mock, struct mmk_params *params);
 
 # undef mmk_when
 # define mmk_when(Instance, Id, CallExpr, ...) \
-        (mmk_matcher_init(__COUNTER__, &(struct mmk_matcher) { 0 }, #CallExpr), \
+        (mmk_matcher_init(__COUNTER__, &(struct mmk_matcher) { .kind = 0 }, #CallExpr), \
         mmkuser_ ## Id ## _ ## CallExpr, \
         mmk_when_impl((Instance), (struct mmk_params *) &(struct mmkuser_ ## Id ## _params) { .result = { __VA_ARGS__ } }))
 
 # undef mmk_verify
 # define mmk_verify(Instance, Id, ...) \
-        (mmk_matcher_init_verify(&(struct mmk_matcher) { 0 }, MMK_MANGLE(Id, verify_order), (char *[]) { MMK_APPLY(MMK_MK_ARG_STR, _, __VA_ARGS__) NULL }), \
+        (mmk_matcher_init_verify(&(struct mmk_matcher) { .kind = 0 }, MMK_MANGLE(Id, verify_order), (char *[]) { MMK_APPLY(MMK_MK_ARG_STR, _, __VA_ARGS__) NULL }), \
         MMK_MANGLE(Id, verify)((Instance), &(struct MMK_MANGLE(Id, verify_params)) { __VA_ARGS__ }, #__VA_ARGS__))
 
 mmk_mock mmk_mock_create_internal (const char *target, mmk_fn fn);

@@ -45,7 +45,7 @@ struct mmk_matcher {
     struct mmk_matcher *next;
 };
 
-# define MMK_MATCHER_INIT(Type) ((struct mmk_matcher *) &(struct { struct mmk_matcher matcher; Type val; }) { .matcher = { 0 } })
+# define MMK_MATCHER_INIT(Type) ((struct mmk_matcher *) &(struct { struct mmk_matcher matcher; Type val; }) { .matcher = { .kind = 0 } })
 
 # define mmk_any(Type) (mmk_matcher_add(MMK_MATCHER_ANY, __COUNTER__, MMK_MATCHER_INIT(Type)), (Type) { 0 })
 
