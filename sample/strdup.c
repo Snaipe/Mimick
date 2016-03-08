@@ -9,7 +9,7 @@ void test_simple_case(void)
     static char ref[] = "hello";
     char buf[sizeof (ref)];
 
-    mmk_mock m = mmk_mock_create("malloc@/usr/lib/libc.so.6", malloc);
+    mmk_mock m = mmk_mock_create("malloc@libc", malloc);
     mmk_when (m, malloc, with(sizeof (ref)), .then_return = buf);
 
     char *dup = strdup("hello");
@@ -27,7 +27,7 @@ void test_simple_case(void)
 
 void test_error_case(void)
 {
-    mmk_mock m = mmk_mock_create("malloc@/usr/lib/libc.so.6", malloc);
+    mmk_mock m = mmk_mock_create("malloc@libc", malloc);
 
     mmk_when (m, malloc, with(mmk_any(size_t)),
             .then_return = NULL,

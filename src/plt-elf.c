@@ -135,9 +135,16 @@ plt_lib plt_get_lib(plt_ctx ctx, const char *name)
     if (!name)
         name = "";
 
+    int libc = !strcmp(name, "libc");
+
     for (struct link_map *lm = ctx->r_map; lm != NULL; lm = lm->l_next) {
-        if (!strcmp(name, lm->l_name))
+        if (libc) {
+            if (strstr(lm->l_name, "/libc.so")
+             || strstr(lm->l_name, "/musl.so"))
+                return lm;
+        } else if (!strcmp(name, lm->l_name)) {
             return lm;
+        }
     }
     return NULL;
 }
