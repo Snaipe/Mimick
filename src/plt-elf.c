@@ -23,7 +23,7 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
-#include <assert.h>
+#include "assert.h"
 #include <string.h>
 #include "plt-elf.h"
 #include "trampoline.h"
@@ -48,7 +48,10 @@ static void *lib_dt_lookup(plt_lib lib, ElfW(Sxword) tag)
     for (ElfW(Dyn) *dyn = lib->l_ld; dyn->d_tag != DT_NULL; ++dyn) {
         if (dyn->d_tag == tag) {
             if (dyn->d_un.d_ptr >= lib->l_addr
-                    && ((ElfSWord) dyn->d_un.d_ptr) >= 0)
+#if MMK_BITS == 64
+                    && ((ElfSWord) dyn->d_un.d_ptr) >= 0
+#endif
+                    )
                 return (void*) dyn->d_un.d_ptr;
             else
                 return (char*) lib->l_addr + dyn->d_un.d_ptr;
@@ -135,9 +138,22 @@ plt_lib plt_get_lib(plt_ctx ctx, const char *name)
     if (!name)
         name = "";
 
+    int libc = !strcmp(name, "libc");
+
     for (struct link_map *lm = ctx->r_map; lm != NULL; lm = lm->l_next) {
-        if (!strcmp(name, lm->l_name))
-            return lm;
+        if (libc) {
+            if (strstr(lm->l_name, "/libc.so")
+             || strstr(lm->l_name, "/musl.so"))
+                return lm;
+        } else {
+            if (*name != '/') {
+                char *start = strrchr(lm->l_name, '/');
+                if (start && strstr(start + 1, name))
+                    return lm;
+            }
+            if (!strcmp(name, lm->l_name))
+                return lm;
+        }
     }
     return NULL;
 }
@@ -191,4 +207,14 @@ plt_fn **plt_get_offset(plt_lib lib, const char *name)
 void plt_set_offset(plt_fn **offset, plt_fn *newval)
 {
     *offset = newval;
+}
+
+plt_fn *plt_get_real_fn(plt_ctx ctx, const char *name)
+{
+    for (struct link_map *lm = ctx->r_map; lm != NULL; lm = lm->l_next) {
+        plt_fn **fn = plt_get_offset (lm, name);
+        if (fn)
+            return *fn;
+    }
+    return NULL;
 }

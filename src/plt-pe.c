@@ -21,10 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <assert.h>
+#include "assert.h"
 #include <stdint.h>
 
 #include "plt-pe.h"
+#include <tlhelp32.h>
 
 #define IDIR_IMPORT 1 // Index of the import directory entry
 
@@ -48,7 +49,7 @@ static inline PIMAGE_IMPORT_DESCRIPTOR get_first_import_descriptor (plt_lib lib)
 {
     PIMAGE_NT_HEADERS nthdr = nt_header_from_lib (lib);
     DWORD off = nthdr->OptionalHeader.DataDirectory[IDIR_IMPORT].VirtualAddress;
-    assert (off != 0);
+    mmk_assert (off != 0);
     return (PIMAGE_IMPORT_DESCRIPTOR) ((char *) lib + off);
 }
 
@@ -80,4 +81,24 @@ void plt_set_offset(plt_fn **offset, plt_fn *newval)
     VirtualProtect(offset, sizeof (void*), PAGE_EXECUTE_READWRITE, &old);
     *offset = newval;
     VirtualProtect(offset, sizeof (void*), old, &old);
+}
+
+plt_fn *plt_get_real_fn(plt_ctx ctx, const char *name)
+{
+    (void) ctx;
+
+    HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,
+            GetCurrentProcessId());
+    mmk_assert (snap != INVALID_HANDLE_VALUE);
+
+    MODULEENTRY32 mod;
+    for (BOOL more = Module32First(snap, &mod); more;
+            more = Module32Next(snap, &mod))
+    {
+        plt_fn **fn = plt_get_offset (mod.hModule, name);
+        if (fn)
+            return *fn;
+    }
+    mmk_assert (GetLastError() == ERROR_NO_MORE_FILES);
+    return NULL;
 }

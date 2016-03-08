@@ -21,43 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef MIMICK_H_
-# define MIMICK_H_
+#ifndef MIMICK_OFFSET_H_
+# define MIMICK_OFFSET_H_
 
-# include <stdio.h>
-# include <stdint.h>
-# include <stdbool.h>
+# include <stddef.h>
 # include <string.h>
-# include "mimick/preprocess.h"
-# include "mimick/item.h"
-# include "mimick/offset.h"
-# include "mimick/matcher.h"
+# include "item.h"
 
-void mmk_init (void);
+struct mmk_offset {
+    const char *name;
+    size_t offset;
+};
 
-/* Stub API */
+static inline struct mmk_offset *mmk_offsetof (struct mmk_offset *off,
+    const char *name, size_t len)
+{
+    for (size_t i = 0; off->name; ++i, ++off) {
+        if (!strncmp(off->name, name, len))
+            return off;
+    }
+    return NULL;
+}
 
-typedef void (*mmk_fn)(void);
-typedef struct mmk_stub *mmk_stub;
-
-extern mmk_stub mmk_ctx;
-
-void *mmk_stub_context (mmk_stub stub);
-mmk_stub mmk_stub_create (const char *target, mmk_fn fn, void *ctx);
-void mmk_stub_destroy (mmk_stub stub);
-
-/* Mock API */
-
-typedef struct mmk_mock *mmk_mock;
-
-# define mmk_mock_create(Target, Id) <internal>
-# define mmk_mock_define(Id, ReturnType, ...) <internal>
-# define mmk_mock_define_void(Id, ReturnType, ...) <internal>
-# define mmk_when(Id, Mock, ...) <internal>
-# define mmk_verify(Id, Mock, ...) <internal>
-
-void mmk_mock_destroy (mmk_mock mock);
-
-# include "mimick/mock.h"
-
-#endif /* !MIMICK_H_ */
+#endif /* !MIMICK_OFFSET_H_ */

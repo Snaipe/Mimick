@@ -26,6 +26,7 @@
 #endif
 
 #include <string.h>
+#include "assert.h"
 #include "trampoline.h"
 #define PAGE_SIZE 0x1000
 
@@ -41,7 +42,7 @@ plt_fn *create_trampoline (void *ctx, plt_fn *routine)
     uintptr_t trampoline_sz = (uintptr_t) mmk_trampoline_end
                             - (uintptr_t) mmk_trampoline;
 
-    assert (trampoline_sz < PAGE_SIZE);
+    mmk_assert (trampoline_sz < PAGE_SIZE);
     void **map = mmap (NULL, PAGE_SIZE,
             PROT_READ | PROT_WRITE | PROT_EXEC,
             MAP_PRIVATE | MAP_ANONYMOUS,
@@ -60,14 +61,14 @@ void destroy_trampoline (plt_fn *trampoline)
 }
 #elif defined _WIN32
 # include <windows.h>
-# include <assert.h>
+# include "assert.h"
 
 plt_fn *create_trampoline (void *ctx, plt_fn *routine)
 {
     uintptr_t trampoline_sz = (uintptr_t) mmk_trampoline_end
                             - (uintptr_t) mmk_trampoline;
 
-    assert (trampoline_sz < PAGE_SIZE);
+    mmk_assert (trampoline_sz < PAGE_SIZE);
     void **map = VirtualAlloc (NULL, PAGE_SIZE,
             MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 

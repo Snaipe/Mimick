@@ -69,5 +69,24 @@ add_subdirectory (src)
 
 add_library (mimick STATIC ${SOURCE_FILES})
 
+add_custom_target(mimick_tests ALL)
+
+function (add_mimick_sample _NAME)
+    add_dependencies (mimick_tests ${_NAME})
+
+    if (USE_QEMU)
+        add_test (${_NAME} qemu-${MMK_ARCH} ${_NAME})
+    else ()
+        add_test (${_NAME} ${_NAME})
+    endif ()
+endfunction ()
+
+function (add_mimick_test _NAME)
+    add_executable (${_NAME} EXCLUDE_FROM_ALL ${ARGN})
+    target_link_libraries (${_NAME} mimick)
+    add_mimick_sample(${_NAME})
+endfunction ()
+
 enable_testing ()
 add_subdirectory (test)
+add_subdirectory (sample)
