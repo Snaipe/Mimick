@@ -161,6 +161,11 @@ void mmk_matcher_init_verify(struct mmk_matcher *ctx, const char **order, char *
             markmask |= submask;
     }
 
+#ifdef _MSC_VER
+    if (matcher_ctx.matcher)
+        ctx->next = matcher_ctx.matcher->next;
+#endif
+
     ctx->kind = (enum mmk_matcher_kind) markmask;
     matcher_ctx.matcher = ctx;
     matcher_ctx.verify = 1;
@@ -203,15 +208,25 @@ void mmk_matcher_add(enum mmk_matcher_kind kind, int counter, struct mmk_matcher
         ++*count;
     }
 
+    *out = (struct mmk_matcher) {
+        .kind = kind,
+        .prio = prio,
+    };
+
+    /* This is necessary because MSVC fucks up sequence points with
+       compound literals */
+#ifdef _MSC_VER
+    if (!matcher_ctx.matcher) {
+        matcher_ctx.matcher = out;
+        return;
+    }
+#endif
+
     for (struct mmk_matcher *m = matcher_ctx.matcher->next;
             m != NULL && m->prio < prio;
             prev = m, m = m->next)
         continue;
     prev->next = out;
-    *out = (struct mmk_matcher) {
-        .kind = kind,
-        .prio = prio,
-    };
 }
 
 void (*mmk_matcher_get_predicate(struct mmk_matcher *m))(void)
