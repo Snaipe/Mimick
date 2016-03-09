@@ -143,6 +143,7 @@ void mmk_matcher_init_verify(struct mmk_matcher *ctx, const char **order, char *
 
     matcher_ctx.params_str = params;
     matcher_ctx.order = order;
+    matcher_ctx.verify = 1;
 
     for (; *params; ++params) {
         char *start = mmk_strchr(*params, '.') + 1;
@@ -168,7 +169,35 @@ void mmk_matcher_init_verify(struct mmk_matcher *ctx, const char **order, char *
 
     ctx->kind = (enum mmk_matcher_kind) markmask;
     matcher_ctx.matcher = ctx;
-    matcher_ctx.verify = 1;
+}
+
+void mmk_matcher_reorder_verify(void)
+{
+    size_t count = 0;
+    for (struct mmk_matcher *m = matcher_ctx.matcher->next; m; m = m->next) {
+
+        char *start = mmk_strchr(matcher_ctx.params_str[count], '.') + 1;
+        start = mmk_matcher_skipspace(start);
+        char *end = mmk_matcher_findspace(start);
+        m->prio = mmk_matcher_get_offset(matcher_ctx.order, start, end) + 1;
+
+        ++count;
+    }
+
+    /* Insert sort the matcher list */
+    struct mmk_matcher *prev = matcher_ctx.matcher;
+    for (struct mmk_matcher *m = matcher_ctx.matcher->next; m; m = m->next) {
+        for (struct mmk_matcher *m2 = matcher_ctx.matcher; m2; ) {
+            struct mmk_matcher *next = m2->next;
+            if (!next || next->prio > m->prio) {
+                prev->next = m->next;
+                m->next = next;
+                m2->next = m;
+                break;
+            }
+            m2 = next;
+        }
+    }
 }
 
 void mmk_matcher_term(void)
@@ -197,17 +226,6 @@ void mmk_matcher_add(enum mmk_matcher_kind kind, int counter, struct mmk_matcher
     struct mmk_matcher *prev = matcher_ctx.matcher;
     size_t prio = counter;
 
-    if (matcher_ctx.verify) {
-        size_t *count = &prev->prio;
-
-        char *start = mmk_strchr(matcher_ctx.params_str[*count], '.') + 1;
-        start = mmk_matcher_skipspace(start);
-        char *end = mmk_matcher_findspace(start);
-        prio = mmk_matcher_get_offset(matcher_ctx.order, start, end) + 1;
-
-        ++*count;
-    }
-
     *out = (struct mmk_matcher) {
         .kind = kind,
         .prio = prio,
@@ -222,7 +240,7 @@ void mmk_matcher_add(enum mmk_matcher_kind kind, int counter, struct mmk_matcher
     }
 #endif
 
-    for (struct mmk_matcher *m = matcher_ctx.matcher->next;
+    for (struct mmk_matcher *m = matcher_ctx.matcher;
             m != NULL && m->prio < prio;
             prev = m, m = m->next)
         continue;

@@ -72,6 +72,7 @@ void mmk_matcher_term(void);
 struct mmk_matcher *mmk_matcher_ctx(void);
 struct mmk_params *mmk_matcher_params(void);
 void mmk_matcher_set_params(struct mmk_params *params);
+void mmk_matcher_reorder_verify(void);
 
 int mmk_memcmp(const void *s1, const void *s2, size_t n);
 void (*mmk_matcher_get_predicate(struct mmk_matcher *m))(void);

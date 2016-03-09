@@ -171,6 +171,7 @@ static inline void MMK_VERIFY_FAILED(const char *id, const char *param_str)
         struct MMK_MANGLE(Id, verify_params) *ref,                             \
         const char *params)                                                    \
     {                                                                          \
+        mmk_matcher_reorder_verify();                                          \
         struct mmk_matcher *matcher_ctx = mmk_matcher_ctx();                   \
         size_t times = ref->times;                                             \
         for (struct MMK_MANGLE(Id, verify_params) *p =                         \
