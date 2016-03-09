@@ -140,6 +140,7 @@ mmk_mock mmk_mock_create_internal (const char *target, mmk_fn fn)
 void mmk_mock_destroy (mmk_mock mock)
 {
     mmk_stub_destroy_static (&mock->stub);
+    mmk_free (mock->call_data);
     mmk_free (mock);
 }
 
