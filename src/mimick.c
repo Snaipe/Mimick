@@ -68,7 +68,7 @@ void mmk_when_impl (mmk_mock mock, struct mmk_params *params)
     params->matcher_ctx = mmk_matcher_ctx();
     params->next = mock->params;
     mock->params = params;
-    mmk_matcher_term ();
+    mmk_matcher_set_params(params);
 }
 
 struct mmk_params *mmk_mock_get_params(void)
@@ -164,7 +164,7 @@ static int find_and_inc_call_matching (mmk_mock mock, void *params, size_t size)
 }
 
 void *mmk_mock_params_begin(mmk_mock mock) {
-    if (!mock->call_data)
+    if (!mock->call_data || !mock->call_data_top)
         return NULL;
 
     return mock->call_data + sizeof (size_t);
@@ -172,10 +172,11 @@ void *mmk_mock_params_begin(mmk_mock mock) {
 
 void *mmk_mock_params_next(mmk_mock mock, void *prev) {
     char *ptr = prev;
+    size_t sz = *(size_t*) (ptr - sizeof (size_t));
+    ptr += sz;
     if (ptr >= mock->call_data + mock->call_data_top)
         return NULL;
-    size_t sz = *(size_t*) (ptr - sizeof (size_t));
-    return ptr + sz;
+    return ptr;
 }
 
 void mmk_verify_register_call (void *params, size_t size)

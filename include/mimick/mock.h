@@ -62,72 +62,75 @@ static inline void MMK_VERIFY_FAILED(const char *id, const char *param_str)
 # define MMK_DEF_VERIFY_PARAM_(X) .that_ ## X = X,
 # define MMK_DEF_VERIFY_PARAM(_, T, X) MMK_DEF_VERIFY_PARAM_(X)
 
-# define MMK_TRYMATCH(Name, Type, Param) do { \
-        if (markmask & 1) { \
-            m = m->next; \
-            if (m->kind >= MMK_MATCHER_CMP_START \
-                    && m->kind <= MMK_MATCHER_CMP_END) { \
-                int res = mmk_memcmp(&Param, m + 1, sizeof (Type)); \
-                if (res < 0) \
-                    if (m->kind != MMK_MATCHER_NEQ \
-                            && m->kind != MMK_MATCHER_LT) \
-                        continue; \
-                if (res > 0) \
-                    if (m->kind != MMK_MATCHER_NEQ \
-                            && m->kind != MMK_MATCHER_GT) \
-                        continue; \
-                if (m->kind != MMK_MATCHER_LEQ \
-                        && m->kind != MMK_MATCHER_GEQ) \
+# define MMK_DEF_FIELD_(T, X) T X;
+# define MMK_DEF_FIELD(_, T, X) MMK_DEF_FIELD_(T, X)
+
+# define MMK_TRYMATCH(Name, Type, Param) \
+    if (markmask & 1) { \
+        m = m->next; \
+        if (m->kind >= MMK_MATCHER_CMP_START \
+                && m->kind <= MMK_MATCHER_CMP_END) { \
+            int res = mmk_memcmp(&Param, m + 1, sizeof (Type)); \
+            if (res < 0) \
+                if (m->kind != MMK_MATCHER_NEQ \
+                        && m->kind != MMK_MATCHER_LT) \
                     continue; \
-            } else if (m->kind == MMK_MATCHER_THAT) { \
-                int (*predicate)(Type, Type) = (int (*)(Type, Type)) \
-                        mmk_matcher_get_predicate(m); \
-                if (!predicate(Param, *(Type*)(m + 1))) \
+            if (res > 0) \
+                if (m->kind != MMK_MATCHER_NEQ \
+                        && m->kind != MMK_MATCHER_GT) \
                     continue; \
-            } \
-        } else { \
-            if (!mmk_memcmp(&Param, m + 1, sizeof (Type))) \
+            if (m->kind != MMK_MATCHER_LEQ \
+                    && m->kind != MMK_MATCHER_GEQ) \
+                continue; \
+        } else if (m->kind == MMK_MATCHER_THAT) { \
+            int (*predicate)(Type, Type) = (int (*)(Type, Type)) \
+                    mmk_matcher_get_predicate(m); \
+            if (!predicate(Param, *(Type*)(m + 1))) \
                 continue; \
         } \
-        markmask >>= 1; \
-    } while (0);
+    } else { \
+        if (mmk_memcmp(&Param, &p->Param, sizeof (Type))) \
+            continue; \
+    } \
+    markmask >>= 1;
 
-# define MMK_TRYVERIFY(Id, Type, Param) do { \
-        if (markmask & 1) { \
-            m = m->next; \
-            if (m->kind >= MMK_MATCHER_CMP_START \
-                    && m->kind <= MMK_MATCHER_CMP_END) { \
-                int res = mmk_memcmp(&p->that_ ## Param, \
-                        &ref->that_ ## Param, sizeof (Type)); \
-                if (res < 0 \
-                        && m->kind != MMK_MATCHER_NEQ \
-                        && m->kind != MMK_MATCHER_LT) \
-                    goto fail; \
-                else if (res > 0 \
-                        && m->kind != MMK_MATCHER_NEQ \
-                        && m->kind != MMK_MATCHER_GT) \
-                    goto fail; \
-                else if (res == 0 \
-                        && m->kind != MMK_MATCHER_LEQ \
-                        && m->kind != MMK_MATCHER_GEQ) \
-                    goto fail; \
-            } else if (m->kind == MMK_MATCHER_THAT) { \
-                int (*predicate)(Type, Type) = (int (*)(Type, Type)) \
-                        mmk_matcher_get_predicate(m); \
-                if (!predicate(p->that_ ## Param, ref->that_ ## Param)) \
-                    goto fail; \
-            } \
-        } else { \
-            if (p->that_ ## Param != ref->that_ ## Param) \
+# define MMK_TRYVERIFY(Id, Type, Param) \
+    if (markmask & 1) { \
+        m = m->next; \
+        if (m->kind >= MMK_MATCHER_CMP_START \
+                && m->kind <= MMK_MATCHER_CMP_END) { \
+            int res = mmk_memcmp(&p->that_ ## Param, \
+                    &ref->that_ ## Param, sizeof (Type)); \
+            if (res < 0 \
+                    && m->kind != MMK_MATCHER_NEQ \
+                    && m->kind != MMK_MATCHER_LT) \
+                goto fail; \
+            else if (res > 0 \
+                    && m->kind != MMK_MATCHER_NEQ \
+                    && m->kind != MMK_MATCHER_GT) \
+                goto fail; \
+            else if (res == 0 \
+                    && m->kind != MMK_MATCHER_LEQ \
+                    && m->kind != MMK_MATCHER_GEQ) \
+                goto fail; \
+        } else if (m->kind == MMK_MATCHER_THAT) { \
+            int (*predicate)(Type, Type) = (int (*)(Type, Type)) \
+                    mmk_matcher_get_predicate(m); \
+            if (!predicate(p->that_ ## Param, ref->that_ ## Param)) \
                 goto fail; \
         } \
-        markmask >>= 1; \
-    } while (0);
+    } else { \
+        if (p->that_ ## Param != ref->that_ ## Param) \
+            goto fail; \
+    } \
+    markmask >>= 1;
 
 # define MMK_MARK_BITS(Id, T, X) \
     if (markmask & 1) { \
         m = m->next; \
         *((T *) (m + 1)) = (X); \
+    } else { \
+        params->X = X; \
     } \
     markmask >>= 1;
 
@@ -148,6 +151,8 @@ static inline void MMK_VERIFY_FAILED(const char *id, const char *param_str)
     struct MMK_MANGLE(Id, params) {                                            \
         struct mmk_params params;                                              \
         struct MMK_MANGLE(Id, result_params) result;                           \
+        MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_FIELD, Id,                           \
+                    MMK_VA_TAIL(__VA_ARGS__)))                                 \
     };                                                                         \
     static const char *MMK_MANGLE(Id, verify_order)[] = {                      \
         MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_ORDER, Id, MMK_VA_TAIL(__VA_ARGS__)))\
@@ -156,6 +161,7 @@ static inline void MMK_VERIFY_FAILED(const char *id, const char *param_str)
     static void MMK_MANGLE(Id, with)(                                          \
         MMK_EXPAND(MMK_PARAM_LIST(MMK_VA_TAIL(__VA_ARGS__))))                  \
     {                                                                          \
+        struct MMK_MANGLE(Id, params) *params = (void *) mmk_matcher_params(); \
         struct mmk_matcher *m = mmk_matcher_ctx();                             \
         unsigned int markmask = (unsigned int) m->kind;                        \
         MMK_PAIR_APPLY(MMK_MARK_BITS, Id, MMK_VA_TAIL(__VA_ARGS__))            \
@@ -195,6 +201,7 @@ static inline void MMK_VERIFY_FAILED(const char *id, const char *param_str)
         struct mmk_params *param = mmk_mock_get_params();                      \
         for (; param; param = param->next) {                                   \
             struct MMK_MANGLE(Id, result_params) *res = (void*)(param + 1);    \
+            struct MMK_MANGLE(Id, params) *p = (void*) param;                  \
             struct mmk_matcher *m = param->matcher_ctx;                        \
             unsigned int markmask = (unsigned int) m->kind;                    \
             MMK_EXPAND(MMK_PAIR_APPLY(MMK_TRYMATCH, Id,                        \
@@ -212,8 +219,9 @@ void mmk_when_impl (mmk_mock mock, struct mmk_params *params);
 # undef mmk_when
 # define mmk_when(Instance, Id, CallExpr, ...) \
         (mmk_matcher_init(__COUNTER__, &(struct mmk_matcher) { .kind = 0 }, #CallExpr), \
+        mmk_when_impl((Instance), (struct mmk_params *) &(struct mmkuser_ ## Id ## _params) { .result = { __VA_ARGS__ } }), \
         mmkuser_ ## Id ## _ ## CallExpr, \
-        mmk_when_impl((Instance), (struct mmk_params *) &(struct mmkuser_ ## Id ## _params) { .result = { __VA_ARGS__ } }))
+        mmk_matcher_term ())
 
 # undef mmk_verify
 # define mmk_verify(Instance, Id, ...) \

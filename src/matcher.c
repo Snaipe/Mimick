@@ -37,8 +37,9 @@
 
 MMK_THREAD_LOCAL struct {
     struct mmk_matcher *matcher;
+    struct mmk_params *params;
     const char **order;
-    char **params;
+    char **params_str;
     int verify;
 } matcher_ctx;
 
@@ -102,15 +103,16 @@ void mmk_matcher_init(int counter, struct mmk_matcher *ctx, char *callexpr)
 
     char *start = mmk_strchr(callexpr, '(') + 1;
     for (; start != NULL; start = mmk_matcher_next_param(start)) {
+        markmask <<= 1;
         start = mmk_matcher_skipspace(start);
         if (mmk_strneq(start, "mmk_", 4))
             markmask |= 1;
-        markmask <<= 1;
     }
 
     ctx->kind = (enum mmk_matcher_kind) markmask;
     matcher_ctx.matcher = ctx;
     matcher_ctx.params = NULL;
+    matcher_ctx.params_str = NULL;
     matcher_ctx.order = NULL;
     matcher_ctx.verify = 0;
 }
@@ -139,7 +141,7 @@ void mmk_matcher_init_verify(struct mmk_matcher *ctx, const char **order, char *
 
     unsigned int markmask = 0;
 
-    matcher_ctx.params = params;
+    matcher_ctx.params_str = params;
     matcher_ctx.order = order;
 
     for (; *params; ++params) {
@@ -167,11 +169,22 @@ void mmk_matcher_init_verify(struct mmk_matcher *ctx, const char **order, char *
 void mmk_matcher_term(void)
 {
     matcher_ctx.matcher = NULL;
+    matcher_ctx.params = NULL;
 }
 
 struct mmk_matcher *mmk_matcher_ctx(void)
 {
     return matcher_ctx.matcher;
+}
+
+struct mmk_params *mmk_matcher_params(void)
+{
+    return matcher_ctx.params;
+}
+
+void mmk_matcher_set_params(struct mmk_params *params)
+{
+    matcher_ctx.params = params;
 }
 
 void mmk_matcher_add(enum mmk_matcher_kind kind, int counter, struct mmk_matcher *out)
@@ -182,7 +195,7 @@ void mmk_matcher_add(enum mmk_matcher_kind kind, int counter, struct mmk_matcher
     if (matcher_ctx.verify) {
         size_t *count = &prev->prio;
 
-        char *start = mmk_strchr(matcher_ctx.params[*count], '.') + 1;
+        char *start = mmk_strchr(matcher_ctx.params_str[*count], '.') + 1;
         start = mmk_matcher_skipspace(start);
         char *end = mmk_matcher_findspace(start);
         prio = mmk_matcher_get_offset(matcher_ctx.order, start, end) + 1;
