@@ -63,9 +63,17 @@ plt_lib plt_get_lib (plt_ctx ctx, const char *name)
     if (!strcmp(name, "self"))
         return GetModuleHandle(NULL);
 
-    if (!strncmp(name, "file:", 5) || !strncmp(name, "lib:", 4))
-        return GetModuleHandle(name + 5);
-    else if (strncmp(name, "sym:", 4)) {
+    if (!strncmp(name, "file:", 5) || !strncmp(name, "lib:", 4)) {
+        const char *val = strchr(name, ':') + 1;
+        HMODULE m = GetModuleHandle(val);
+        if (!m) {
+            size_t sz = strlen(val) + 4;
+            char buf[sz];
+            snprintf(buf, sz, "lib%s", val);
+            m = GetModuleHandle(buf);
+        }
+        return m;
+    } else if (strncmp(name, "sym:", 4)) {
         plt_lib lib;
         plt_fn **fn = plt_find_offset (name + 4, &lib);
         if (fn)
