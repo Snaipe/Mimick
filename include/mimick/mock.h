@@ -86,7 +86,7 @@ static inline void MMK_VERIFY_FAILED(const char *id, const char *param_str)
                     continue; \
             } \
         } else { \
-            if (!mmk_memcmp(&size, m + 1, sizeof (Type))) \
+            if (!mmk_memcmp(&Param, m + 1, sizeof (Type))) \
                 continue; \
         } \
         markmask >>= 1; \
