@@ -101,7 +101,8 @@ static inline PIMAGE_IMPORT_DESCRIPTOR get_first_import_descriptor (plt_lib lib)
 {
     PIMAGE_NT_HEADERS nthdr = nt_header_from_lib (lib);
     DWORD off = nthdr->OptionalHeader.DataDirectory[IDIR_IMPORT].VirtualAddress;
-    mmk_assert (off != 0);
+    if (!off)
+        return NULL;
     return (PIMAGE_IMPORT_DESCRIPTOR) ((char *) lib + off);
 }
 
@@ -109,7 +110,7 @@ plt_fn **plt_get_offset (plt_lib lib, const char *name)
 {
     char *base = lib;
     for (PIMAGE_IMPORT_DESCRIPTOR entry = get_first_import_descriptor (lib);
-            entry->Name;
+            entry && entry->Name;
             entry++)
     {
         uintptr_t *thunk = (uintptr_t *) (base + entry->FirstThunk);
@@ -138,7 +139,7 @@ void plt_set_offset(plt_fn **offset, plt_fn *newval)
 plt_fn *plt_get_real_fn(plt_ctx ctx, const char *name)
 {
     (void) ctx;
-    plt_fn **fn = plt_find_offset (name + 4, NULL);
+    plt_fn **fn = plt_find_offset (name, NULL);
     if (fn)
         return *fn;
     return NULL;
