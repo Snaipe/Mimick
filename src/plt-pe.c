@@ -26,6 +26,7 @@
 
 #include "plt.h"
 #include <tlhelp32.h>
+#include <malloc.h>
 
 #define IDIR_IMPORT 1 // Index of the import directory entry
 
@@ -68,7 +69,7 @@ plt_lib plt_get_lib (plt_ctx ctx, const char *name)
         HMODULE m = GetModuleHandle(val);
         if (!m) {
             size_t sz = strlen(val) + 4;
-            char buf[sz];
+            char *buf = alloca(sz);
             snprintf(buf, sz, "lib%s", val);
             m = GetModuleHandle(buf);
         }
