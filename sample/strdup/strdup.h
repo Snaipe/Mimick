@@ -11,6 +11,6 @@
 #  define API
 # endif
 
-API char *strdup(const char *s);
+API char *my_strdup(const char *s);
 
 #endif /* !STRDUP_H_ */

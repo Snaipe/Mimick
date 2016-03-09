@@ -13,7 +13,7 @@ void test_simple_case(void)
     mmk_mock m = mmk_mock_create("malloc@lib:strdup", malloc);
     mmk_when (m, malloc, with(sizeof (ref)), .then_return = buf);
 
-    char *dup = strdup("hello");
+    char *dup = my_strdup("hello");
 
     /* mmk_verify is overkill in this case, mmk_verify should be used when you
      * care about testing interactions rather than external behaviour */
@@ -34,7 +34,7 @@ void test_error_case(void)
             .then_return = NULL,
             .then_errno = ENOMEM);
 
-    char *dup = strdup("foo");
+    char *dup = my_strdup("foo");
     mmk_assert(dup == NULL && errno == ENOMEM);
 
     mmk_mock_destroy (m);

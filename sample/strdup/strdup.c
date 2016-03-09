@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "strdup.h"
 
-char *strdup(const char *s)
+char *my_strdup(const char *s)
 {
     size_t len = strlen (s);
     char *dst = malloc (len + 1);
