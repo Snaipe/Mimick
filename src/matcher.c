@@ -162,9 +162,10 @@ void mmk_matcher_init_verify(struct mmk_matcher *ctx, const char **order, char *
             markmask |= submask;
     }
 
+
 #ifdef _MSC_VER
     if (matcher_ctx.matcher)
-        ctx->next = matcher_ctx.matcher->next;
+        ctx->next = matcher_ctx.matcher;
 #endif
 
     ctx->kind = (enum mmk_matcher_kind) markmask;
