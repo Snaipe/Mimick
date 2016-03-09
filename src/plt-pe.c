@@ -39,7 +39,7 @@ static plt_fn **plt_find_offset (const char *name, plt_lib *lib)
             GetCurrentProcessId());
     mmk_assert (snap != INVALID_HANDLE_VALUE);
 
-    MODULEENTRY32 mod;
+    MODULEENTRY32 mod = { .dwSize = sizeof(MODULEENTRY32) };
     for (BOOL more = Module32First(snap, &mod); more;
             more = Module32Next(snap, &mod))
     {
