@@ -26,6 +26,13 @@
 
 # include "offset.h"
 
+/* Using anonymous structs in compound literals is perfectly valid C,
+   and we use this behaviour in Mimick. This MSVC warning does nothing
+   useful in that regard, so we simply disable it. */
+# ifdef _MSC_VER
+#  pragma warning (disable: 4116)
+# endif
+
 enum mmk_matcher_kind {
     MMK_MATCHER_ANY,
     MMK_MATCHER_NEQ,
