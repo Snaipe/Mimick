@@ -30,7 +30,7 @@
 # if __STDC_VERSION__ >= 201112L && !defined __STDC_NO_THREADS__
 #  define MMK_THREAD_LOCAL _Thread_Local
 # elif defined _MSC_VER
-#  define MMK_THREAD_LOCAL declspec(thread)
+#  define MMK_THREAD_LOCAL __declspec(thread)
 # elif defined __GNUC__
 #  define MMK_THREAD_LOCAL __thread
 # endif
