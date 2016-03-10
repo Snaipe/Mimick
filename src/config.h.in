@@ -9,6 +9,7 @@
 #cmakedefine HAVE__DYNAMIC @HAVE__DYNAMIC@
 #cmakedefine HAVE_ELF_AUXV_T @HAVE_ELF_AUXV_T@
 #cmakedefine HAVE_ELF_AUXINFO @HAVE_ELF_AUXINFO@
+#cmakedefine HAVE_MMAP @HAVE_MMAP@
 #cmakedefine HAVE_MMAP_MAP_ANONYMOUS @HAVE_MMAP_MAP_ANONYMOUS@
 
 #endif /* !CONFIG_H_IN_ */

@@ -74,6 +74,7 @@ if (MMK_EXE_FMT_ELF)
 
   check_symbol_exists(_r_debug link.h HAVE__R_DEBUG)
   check_symbol_exists(_DYNAMIC link.h HAVE__DYNAMIC)
+  check_symbol_exists(mmap sys/mman.h HAVE_MMAP)
   check_symbol_exists(MAP_ANONYMOUS sys/mman.h HAVE_MMAP_MAP_ANONYMOUS)
 
   mmk_check_type_exists(Elf${MMK_BITS}_auxv_t elf.h HAVE_ELF_AUXV_T)

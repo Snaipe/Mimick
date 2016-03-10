@@ -29,9 +29,13 @@
 extern void mmk_trampoline();
 extern void mmk_trampoline_end();
 
-#if defined HAVE_MMAP_MAP_ANONYMOUS
+#if defined HAVE_MMAP
 # include <unistd.h>
 # include <sys/mman.h>
+
+# ifndef HAVE_MMAP_MAP_ANONYMOUS
+#  include <fcntl.h>
+# endif
 
 plt_fn *create_trampoline (void *ctx, plt_fn *routine)
 {
@@ -39,10 +43,25 @@ plt_fn *create_trampoline (void *ctx, plt_fn *routine)
                             - (uintptr_t) mmk_trampoline;
 
     mmk_assert (trampoline_sz < PAGE_SIZE);
+
+# ifdef HAVE_MMAP_MAP_ANONYMOUS
     void **map = mmap (NULL, PAGE_SIZE,
             PROT_READ | PROT_WRITE | PROT_EXEC,
             MAP_PRIVATE | MAP_ANONYMOUS,
             -1, 0);
+# else
+    int fd = open("/dev/zero", O_RDWR);
+    mmk_assert (fd != -1);
+
+    void **map = mmap (NULL, PAGE_SIZE,
+            PROT_READ | PROT_WRITE | PROT_EXEC,
+            MAP_PRIVATE,
+            fd, 0);
+
+    mmk_assert (close (fd) != -1);
+# endif
+
+    mmk_assert (map != NULL);
 
     *map = ctx;
     *(map + 1) = (void *) routine;
