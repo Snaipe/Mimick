@@ -33,7 +33,7 @@
 extern void mmk_trampoline();
 extern void mmk_trampoline_end();
 
-#if defined __linux__
+#if defined HAVE_MMAP_MAP_ANONYMOUS
 # include <unistd.h>
 # include <sys/mman.h>
 

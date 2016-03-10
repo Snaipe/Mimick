@@ -30,39 +30,52 @@
 #include "config.h"
 
 #if MMK_BITS == 32
-typedef ElfW(Word) ElfWord;
-typedef ElfW(Sword) ElfSWord;
-# define ELF_R_SYM(i) ELF32_R_SYM(i)
+typedef Elf32_Word ElfWord;
+typedef Elf32_Sword ElfSWord;
+# ifndef ELF_R_SYM
+#  define ELF_R_SYM(i) ELF32_R_SYM(i)
+# endif
 #elif MMK_BITS == 64
-typedef ElfW(Xword) ElfWord;
-typedef ElfW(Sxword) ElfSWord;
-# define ELF_R_SYM(i) ELF64_R_SYM(i)
+typedef Elf64_Xword ElfWord;
+typedef Elf64_Sxword ElfSWord;
+# ifndef ELF_R_SYM
+#  define ELF_R_SYM(i) ELF64_R_SYM(i)
+# endif
 #else
 # error Unsupported architecture
 #endif
 
+#if defined HAVE_ELF_AUXV_T
+typedef ElfW(auxv_t) ElfAux;
+#elif defined HAVE_ELF_AUXINFO
+typedef ElfW(Auxinfo) ElfAux;
+#else
+# error Unsupported platform
+#endif
+
 extern char **environ;
 
-static void *lib_dt_lookup(plt_lib lib, ElfW(Sxword) tag)
+static void *lib_dt_lookup(plt_lib lib, ElfSWord tag)
 {
-    for (ElfW(Dyn) *dyn = lib->l_ld; dyn->d_tag != DT_NULL; ++dyn) {
+    ElfW(Addr) base =(ElfW(Addr)) lib->l_addr;
+    for (const ElfW(Dyn) *dyn = lib->l_ld; dyn->d_tag != DT_NULL; ++dyn) {
         if (dyn->d_tag == tag) {
-            if (dyn->d_un.d_ptr >= lib->l_addr
+            if (dyn->d_un.d_ptr >= base
 #if MMK_BITS == 64
                     && ((ElfSWord) dyn->d_un.d_ptr) >= 0
 #endif
                     )
                 return (void*) dyn->d_un.d_ptr;
             else
-                return (char*) lib->l_addr + dyn->d_un.d_ptr;
+                return (char*) base + dyn->d_un.d_ptr;
         }
     }
     return NULL;
 }
 
-static ElfWord lib_dt_lookup_val(plt_lib lib, ElfW(Sxword) tag)
+static ElfWord lib_dt_lookup_val(plt_lib lib, ElfSWord tag)
 {
-    for (ElfW(Dyn) *dyn = lib->l_ld; dyn->d_tag != DT_NULL; ++dyn) {
+    for (const ElfW(Dyn) *dyn = lib->l_ld; dyn->d_tag != DT_NULL; ++dyn) {
         if (dyn->d_tag == tag) {
             return dyn->d_un.d_val;
         }
@@ -70,7 +83,7 @@ static ElfWord lib_dt_lookup_val(plt_lib lib, ElfW(Sxword) tag)
     return 0;
 }
 
-static ElfW(Addr) get_auxval(ElfW(auxv_t) *auxv, ElfW(Off) tag)
+static ElfW(Addr) get_auxval(ElfAux *auxv, ElfW(Off) tag)
 {
     for (; auxv->a_type != AT_NULL; auxv++) {
         if (auxv->a_type == tag)
@@ -90,7 +103,7 @@ static ElfW(Addr) find_dynamic(ElfW(Phdr) *phdr, ElfW(Off) phent)
 
 static struct r_debug *r_debug_from_dynamic (void *dynamic)
 {
-    for (ElfW(Dyn) *dyn = dynamic; dyn->d_tag != DT_NULL; ++dyn) {
+    for (const ElfW(Dyn) *dyn = dynamic; dyn->d_tag != DT_NULL; ++dyn) {
         if (dyn->d_tag == DT_DEBUG)
             return (struct r_debug *) dyn->d_un.d_ptr;
     }
@@ -113,7 +126,7 @@ static struct r_debug *get_r_debug (void)
     if (!dbg) {
         char **envp = environ;
         while (*envp++ != NULL);
-        ElfW(auxv_t) *auxv = (ElfW(auxv_t)*) envp;
+        ElfAux *auxv = (ElfAux*) envp;
         ElfW(Addr) phdr = get_auxval(auxv, AT_PHDR);
         ElfW(Addr) phent = get_auxval(auxv, AT_PHENT);
         if (phdr != (ElfW(Addr)) -1 && phent != (ElfW(Addr)) -1) {
@@ -194,15 +207,15 @@ plt_lib plt_get_lib(plt_ctx ctx, const char *name)
 
 struct rel_info {
     ElfW(Rel) *tab;
-    ElfW(Xword) size;
-    ElfW(Xword) entry_sz;
+    ElfWord size;
+    ElfWord entry_sz;
 };
 
 static uintptr_t get_offset(struct rel_info *info, ElfW(Sym) *symtab,
         const char *strtab, const char *name)
 {
     ElfW(Rel) *rel = info->tab;
-    for (ElfW(Xword) i = 0; i < info->size / info->entry_sz;
+    for (ElfWord i = 0; i < info->size / info->entry_sz;
             ++i, rel = (void*)(((char *) rel) + info->entry_sz))
     {
         ElfW(Sym) *sym = &symtab[ELF_R_SYM(rel->r_info)];
@@ -232,9 +245,15 @@ plt_fn **plt_get_offset(plt_lib lib, const char *name)
         .entry_sz = relent_sz,
     };
 
+    ElfW(Addr) base = (ElfW(Addr)) lib->l_addr;
+#ifdef __FreeBSD__
+    if (base == 0x400000)
+        base = 0;
+#endif
+
     uintptr_t off = get_offset(&info, symtab, strtab, name);
     if (off)
-        return (plt_fn **) (off + lib->l_addr);
+        return (plt_fn **) (off + base);
     return NULL;
 }
 

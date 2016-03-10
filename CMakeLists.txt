@@ -59,9 +59,23 @@ else ()
     message (FATAL_ERROR "Platform '${CMAKE_SYSTEM_NAME}' is not supported.")
 endif ()
 
+function (mmk_check_type_exists _T _H _VAR)
+  include (CheckCSourceCompiles)
+  check_c_source_compiles ("
+    #include <${_H}>
+    typedef ${_T} checked_type;
+    int main(void) { return 0; }
+  " ${_VAR})
+endfunction ()
+
 if (MMK_EXE_FMT_ELF)
   check_symbol_exists(_r_debug link.h HAVE__R_DEBUG)
   check_symbol_exists(_DYNAMIC link.h HAVE__DYNAMIC)
+  check_symbol_exists(MAP_ANONYMOUS sys/mman.h HAVE_MMAP_MAP_ANONYMOUS)
+
+  mmk_check_type_exists(Elf${MMK_BITS}_auxv_t elf.h HAVE_ELF_AUXV_T)
+  mmk_check_type_exists(Elf${MMK_BITS}_Auxinfo elf.h HAVE_ELF_AUXINFO)
+
 endif ()
 
 include_directories(include src)

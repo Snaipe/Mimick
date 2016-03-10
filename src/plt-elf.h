@@ -27,6 +27,7 @@
 # include <link.h>
 
 # ifdef __FreeBSD__
+#  include <sys/elf_generic.h>
 #  define ElfW(type)    ElfW_ (Elf, type)
 #  define ElfW_(e,t)    ElfW__ (e, _##t)
 #  define ElfW__(e,t)   e##t
