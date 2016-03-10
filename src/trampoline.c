@@ -21,10 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#if defined __linux__
-# define _GNU_SOURCE
-#endif
-
 #include <string.h>
 #include "assert.h"
 #include "trampoline.h"
