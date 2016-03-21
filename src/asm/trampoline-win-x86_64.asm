@@ -40,8 +40,18 @@ next:
   mov     [rbx], rax
   pop     rbx
 
+  mov     rax, dword ptr [rax]                      ; Check if context was asked
+  call    rax
+  test    rax, rax
+  jnz     ret_ctx
+
   pop     rax                                       ; Retrieve offset at
   jmp     qword ptr [rax + 8h]                      ; the start of the map
+
+ret_ctx:                                            ; Return context
+  mov     rax, mmk_ctx
+  add     rsp, 8h
+  ret
 mmk_trampoline_end label far
 
 public mmk_trampoline

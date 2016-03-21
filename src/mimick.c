@@ -27,23 +27,8 @@
 #include "plt.h"
 #include "trampoline.h"
 #include "vitals.h"
-
-struct mmk_stub {
-    void *ctx;
-    char *name;
-    char *path;
-    plt_fn *orig;
-    plt_fn **offset;
-    plt_fn *trampoline;
-};
-
-struct mmk_mock {
-    struct mmk_params *params;
-    struct mmk_stub stub;
-    char *call_data;
-    size_t call_data_top;
-    size_t call_data_size;
-};
+#include "mock.h"
+#include "threadlocal.h"
 
 mmk_stub mmk_ctx;
 static struct {
@@ -61,14 +46,6 @@ void mmk_init (void)
 void *mmk_stub_context (mmk_stub stub)
 {
     return stub->ctx;
-}
-
-void mmk_when_impl (mmk_mock mock, struct mmk_params *params)
-{
-    params->matcher_ctx = mmk_matcher_ctx();
-    params->next = mock->params;
-    mock->params = params;
-    mmk_matcher_set_params(params);
 }
 
 struct mmk_params *mmk_mock_get_params(void)
@@ -96,6 +73,7 @@ void mmk_stub_create_static (mmk_stub stub, const char *target, mmk_fn fn, void 
     mmk_assert (off != NULL);
 
     *stub = (struct mmk_stub) {
+        .ctx_asked = mmk_ctx_asked,
         .ctx = ctx,
         .name = name,
         .path = path,
@@ -126,21 +104,66 @@ void mmk_stub_destroy (mmk_stub stub)
     mmk_free (stub);
 }
 
-mmk_mock mmk_mock_create_internal (const char *target, mmk_fn fn)
+mmk_fn mmk_mock_create_internal (const char *target, mmk_fn fn)
 {
     mmk_mock ctx = mmk_malloc (sizeof (struct mmk_mock));
     mmk_assert (ctx);
     *ctx = (struct mmk_mock) {
         .params = NULL,
     };
-    mmk_stub_create_static (&ctx->stub, target, fn, ctx);
-    return ctx;
+
+    char *name_end = strchr(target, '@');
+    size_t name_sz;
+    if (name_end == NULL)
+        name_sz = strlen(target);
+    else
+        name_sz = (size_t) (name_end - target);
+    char *name = mmk_malloc (name_sz + 1);
+    strncpy(name, target, name_sz);
+    name[name_sz] = '\0';
+
+    ctx->stubs = mmk_stub_create (name, fn, ctx);
+    ctx->stubs->next = mmk_stub_create (target, fn, ctx);
+    mmk_free(name);
+    return (mmk_fn) ctx->stubs->trampoline;
 }
 
-void mmk_mock_destroy (mmk_mock mock)
+static MMK_THREAD_LOCAL int ask_ctx;
+
+struct mmk_stub *mmk_ask_ctx (mmk_fn fn)
 {
-    mmk_stub_destroy_static (&mock->stub);
+    ask_ctx = 1;
+    return ((struct mmk_stub *(*)(void)) fn)();
+}
+
+int mmk_ctx_asked (void)
+{
+    int asked = ask_ctx;
+    ask_ctx = 0;
+    return asked;
+}
+
+void mmk_mock_destroy_internal (mmk_fn fn)
+{
+    struct mmk_stub *stub = mmk_ask_ctx (fn);
+    struct mmk_mock *mock = mmk_stub_context (stub);
+
+    for (struct mmk_stub *s = mock->stubs; s;) {
+        struct mmk_stub *next = s->next;
+        mmk_stub_destroy (s);
+        s = next;
+    }
     mmk_free (mock->call_data);
+    for (struct mmk_params *p = mock->params, *pnext; p;) {
+        pnext = p->next;
+        for (struct mmk_matcher *m = p->matcher_ctx, *next; m;) {
+            next = m->next;
+            mmk_free (m);
+            m = next;
+        }
+        mmk_free (p);
+        p = pnext;
+    }
     mmk_free (mock);
 }
 

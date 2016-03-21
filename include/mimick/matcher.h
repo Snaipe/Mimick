@@ -52,11 +52,8 @@ struct mmk_matcher {
     struct mmk_matcher *next;
 };
 
-# define MMK_MATCHER_INIT(Type) ((struct mmk_matcher *) &(struct { struct mmk_matcher matcher; Type val; }) { .matcher = { .kind = 0 } })
-
-# define mmk_any(Type) (mmk_matcher_add(MMK_MATCHER_ANY, __COUNTER__, MMK_MATCHER_INIT(Type)), (Type) { 0 })
-
-# define mmk_matcher_val_(Kind, Type, Val) (mmk_matcher_add(Kind, __COUNTER__, MMK_MATCHER_INIT(Type)), ((Type) Val))
+# define mmk_matcher_val_(Kind, Type, Val) (mmk_matcher_add(Kind, __COUNTER__), ((Type) Val))
+# define mmk_any(Type)      mmk_matcher_val_(MMK_MATCHER_ANY, Type, { 0 })
 # define mmk_neq(Type, Val) mmk_matcher_val_(MMK_MATCHER_NEQ, Type, Val)
 # define mmk_lt(Type, Val)  mmk_matcher_val_(MMK_MATCHER_LT, Type, Val)
 # define mmk_leq(Type, Val) mmk_matcher_val_(MMK_MATCHER_LEQ, Type, Val)
@@ -65,14 +62,10 @@ struct mmk_matcher {
 
 # define mmk_that(Predicate) ((struct mmk_matcher *) &(struct { struct mmk_matcher matcher; void (*val)(void); }) { .val = (void (*)(void)) Predicate })
 
-void mmk_matcher_init(int counter, struct mmk_matcher *ctx, char *callexpr);
-void mmk_matcher_init_verify(struct mmk_matcher *ctx, const char **order, char **params);
-void mmk_matcher_add(enum mmk_matcher_kind kind, int counter, struct mmk_matcher *out);
+void mmk_matcher_init(int counter, char *callexpr);
+void mmk_matcher_add(enum mmk_matcher_kind kind, int counter);
 void mmk_matcher_term(void);
 struct mmk_matcher *mmk_matcher_ctx(void);
-struct mmk_params *mmk_matcher_params(void);
-void mmk_matcher_set_params(struct mmk_params *params);
-void mmk_matcher_reorder_verify(void);
 
 int mmk_memcmp(const void *s1, const void *s2, size_t n);
 void (*mmk_matcher_get_predicate(struct mmk_matcher *m))(void);

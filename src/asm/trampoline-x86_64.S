@@ -32,10 +32,20 @@ next:
     mov     (start - next - 0x10)(%rax), %rax
     mov     %rax, mmk_ctx
 
+    mov     (%rax), %rax                        // Check if context was asked
+    call    *%rax
+    test    %rax, %rax
+    jnz     ret_ctx
+
     pop     %rax
     mov     (start - next - 0x8)(%rax), %rax    // Retrieve offset at
                                                 // the start of the map
     jmp     *%rax
+
+ret_ctx:                                        // Return context
+    mov     mmk_ctx, %rax
+    add     $0x8, %rsp
+    ret
 
 .globl mmk_trampoline_end
 mmk_trampoline_end:

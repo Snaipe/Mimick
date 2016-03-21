@@ -21,46 +21,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef MIMICK_H_
-# define MIMICK_H_
+#include "mimick.h"
+#include "mimick/verify.h"
+#include "threadlocal.h"
 
-# include <stdio.h>
-# include <stdint.h>
-# include <stdbool.h>
-# include <string.h>
-# include "mimick/preprocess.h"
-# include "mimick/item.h"
-# include "mimick/offset.h"
-# include "mimick/matcher.h"
+static MMK_THREAD_LOCAL size_t times;
 
-void mmk_init (void);
+void mmk_verify_set_times(size_t t)
+{
+    times = t;
+}
 
-/* Stub API */
-
-typedef void (*mmk_fn)(void);
-typedef struct mmk_stub *mmk_stub;
-
-extern mmk_stub mmk_ctx;
-
-void *mmk_stub_context (mmk_stub stub);
-mmk_stub mmk_stub_create (const char *target, mmk_fn fn, void *ctx);
-void mmk_stub_destroy (mmk_stub stub);
-
-/* Mock API */
-
-typedef struct mmk_mock *mmk_mock;
-
-# define mmk_val(Type, ...) (&(Type) { __VA_ARGS__ })
-
-# define mmk_mock_create(Target, Id) <internal>
-# define mmk_mock_define(Id, ReturnType, ...) <internal>
-# define mmk_mock_define_void(Id, ReturnType, ...) <internal>
-# define mmk_when(Id, Mock, ...) <internal>
-# define mmk_verify(Id, Mock, ...) <internal>
-
-void mmk_mock_destroy_internal (mmk_fn fn);
-# define mmk_mock_destroy(Fn) mmk_mock_destroy_internal ((mmk_fn) Fn);
-
-# include "mimick/mock.h"
-
-#endif /* !MIMICK_H_ */
+int mmk_verify_times(struct mmk_verify_params *params)
+{
+    if (params->never)
+        return times == 0;
+    if (params->at_least_once)
+        return times > 0;
+    if (params->that)
+        return params->that(times);
+    return params->times == times;
+}

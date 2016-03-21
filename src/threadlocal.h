@@ -21,46 +21,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef MIMICK_H_
-# define MIMICK_H_
+#ifndef THREADLOCAL_H_
+# define THREADLOCAL_H_
 
-# include <stdio.h>
-# include <stdint.h>
-# include <stdbool.h>
-# include <string.h>
-# include "mimick/preprocess.h"
-# include "mimick/item.h"
-# include "mimick/offset.h"
-# include "mimick/matcher.h"
+# if __STDC_VERSION__ >= 201112L && !defined __STDC_NO_THREADS__
+#  define MMK_THREAD_LOCAL _Thread_Local
+# elif defined _MSC_VER
+#  define MMK_THREAD_LOCAL __declspec(thread)
+# elif defined __GNUC__
+#  define MMK_THREAD_LOCAL __thread
+# endif
 
-void mmk_init (void);
-
-/* Stub API */
-
-typedef void (*mmk_fn)(void);
-typedef struct mmk_stub *mmk_stub;
-
-extern mmk_stub mmk_ctx;
-
-void *mmk_stub_context (mmk_stub stub);
-mmk_stub mmk_stub_create (const char *target, mmk_fn fn, void *ctx);
-void mmk_stub_destroy (mmk_stub stub);
-
-/* Mock API */
-
-typedef struct mmk_mock *mmk_mock;
-
-# define mmk_val(Type, ...) (&(Type) { __VA_ARGS__ })
-
-# define mmk_mock_create(Target, Id) <internal>
-# define mmk_mock_define(Id, ReturnType, ...) <internal>
-# define mmk_mock_define_void(Id, ReturnType, ...) <internal>
-# define mmk_when(Id, Mock, ...) <internal>
-# define mmk_verify(Id, Mock, ...) <internal>
-
-void mmk_mock_destroy_internal (mmk_fn fn);
-# define mmk_mock_destroy(Fn) mmk_mock_destroy_internal ((mmk_fn) Fn);
-
-# include "mimick/mock.h"
-
-#endif /* !MIMICK_H_ */
+#endif /* !THREADLOCAL_H_ */

@@ -9,16 +9,21 @@ else ()
 endif ()
 
 set (SOURCE_FILES ${ASM_FILES}
+    src/assert.h
     src/config.h
+    src/matcher.c
     src/mimick.c
+    src/mock.h
     src/plt.h
     src/plt-${MMK_EXE_FORMAT}.c
     src/plt-${MMK_EXE_FORMAT}.h
-    src/matcher.c
+    src/threadlocal.h
     src/trampoline.c
     src/trampoline.h
+    src/verify.c
     src/vitals.c
     src/vitals.h
+    src/when.c
 )
 
 configure_file(

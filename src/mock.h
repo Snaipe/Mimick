@@ -21,46 +21,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef MIMICK_H_
-# define MIMICK_H_
+#ifndef MOCK_H_
+# define MOCK_H_
 
-# include <stdio.h>
-# include <stdint.h>
-# include <stdbool.h>
-# include <string.h>
-# include "mimick/preprocess.h"
-# include "mimick/item.h"
-# include "mimick/offset.h"
-# include "mimick/matcher.h"
+struct mmk_stub {
+    int (*ctx_asked)(void);
+    void *ctx;
+    char *name;
+    char *path;
+    plt_fn *orig;
+    plt_fn **offset;
+    plt_fn *trampoline;
+    struct mmk_stub *next;
+};
 
-void mmk_init (void);
+struct mmk_mock {
+    struct mmk_params *params;
+    struct mmk_stub *stubs;
+    char *call_data;
+    size_t call_data_top;
+    size_t call_data_size;
+};
 
-/* Stub API */
+struct mmk_stub *mmk_ask_ctx (mmk_fn fn);
+int mmk_ctx_asked (void);
 
-typedef void (*mmk_fn)(void);
-typedef struct mmk_stub *mmk_stub;
-
-extern mmk_stub mmk_ctx;
-
-void *mmk_stub_context (mmk_stub stub);
-mmk_stub mmk_stub_create (const char *target, mmk_fn fn, void *ctx);
-void mmk_stub_destroy (mmk_stub stub);
-
-/* Mock API */
-
-typedef struct mmk_mock *mmk_mock;
-
-# define mmk_val(Type, ...) (&(Type) { __VA_ARGS__ })
-
-# define mmk_mock_create(Target, Id) <internal>
-# define mmk_mock_define(Id, ReturnType, ...) <internal>
-# define mmk_mock_define_void(Id, ReturnType, ...) <internal>
-# define mmk_when(Id, Mock, ...) <internal>
-# define mmk_verify(Id, Mock, ...) <internal>
-
-void mmk_mock_destroy_internal (mmk_fn fn);
-# define mmk_mock_destroy(Fn) mmk_mock_destroy_internal ((mmk_fn) Fn);
-
-# include "mimick/mock.h"
-
-#endif /* !MIMICK_H_ */
+#endif /* !MOCK_H_ */
