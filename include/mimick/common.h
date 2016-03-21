@@ -21,28 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef MMK_VERIFY_H_
-# define MMK_VERIFY_H_
+#ifndef MMK_COMMON_H_
+# define MMK_COMMON_H_
 
-# include <stddef.h>
-# include "common.h"
+static inline void mmk_use_result__(int unused, ...) {
+    (void) unused;
+}
 
-struct mmk_verify_params {
-    int at_least_once;
-    int never;
-    size_t times;
-    int (*that)(size_t);
-};
-
-void mmk_verify_set_times(size_t times);
-int mmk_verify_times(struct mmk_verify_params *params);
-void mmk_verify_register_call (void *params, size_t size);
-
-# undef mmk_verify
-# define mmk_verify(CallExpr, ...) \
-        (mmk_matcher_init(1, #CallExpr), \
-        mmk_use_result__(0, CallExpr), \
-        mmk_matcher_term (), \
-        mmk_verify_times(&(struct mmk_verify_params) { __VA_ARGS__ }))
-
-#endif /* !MMK_VERIFY_H_ */
+#endif /* !MMK_COMMON_H_ */
