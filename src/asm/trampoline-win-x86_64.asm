@@ -48,8 +48,8 @@ next:
   jmp     qword ptr [rax + 8h]                      ; the start of the map
 
 ret_ctx:                                            ; Return context
-  mov     rax, mmk_ctx
-  add     rsp, 8h
+  pop     rax
+  mov     rax, qword ptr [rax]
   ret
 mmk_trampoline_end label far
 

@@ -37,8 +37,7 @@ next:
   mov     eax, dword ptr [eax]                      ; Setup mock context
   mov     mmk_ctx, eax
 
-  mov     eax, dword ptr [eax]                      ; Check if context was asked
-  call    eax
+  call    dword ptr [eax]                           ; Check if context was asked
   test    eax, eax
   jnz     ret_ctx
 
@@ -46,8 +45,8 @@ next:
   jmp     dword ptr [eax + 4h]                      ; the start of the map
 
 ret_ctx:                                            ; Return context
-  mov     eax, mmk_ctx
-  add     esp, 4h
+  pop     eax
+  mov     eax, dword ptr [eax]
   ret
 mmk_trampoline_end label far
 
