@@ -41,7 +41,7 @@ void *mmk_mock_params_begin(mmk_mock mock);
 void *mmk_mock_params_next(mmk_mock mock, void *prev);
 
 # undef mmk_mock_create
-# define mmk_mock_create(Target, Id) (MMK_MANGLE(Id, fn)) mmk_mock_create_internal((Target), (mmk_fn) MMK_MANGLE(Id, stub))
+# define mmk_mock_create(Target, Id) (MMK_MANGLE(Id, create)((Target)))
 
 # define MMK_MK_ARG_STR(_, X) #X,
 
@@ -179,6 +179,9 @@ void *mmk_mock_params_next(mmk_mock mock, void *prev);
         }                                                                      \
         return zero__; \
     }                                                                          \
+    static inline MMK_MANGLE(Id, fn) MMK_MANGLE(Id, create)(const char *tgt) { \
+        return (MMK_MANGLE(Id, fn)) mmk_mock_create_internal(tgt, (mmk_fn) MMK_MANGLE(Id, stub)); \
+    } \
     typedef int MMK_MANGLE(Id, dummy)
 
 mmk_fn mmk_mock_create_internal (const char *target, mmk_fn fn);
