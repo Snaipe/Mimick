@@ -40,8 +40,7 @@ next:
   mov     [rbx], rax
   pop     rbx
 
-  mov     rax, dword ptr [rax]                      ; Check if context was asked
-  call    rax
+  call    qword ptr [rax]                           ; Check if context was asked
   test    rax, rax
   jnz     ret_ctx
 
