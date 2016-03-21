@@ -147,7 +147,7 @@ void *mmk_mock_params_next(mmk_mock mock, void *prev);
                         p; p = mmk_mock_params_next(mock, p))                  \
                 {                                                              \
                     struct mmk_matcher *m = matcher_ctx;                       \
-                    unsigned int markmask = (unsigned int) m->kind;            \
+                    size_t markmask = m->prio;            \
                     MMK_EXPAND(MMK_PAIR_APPLY(MMK_TRYVERIFY, Id,               \
                             MMK_VA_TAIL(__VA_ARGS__)))                         \
                     times += p->mmk_times__;                                    \
