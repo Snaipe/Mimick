@@ -24,8 +24,6 @@
 #ifndef MIMICK_MOCK_H_
 # define MIMICK_MOCK_H_
 
-# include <stdlib.h>
-# include <stdio.h>
 # include "matcher.h"
 # include "alloc.h"
 # include "when.h"

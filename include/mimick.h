@@ -24,7 +24,6 @@
 #ifndef MIMICK_H_
 # define MIMICK_H_
 
-# include <stdio.h>
 # include <stdint.h>
 # include <stdbool.h>
 # include <string.h>
