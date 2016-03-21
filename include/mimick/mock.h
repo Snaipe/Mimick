@@ -154,6 +154,11 @@ void *mmk_mock_params_next(mmk_mock mock, void *prev);
             fail:                                                              \
                     continue;                                                  \
                 }                                                              \
+                for (struct mmk_matcher *m = matcher_ctx, *next; m;) { \
+                    next = m->next; \
+                    mmk_free (m); \
+                    m = next; \
+                } \
                 mmk_verify_set_times(times); \
             } \
             return zero__; \
