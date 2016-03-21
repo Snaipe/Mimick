@@ -33,7 +33,7 @@ next:
     mov     %eax, mmk_ctx
 
     mov     (%eax), %eax                        // Check if context was asked
-    call    mmk_ctx_asked
+    call    *%eax
     test    %eax, %eax
     jnz     ret_ctx
 
