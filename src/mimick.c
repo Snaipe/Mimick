@@ -104,8 +104,12 @@ void mmk_stub_destroy (mmk_stub stub)
     mmk_free (stub);
 }
 
+static MMK_THREAD_LOCAL int ask_ctx;
+
 mmk_fn mmk_mock_create_internal (const char *target, mmk_fn fn)
 {
+    ask_ctx = 0;
+
     mmk_mock ctx = mmk_malloc (sizeof (struct mmk_mock));
     mmk_assert (ctx);
     *ctx = (struct mmk_mock) {
@@ -127,8 +131,6 @@ mmk_fn mmk_mock_create_internal (const char *target, mmk_fn fn)
     mmk_free(name);
     return (mmk_fn) ctx->stubs->trampoline;
 }
-
-static MMK_THREAD_LOCAL int ask_ctx;
 
 struct mmk_stub *mmk_ask_ctx (mmk_fn fn)
 {
