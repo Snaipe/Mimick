@@ -49,7 +49,7 @@ void *mmk_stub_context (mmk_stub stub)
 
 struct mmk_params *mmk_mock_get_params(void)
 {
-    mmk_mock mock = mmk_stub_context(mmk_ctx ());
+    struct mmk_mock_ctx *mock = mmk_stub_context(mmk_ctx ());
     return mock->params;
 }
 
@@ -113,9 +113,9 @@ mmk_fn mmk_mock_create_internal (const char *target, mmk_fn fn)
     tls_set(int, ask_ctx, 0);
     tls_set(mmk_stub, mmk_ctx_, NULL);
 
-    mmk_mock ctx = mmk_malloc (sizeof (struct mmk_mock));
+    struct mmk_mock_ctx *ctx = mmk_malloc (sizeof (struct mmk_mock_ctx));
     mmk_assert (ctx);
-    *ctx = (struct mmk_mock) {
+    *ctx = (struct mmk_mock_ctx) {
         .params = NULL,
     };
 
@@ -151,7 +151,7 @@ int mmk_ctx_asked (void)
 void mmk_mock_destroy_internal (mmk_fn fn)
 {
     struct mmk_stub *stub = mmk_ask_ctx (fn);
-    struct mmk_mock *mock = mmk_stub_context (stub);
+    struct mmk_mock_ctx *mock = mmk_stub_context (stub);
 
     for (struct mmk_stub *s = mock->stubs; s;) {
         struct mmk_stub *next = s->next;
@@ -172,7 +172,7 @@ void mmk_mock_destroy_internal (mmk_fn fn)
     mmk_free (mock);
 }
 
-static int find_and_inc_call_matching (mmk_mock mock, void *params, size_t size)
+static int find_and_inc_call_matching (struct mmk_mock_ctx *mock, void *params, size_t size)
 {
     // skip .times field
     params = (void*) ((char *) params + sizeof (size_t));
@@ -192,14 +192,14 @@ static int find_and_inc_call_matching (mmk_mock mock, void *params, size_t size)
     return 0;
 }
 
-void *mmk_mock_params_begin(mmk_mock mock) {
+void *mmk_mock_params_begin(struct mmk_mock_ctx *mock) {
     if (!mock->call_data || !mock->call_data_top)
         return NULL;
 
     return mock->call_data + sizeof (size_t);
 }
 
-void *mmk_mock_params_next(mmk_mock mock, void *prev) {
+void *mmk_mock_params_next(struct mmk_mock_ctx *mock, void *prev) {
     char *ptr = prev;
     size_t sz = *(size_t*) (ptr - sizeof (size_t));
     ptr += sz;
@@ -210,7 +210,7 @@ void *mmk_mock_params_next(mmk_mock mock, void *prev) {
 
 void mmk_verify_register_call (void *params, size_t size)
 {
-    mmk_mock mock = mmk_stub_context (mmk_ctx ());
+    struct mmk_mock_ctx *mock = mmk_stub_context (mmk_ctx ());
     if (!mock->call_data) {
         mock->call_data = mmk_malloc (4096);
         mmk_assert (mock->call_data);

@@ -39,7 +39,7 @@ struct mmk_result *mmk_when_get_result (void)
     return tls_get(struct mmk_result *, cur_result);
 }
 
-void mmk_when_impl (struct mmk_mock *mock, void *data)
+void mmk_when_impl (struct mmk_mock_ctx *mock, void *data)
 {
     struct mmk_params *params = data;
     params->matcher_ctx = mmk_matcher_ctx();

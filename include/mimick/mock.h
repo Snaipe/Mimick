@@ -35,11 +35,15 @@ struct mmk_params {
 };
 
 struct mmk_params *mmk_mock_get_params(void);
-void *mmk_mock_params_begin(mmk_mock mock);
-void *mmk_mock_params_next(mmk_mock mock, void *prev);
+void *mmk_mock_params_begin(struct mmk_mock_ctx *mock);
+void *mmk_mock_params_next(struct mmk_mock_ctx *mock, void *prev);
+void mmk_mock_destroy_internal (mmk_fn fn);
 
-# undef mmk_mock_create
-# define mmk_mock_create(Target, Id) (MMK_MANGLE(Id, create)((Target)))
+# undef mmk_reset
+# define mmk_reset(Fn) mmk_mock_destroy_internal ((mmk_fn) Fn);
+
+# undef mmk_mock
+# define mmk_mock(Target, Id) (MMK_MANGLE(Id, create)((Target)))
 
 # define MMK_MK_ARG_STR(_, X) #X,
 
@@ -134,7 +138,7 @@ void *mmk_mock_params_next(mmk_mock mock, void *prev);
         static MMK_MANGLE(Id, returntype) zero__; \
         struct mmk_matcher *matcher_ctx = mmk_matcher_ctx();                   \
         if (matcher_ctx) { \
-            struct mmk_mock *mock = mmk_stub_context(mmk_ctx ()); \
+            struct mmk_mock_ctx *mock = mmk_stub_context(mmk_ctx ()); \
             if (matcher_ctx->kind == 0) { \
                 struct MMK_MANGLE(Id, binding) *bind = mmk_malloc (sizeof (struct MMK_MANGLE(Id, binding))); \
                 bind->result = *mmk_when_get_result(); \
@@ -189,6 +193,6 @@ void *mmk_mock_params_next(mmk_mock mock, void *prev);
 
 mmk_fn mmk_mock_create_internal (const char *target, mmk_fn fn);
 struct mmk_item *mmk_pop_params (void);
-void mmk_bind (mmk_mock mock, const char **params_str, void *params);
+void mmk_bind (struct mmk_mock_ctx mock, const char **params_str, void *params);
 
 #endif /* !MIMICK_MOCK_H_ */

@@ -32,7 +32,7 @@ struct mmk_result {
 };
 
 void mmk_when_init (struct mmk_result *res);
-void mmk_when_impl (struct mmk_mock *mock, void *data);
+void mmk_when_impl (struct mmk_mock_ctx *mock, void *data);
 struct mmk_result *mmk_when_get_result (void);
 
 # undef mmk_when

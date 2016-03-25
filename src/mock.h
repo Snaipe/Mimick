@@ -37,7 +37,7 @@ struct mmk_stub {
     struct mmk_stub *next;
 };
 
-struct mmk_mock {
+struct mmk_mock_ctx {
     struct mmk_params *params;
     struct mmk_stub *stubs;
     char *call_data;

@@ -47,18 +47,16 @@ void mmk_stub_destroy (mmk_stub stub);
 
 /* Mock API */
 
-typedef struct mmk_mock *mmk_mock;
+struct mmk_mock_ctx;
 
 # define mmk_val(Type, ...) (&(Type) { __VA_ARGS__ })
 
-# define mmk_mock_create(Target, Id) <internal>
+# define mmk_mock(Target, Id) <internal>
 # define mmk_mock_define(Id, ReturnType, ...) <internal>
 # define mmk_mock_define_void(Id, ReturnType, ...) <internal>
-# define mmk_when(Id, Mock, ...) <internal>
-# define mmk_verify(Id, Mock, ...) <internal>
-
-void mmk_mock_destroy_internal (mmk_fn fn);
-# define mmk_mock_destroy(Fn) mmk_mock_destroy_internal ((mmk_fn) Fn);
+# define mmk_when(CallExpr, ...) <internal>
+# define mmk_verify(CallExpr, ...) <internal>
+# define mmk_reset(Mock) <internal>
 
 # include "mimick/mock.h"
 
