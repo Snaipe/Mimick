@@ -25,7 +25,6 @@
 # define MMK_VERIFY_H_
 
 # include <stddef.h>
-# include "common.h"
 
 struct mmk_verify_params {
     int at_least_once;
@@ -41,7 +40,7 @@ void mmk_verify_register_call (void *params, size_t size);
 # undef mmk_verify
 # define mmk_verify(CallExpr, ...) \
         (mmk_matcher_init(1, #CallExpr), \
-        mmk_use_result__(0, CallExpr), \
+        (CallExpr), \
         mmk_matcher_term (), \
         mmk_verify_times(&(struct mmk_verify_params) { __VA_ARGS__ }))
 

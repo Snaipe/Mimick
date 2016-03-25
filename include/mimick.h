@@ -60,4 +60,20 @@ struct mmk_mock_ctx;
 
 # include "mimick/mock.h"
 
+# ifndef MMK_DO_NOT_UNOPTIMIZE
+#  if defined __GNUC__
+#   pragma GCC optimize "O0"
+#  elif defined _MSC_VER
+#   pragma optimize("", off)
+#  endif
+# endif
+
+# ifndef MMK_DO_NOT_DISABLE_WARNINGS
+#  if defined __GNUC__
+#   pragma GCC diagnostic ignored "-Wunused-result"
+#  elif defined _MSC_VER
+#   pragma warning(disable : 6031)
+#  endif
+# endif
+
 #endif /* !MIMICK_H_ */
