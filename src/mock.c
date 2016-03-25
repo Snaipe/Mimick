@@ -28,12 +28,12 @@
 #include "mock.h"
 #include "vitals.h"
 
-mmk_fn mmk_mock_create_internal (const char *target, mmk_fn fn)
+mmk_fn mmk_mock_create_internal(const char *target, mmk_fn fn)
 {
     mmk_init();
 
-    struct mmk_mock_ctx *ctx = mmk_malloc (sizeof (struct mmk_mock_ctx));
-    mmk_assert (ctx);
+    struct mmk_mock_ctx *ctx = mmk_malloc(sizeof (struct mmk_mock_ctx));
+    mmk_assert(ctx);
     *ctx = (struct mmk_mock_ctx) {
         .params = NULL,
     };
@@ -44,36 +44,36 @@ mmk_fn mmk_mock_create_internal (const char *target, mmk_fn fn)
         name_sz = mmk_strlen(target);
     else
         name_sz = (size_t) (name_end - target);
-    char *name = mmk_malloc (name_sz + 1);
+    char *name = mmk_malloc(name_sz + 1);
     mmk_strncpy(name, target, name_sz);
     name[name_sz] = '\0';
 
-    ctx->stubs = mmk_stub_create (name, fn, ctx);
+    ctx->stubs = mmk_stub_create(name, fn, ctx);
     if (name_end && !mmk_strneq(name_end + 1, "self", 4))
-        ctx->stubs->next = mmk_stub_create (target, fn, ctx);
+        ctx->stubs->next = mmk_stub_create(target, fn, ctx);
     mmk_free(name);
     return (mmk_fn) ctx->stubs->trampoline;
 }
 
-void mmk_mock_destroy_internal (struct mmk_mock_ctx *mock)
+void mmk_mock_destroy_internal(struct mmk_mock_ctx *mock)
 {
     for (struct mmk_stub *s = mock->stubs; s;) {
         struct mmk_stub *next = s->next;
-        mmk_stub_destroy (s);
+        mmk_stub_destroy(s);
         s = next;
     }
-    mmk_free (mock->call_data);
+    mmk_free(mock->call_data);
     for (struct mmk_params *p = mock->params, *pnext; p;) {
         pnext = p->next;
         for (struct mmk_matcher *m = p->matcher_ctx, *next; m;) {
             next = m->next;
-            mmk_free (m);
+            mmk_free(m);
             m = next;
         }
-        mmk_free (p);
+        mmk_free(p);
         p = pnext;
     }
-    mmk_free (mock);
+    mmk_free(mock);
 }
 
 void *mmk_mock_params_begin(struct mmk_mock_ctx *mock) {
@@ -94,6 +94,6 @@ void *mmk_mock_params_next(struct mmk_mock_ctx *mock, void *prev) {
 
 struct mmk_params *mmk_mock_get_params(void)
 {
-    struct mmk_mock_ctx *mock = mmk_stub_context(mmk_ctx ());
+    struct mmk_mock_ctx *mock = mmk_stub_context(mmk_ctx());
     return mock->params;
 }

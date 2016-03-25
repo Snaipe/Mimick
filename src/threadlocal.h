@@ -41,17 +41,17 @@
 #  define tls_set(Type, Var, Val) __extension__ ({ \
             __typeof__(Type) *v__ = NULL; \
             if ((Var) == 0) { \
-                (Var) = TlsAlloc (); \
-                v__ = mmk_malloc (sizeof (*v__)); \
-                TlsSetValue ((Var), v__); \
+                (Var) = TlsAlloc(); \
+                v__ = mmk_malloc(sizeof (*v__)); \
+                TlsSetValue((Var), v__); \
             } else { \
-                v__ = TlsGetValue (Var); \
+                v__ = TlsGetValue(Var); \
             } \
             *v__ = (Val); \
         })
 #  define tls_get(Type, Var) __extension__ ({ \
-            __typeof__(Type)* v__ = TlsGetValue (Var); \
-            mmk_assert (v__ != NULL); \
+            __typeof__(Type)* v__ = TlsGetValue(Var); \
+            mmk_assert(v__ != NULL); \
             *v__; \
         })
 # else

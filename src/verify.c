@@ -47,7 +47,7 @@ int mmk_verify_times(struct mmk_verify_params *params)
     return params->times == tls_get(size_t, times);
 }
 
-static int find_and_inc_call_matching (struct mmk_mock_ctx *mock,
+static int find_and_inc_call_matching(struct mmk_mock_ctx *mock,
         void *params, size_t size)
 {
     // skip .times field
@@ -68,12 +68,12 @@ static int find_and_inc_call_matching (struct mmk_mock_ctx *mock,
     return 0;
 }
 
-void mmk_verify_register_call (void *params, size_t size)
+void mmk_verify_register_call(void *params, size_t size)
 {
-    struct mmk_mock_ctx *mock = mmk_stub_context (mmk_ctx ());
+    struct mmk_mock_ctx *mock = mmk_stub_context(mmk_ctx());
     if (!mock->call_data) {
-        mock->call_data = mmk_malloc (4096);
-        mmk_assert (mock->call_data);
+        mock->call_data = mmk_malloc(4096);
+        mmk_assert(mock->call_data);
         mock->call_data_size = 4096;
     }
 
@@ -84,8 +84,8 @@ void mmk_verify_register_call (void *params, size_t size)
         while (mock->call_data_top + size + sizeof (size_t) >= mock->call_data_size) {
             mock->call_data_size += 4096;
         }
-        mock->call_data = mmk_realloc (mock->call_data, mock->call_data_size);
-        mmk_assert (mock->call_data);
+        mock->call_data = mmk_realloc(mock->call_data, mock->call_data_size);
+        mmk_assert(mock->call_data);
     }
 
     mmk_memcpy(mock->call_data + mock->call_data_top, &size, sizeof (size_t));

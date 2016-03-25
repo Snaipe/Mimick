@@ -67,7 +67,7 @@ static char *mmk_matcher_next_param(char *buf)
 
 void mmk_matcher_init(int kind, char *callexpr)
 {
-    struct mmk_matcher *ctx = mmk_malloc (sizeof (struct mmk_matcher));
+    struct mmk_matcher *ctx = mmk_malloc(sizeof (struct mmk_matcher));
     ctx->kind = (enum mmk_matcher_kind) kind;
     ctx->next = NULL;
 
@@ -105,7 +105,7 @@ struct mmk_matcher *mmk_matcher_ctx(void)
 
 void mmk_matcher_add(enum mmk_matcher_kind kind, int counter)
 {
-    struct mmk_matcher *out = mmk_malloc (sizeof (struct mmk_matcher));
+    struct mmk_matcher *out = mmk_malloc(sizeof (struct mmk_matcher));
     struct mmk_matcher *prev = tls_get(struct mmk_matcher *, matcher_ctx);
 
     *out = (struct mmk_matcher) {

@@ -26,7 +26,7 @@
 
 # include "plt.h"
 
-void mmk_init (void);
-plt_ctx mmk_plt_ctx (void);
+void mmk_init(void);
+plt_ctx mmk_plt_ctx(void);
 
 #endif /* !CORE_H_ */

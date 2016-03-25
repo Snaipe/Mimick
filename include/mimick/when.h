@@ -29,15 +29,15 @@ struct mmk_result {
     void *then_return;
 };
 
-void mmk_when_init (struct mmk_result *res);
-void mmk_when_impl (struct mmk_mock_ctx *mock, void *data);
-struct mmk_result *mmk_when_get_result (void);
+void mmk_when_init(struct mmk_result *res);
+void mmk_when_impl(struct mmk_mock_ctx *mock, void *data);
+struct mmk_result *mmk_when_get_result(void);
 
 # undef mmk_when
 # define mmk_when(CallExpr, ...) \
         (mmk_matcher_init(0, #CallExpr), \
         mmk_when_init(&(struct mmk_result) { __VA_ARGS__ }), \
         (CallExpr), \
-        mmk_matcher_term ())
+        mmk_matcher_term())
 
 #endif /* !MMK_WHEN_H_ */

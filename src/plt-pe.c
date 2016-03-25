@@ -30,32 +30,32 @@
 
 #define IDIR_IMPORT 1 // Index of the import directory entry
 
-plt_ctx plt_init_ctx (void) {
+plt_ctx plt_init_ctx(void) {
     return NULL;
 }
 
-static plt_fn **plt_find_offset (const char *name, plt_lib *lib)
+static plt_fn **plt_find_offset(const char *name, plt_lib *lib)
 {
     HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,
             GetCurrentProcessId());
-    mmk_assert (snap != INVALID_HANDLE_VALUE);
+    mmk_assert(snap != INVALID_HANDLE_VALUE);
 
     MODULEENTRY32 mod = { .dwSize = sizeof(MODULEENTRY32) };
     for (BOOL more = Module32First(snap, &mod); more;
             more = Module32Next(snap, &mod))
     {
-        plt_fn **fn = plt_get_offset (mod.hModule, name);
+        plt_fn **fn = plt_get_offset(mod.hModule, name);
         if (fn) {
             if (lib)
                 *lib = mod.hModule;
             return fn;
         }
     }
-    mmk_assert (GetLastError() == ERROR_NO_MORE_FILES);
+    mmk_assert(GetLastError() == ERROR_NO_MORE_FILES);
     return NULL;
 }
 
-plt_lib plt_get_lib (plt_ctx ctx, const char *name)
+plt_lib plt_get_lib(plt_ctx ctx, const char *name)
 {
     (void) ctx;
     if (!name)
@@ -76,7 +76,7 @@ plt_lib plt_get_lib (plt_ctx ctx, const char *name)
         return m;
     } else if (strncmp(name, "sym:", 4)) {
         plt_lib lib;
-        plt_fn **fn = plt_find_offset (name + 4, &lib);
+        plt_fn **fn = plt_find_offset(name + 4, &lib);
         if (fn)
             return lib;
         return NULL;
@@ -89,28 +89,28 @@ plt_lib plt_get_lib (plt_ctx ctx, const char *name)
             fprintf(stderr, "mimick: unknown target kind '%s'.\n", name);
         }
     }
-    abort ();
+    abort();
 }
 
-static inline PIMAGE_NT_HEADERS nt_header_from_lib (plt_lib lib)
+static inline PIMAGE_NT_HEADERS nt_header_from_lib(plt_lib lib)
 {
     PIMAGE_DOS_HEADER dos_hdr = (PIMAGE_DOS_HEADER) lib;
     return (PIMAGE_NT_HEADERS) ((char *) dos_hdr + dos_hdr->e_lfanew);
 }
 
-static inline PIMAGE_IMPORT_DESCRIPTOR get_first_import_descriptor (plt_lib lib)
+static inline PIMAGE_IMPORT_DESCRIPTOR get_first_import_descriptor(plt_lib lib)
 {
-    PIMAGE_NT_HEADERS nthdr = nt_header_from_lib (lib);
+    PIMAGE_NT_HEADERS nthdr = nt_header_from_lib(lib);
     DWORD off = nthdr->OptionalHeader.DataDirectory[IDIR_IMPORT].VirtualAddress;
     if (!off)
         return NULL;
     return (PIMAGE_IMPORT_DESCRIPTOR) ((char *) lib + off);
 }
 
-plt_fn **plt_get_offset (plt_lib lib, const char *name)
+plt_fn **plt_get_offset(plt_lib lib, const char *name)
 {
     char *base = lib;
-    for (PIMAGE_IMPORT_DESCRIPTOR entry = get_first_import_descriptor (lib);
+    for (PIMAGE_IMPORT_DESCRIPTOR entry = get_first_import_descriptor(lib);
             entry && entry->Name;
             entry++)
     {
@@ -140,7 +140,7 @@ void plt_set_offset(plt_fn **offset, plt_fn *newval)
 plt_fn *plt_get_real_fn(plt_ctx ctx, const char *name)
 {
     (void) ctx;
-    plt_fn **fn = plt_find_offset (name, NULL);
+    plt_fn **fn = plt_find_offset(name, NULL);
     if (fn)
         return *fn;
     return NULL;

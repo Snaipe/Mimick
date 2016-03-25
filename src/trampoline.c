@@ -37,68 +37,68 @@ extern void mmk_trampoline_end();
 #  include <fcntl.h>
 # endif
 
-plt_fn *create_trampoline (void *ctx, plt_fn *routine)
+plt_fn *create_trampoline(void *ctx, plt_fn *routine)
 {
     uintptr_t trampoline_sz = (uintptr_t) mmk_trampoline_end
                             - (uintptr_t) mmk_trampoline;
 
-    mmk_assert (trampoline_sz < PAGE_SIZE);
+    mmk_assert(trampoline_sz < PAGE_SIZE);
 
 # ifdef HAVE_MMAP_MAP_ANONYMOUS
-    void **map = mmap (NULL, PAGE_SIZE,
+    void **map = mmap(NULL, PAGE_SIZE,
             PROT_READ | PROT_WRITE | PROT_EXEC,
             MAP_PRIVATE | MAP_ANONYMOUS,
             -1, 0);
 # else
     int fd = open("/dev/zero", O_RDWR);
-    mmk_assert (fd != -1);
+    mmk_assert(fd != -1);
 
-    void **map = mmap (NULL, PAGE_SIZE,
+    void **map = mmap(NULL, PAGE_SIZE,
             PROT_READ | PROT_WRITE | PROT_EXEC,
             MAP_PRIVATE,
             fd, 0);
 
-    mmk_assert (close (fd) != -1);
+    mmk_assert(close(fd) != -1);
 # endif
 
-    mmk_assert (map != NULL);
+    mmk_assert(map != NULL);
 
     *map = ctx;
     *(map + 1) = (void *) routine;
-    memcpy (map + 2, mmk_trampoline, trampoline_sz);
-    mprotect (map, PAGE_SIZE, PROT_READ | PROT_EXEC);
+    memcpy(map + 2, mmk_trampoline, trampoline_sz);
+    mprotect(map, PAGE_SIZE, PROT_READ | PROT_EXEC);
     return (plt_fn *) (map + 2);
 }
 
-void destroy_trampoline (plt_fn *trampoline)
+void destroy_trampoline(plt_fn *trampoline)
 {
-    munmap ((void **) trampoline - 2, PAGE_SIZE);
+    munmap((void **) trampoline - 2, PAGE_SIZE);
 }
 #elif defined _WIN32
 # include <windows.h>
 # include "assert.h"
 
-plt_fn *create_trampoline (void *ctx, plt_fn *routine)
+plt_fn *create_trampoline(void *ctx, plt_fn *routine)
 {
     uintptr_t trampoline_sz = (uintptr_t) mmk_trampoline_end
                             - (uintptr_t) mmk_trampoline;
 
-    mmk_assert (trampoline_sz < PAGE_SIZE);
-    void **map = VirtualAlloc (NULL, PAGE_SIZE,
+    mmk_assert(trampoline_sz < PAGE_SIZE);
+    void **map = VirtualAlloc(NULL, PAGE_SIZE,
             MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 
     *map = ctx;
     *(map + 1) = (void *) routine;
-    memcpy (map + 2, mmk_trampoline, trampoline_sz);
+    memcpy(map + 2, mmk_trampoline, trampoline_sz);
 
     DWORD old;
-    VirtualProtect (map, PAGE_SIZE, PAGE_EXECUTE_READ, &old);
+    VirtualProtect(map, PAGE_SIZE, PAGE_EXECUTE_READ, &old);
     return (plt_fn *) (map + 2);
 }
 
-void destroy_trampoline (plt_fn *trampoline)
+void destroy_trampoline(plt_fn *trampoline)
 {
-    VirtualFree ((void **) trampoline - 2, 0, MEM_RELEASE);
+    VirtualFree((void **) trampoline - 2, 0, MEM_RELEASE);
 }
 #else
 # error Unsupported platform

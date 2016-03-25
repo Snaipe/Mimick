@@ -101,7 +101,7 @@ static ElfW(Addr) find_dynamic(ElfW(Phdr) *phdr, ElfW(Off) phent)
     return 0;
 }
 
-static struct r_debug *r_debug_from_dynamic (void *dynamic)
+static struct r_debug *r_debug_from_dynamic(void *dynamic)
 {
     for (const ElfW(Dyn) *dyn = dynamic; dyn->d_tag != DT_NULL; ++dyn) {
         if (dyn->d_tag == DT_DEBUG)
@@ -110,7 +110,7 @@ static struct r_debug *r_debug_from_dynamic (void *dynamic)
     return NULL;
 }
 
-static struct r_debug *get_r_debug (void)
+static struct r_debug *get_r_debug(void)
 {
     // Find our own r_debug
     struct r_debug *dbg = NULL;
@@ -173,7 +173,7 @@ plt_lib plt_get_lib(plt_ctx ctx, const char *name)
         } else {
             fprintf(stderr, "mimick: unknown target kind '%s'.\n", name);
         }
-        abort ();
+        abort();
     }
 
     const char *val = sel == NONE ? name : strchr(name, ':') + 1;
@@ -265,7 +265,7 @@ void plt_set_offset(plt_fn **offset, plt_fn *newval)
 plt_fn *plt_get_real_fn(plt_ctx ctx, const char *name)
 {
     for (struct link_map *lm = ctx->r_map; lm != NULL; lm = lm->l_next) {
-        plt_fn **fn = plt_get_offset (lm, name);
+        plt_fn **fn = plt_get_offset(lm, name);
         if (fn)
             return *fn;
     }

@@ -39,11 +39,11 @@ struct mmk_params {
 struct mmk_params *mmk_mock_get_params(void);
 void *mmk_mock_params_begin(struct mmk_mock_ctx *mock);
 void *mmk_mock_params_next(struct mmk_mock_ctx *mock, void *prev);
-mmk_fn mmk_mock_create_internal (const char *target, mmk_fn fn);
+mmk_fn mmk_mock_create_internal(const char *target, mmk_fn fn);
 
 # undef mmk_reset
-void mmk_reset (mmk_fn fn);
-# define mmk_reset(Fn) mmk_reset ((mmk_fn) Fn);
+void mmk_reset(mmk_fn fn);
+# define mmk_reset(Fn) mmk_reset((mmk_fn) Fn);
 
 # undef mmk_mock
 # define mmk_mock(Target, Id) (MMK_MANGLE(Id, create)((Target)))
@@ -144,7 +144,7 @@ void mmk_reset (mmk_fn fn);
             struct mmk_mock_ctx *mock = mmk_stub_context(mmk_ctx ());          \
             if (matcher_ctx->kind == 0) {                                      \
                 struct MMK_MANGLE(Id, binding) *bind =                         \
-                    mmk_malloc (sizeof (struct MMK_MANGLE(Id, binding)));      \
+                    mmk_malloc(sizeof (struct MMK_MANGLE(Id, binding)));       \
                 bind->result = *mmk_when_get_result();                         \
                 MMK_PAIR_APPLY(MMK_SET_PARAMS, Id, MMK_VA_TAIL(__VA_ARGS__))   \
                 mmk_when_impl(mock, bind);                                     \

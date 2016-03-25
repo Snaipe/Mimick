@@ -36,30 +36,30 @@ static struct {
     plt_ctx plt;
 } self;
 
-void mmk_init (void)
+void mmk_init(void)
 {
     if (self.initialized)
         return;
 
     self.plt = plt_init_ctx();
-    mmk_assert (self.plt != (void*) -1);
+    mmk_assert(self.plt != (void*) -1);
 
-    mmk_init_vital_functions (self.plt);
+    mmk_init_vital_functions(self.plt);
 
     self.initialized = 1;
 }
 
-plt_ctx mmk_plt_ctx (void)
+plt_ctx mmk_plt_ctx(void)
 {
     mmk_assert(self.initialized);
     return self.plt;
 }
 
 #undef mmk_reset
-void mmk_reset (mmk_fn fn)
+void mmk_reset(mmk_fn fn)
 {
-    struct mmk_stub *stub = mmk_ask_ctx (fn);
-    struct mmk_mock_ctx *mock = mmk_stub_context (stub);
+    struct mmk_stub *stub = mmk_ask_ctx(fn);
+    struct mmk_mock_ctx *mock = mmk_stub_context(stub);
 
-    mmk_mock_destroy_internal (mock);
+    mmk_mock_destroy_internal(mock);
 }

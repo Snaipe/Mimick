@@ -34,18 +34,18 @@
 static MMK_THREAD_LOCAL(int) ask_ctx;
 static MMK_THREAD_LOCAL(struct mmk_stub *) mmk_ctx_;
 
-void *mmk_stub_context (struct mmk_stub *stub)
+void *mmk_stub_context(struct mmk_stub *stub)
 {
     return stub->ctx;
 }
 
-void mmk_stub_create_static (struct mmk_stub *stub,
+void mmk_stub_create_static(struct mmk_stub *stub,
         const char *target, mmk_fn fn, void *ctx)
 {
     tls_set(int, ask_ctx, 0);
     tls_set(struct mmk_stub *, mmk_ctx_, NULL);
 
-    char *name = mmk_malloc (mmk_strlen(target) + 1);
+    char *name = mmk_malloc(mmk_strlen(target) + 1);
     mmk_strcpy(name, target);
 
     char *path = NULL;
@@ -56,10 +56,10 @@ void mmk_stub_create_static (struct mmk_stub *stub,
     }
 
     plt_lib lib = plt_get_lib(mmk_plt_ctx(), path);
-    mmk_assert (lib != NULL);
+    mmk_assert(lib != NULL);
 
     plt_fn **off = plt_get_offset(lib, name);
-    mmk_assert (off != NULL);
+    mmk_assert(off != NULL);
 
     *stub = (struct mmk_stub) {
         .ctx_asked = mmk_ctx_asked,
@@ -75,35 +75,35 @@ void mmk_stub_create_static (struct mmk_stub *stub,
     plt_set_offset(off, stub->trampoline);
 }
 
-struct mmk_stub *mmk_stub_create (const char *target, mmk_fn fn, void *ctx)
+struct mmk_stub *mmk_stub_create(const char *target, mmk_fn fn, void *ctx)
 {
     mmk_init();
 
-    struct mmk_stub *stub = mmk_malloc (sizeof (struct mmk_stub));
-    mmk_stub_create_static (stub, target, fn, ctx);
+    struct mmk_stub *stub = mmk_malloc(sizeof (struct mmk_stub));
+    mmk_stub_create_static(stub, target, fn, ctx);
     return stub;
 }
 
-void mmk_stub_destroy_static (struct mmk_stub *stub)
+void mmk_stub_destroy_static(struct mmk_stub *stub)
 {
-    plt_set_offset (stub->offset, stub->orig);
-    destroy_trampoline (stub->trampoline);
-    mmk_free (stub->name);
+    plt_set_offset(stub->offset, stub->orig);
+    destroy_trampoline(stub->trampoline);
+    mmk_free(stub->name);
 }
 
-void mmk_stub_destroy (struct mmk_stub *stub)
+void mmk_stub_destroy(struct mmk_stub *stub)
 {
-    mmk_stub_destroy_static (stub);
-    mmk_free (stub);
+    mmk_stub_destroy_static(stub);
+    mmk_free(stub);
 }
 
-struct mmk_stub *mmk_ask_ctx (mmk_fn fn)
+struct mmk_stub *mmk_ask_ctx(mmk_fn fn)
 {
     tls_set(int, ask_ctx, 1);
     return ((struct mmk_stub *(*)(void)) fn)();
 }
 
-int mmk_ctx_asked (void)
+int mmk_ctx_asked(void)
 {
     int asked = tls_get(int, ask_ctx);
     tls_set(int, ask_ctx, 0);
