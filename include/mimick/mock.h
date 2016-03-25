@@ -24,6 +24,8 @@
 #ifndef MIMICK_MOCK_H_
 # define MIMICK_MOCK_H_
 
+typedef struct mmk_mock_ctx *mmk_mock_ctx;
+
 # include "matcher.h"
 # include "alloc.h"
 # include "when.h"

@@ -21,20 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef MOCK_H_
-# define MOCK_H_
+#ifndef STUB_H_
+# define STUB_H_
 
-# include "stub.h"
+# include "plt.h"
 
-struct mmk_mock_ctx {
-    struct mmk_params *params;
-    struct mmk_stub *stubs;
-    char *call_data;
-    size_t call_data_top;
-    size_t call_data_size;
+struct mmk_stub {
+    int (*ctx_asked)(void);
+    void (*ctx_set)(struct mmk_stub *);
+    struct mmk_stub *(*ctx_get)(void);
+    void *ctx;
+    char *name;
+    char *path;
+    plt_fn *orig;
+    plt_fn **offset;
+    plt_fn *trampoline;
+    struct mmk_stub *next;
 };
 
-mmk_fn mmk_mock_create_internal (const char *target, mmk_fn fn);
-void mmk_mock_destroy_internal (struct mmk_mock_ctx *mock);
+struct mmk_stub *mmk_ask_ctx (mmk_fn fn);
+int mmk_ctx_asked (void);
+void mmk_set_ctx(mmk_stub stub);
 
-#endif /* !MOCK_H_ */
+#endif /* !STUB_H_ */

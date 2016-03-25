@@ -28,7 +28,6 @@
 
 typedef void (*mmk_fn)(void);
 typedef struct mmk_stub *mmk_stub;
-typedef struct mmk_mock_ctx *mmk_mock_ctx;
 
 /* Stub API */
 

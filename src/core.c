@@ -21,20 +21,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef MOCK_H_
-# define MOCK_H_
+#include <stdlib.h>
 
-# include "stub.h"
+#include "mimick.h"
 
-struct mmk_mock_ctx {
-    struct mmk_params *params;
-    struct mmk_stub *stubs;
-    char *call_data;
-    size_t call_data_top;
-    size_t call_data_size;
-};
+#include "assert.h"
+#include "mock.h"
+#include "plt.h"
+#include "stub.h"
+#include "vitals.h"
 
-mmk_fn mmk_mock_create_internal (const char *target, mmk_fn fn);
-void mmk_mock_destroy_internal (struct mmk_mock_ctx *mock);
+static struct {
+    int initialized;
+    plt_ctx plt;
+} self;
 
-#endif /* !MOCK_H_ */
+void mmk_init (void)
+{
+    if (self.initialized)
+        return;
+
+    self.plt = plt_init_ctx();
+    mmk_assert (self.plt != (void*) -1);
+
+    mmk_init_vital_functions (self.plt);
+
+    self.initialized = 1;
+}
+
+plt_ctx mmk_plt_ctx (void)
+{
+    mmk_assert(self.initialized);
+    return self.plt;
+}
+
+#undef mmk_reset
+void mmk_reset (mmk_fn fn)
+{
+    struct mmk_stub *stub = mmk_ask_ctx (fn);
+    struct mmk_mock_ctx *mock = mmk_stub_context (stub);
+
+    mmk_mock_destroy_internal (mock);
+}

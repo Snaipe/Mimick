@@ -7,12 +7,16 @@ set (ASM_FILES src/asm/trampoline-${MMK_ARCH}-${MMK_ABI}${ASM_EXTENSION})
 set (SOURCE_FILES ${ASM_FILES}
     src/assert.h
     src/config.h
+    src/core.c
+    src/core.h
     src/matcher.c
-    src/mimick.c
+    src/mock.c
     src/mock.h
     src/plt.h
     src/plt-${MMK_EXE_FORMAT}.c
     src/plt-${MMK_EXE_FORMAT}.h
+    src/stub.c
+    src/stub.h
     src/threadlocal.h
     src/trampoline.c
     src/trampoline.h
