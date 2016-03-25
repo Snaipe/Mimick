@@ -40,17 +40,18 @@ int main(void) {
 
     /* Mock the malloc function in the current module using 
        the `malloc_mock` blueprint. */
-    mmk_mock m = mmk_mock_create ("malloc", malloc_mock);
+    mmk_mock_create ("malloc@self", malloc_mock);
 
     /* Tell the mock to return NULL and set errno to ENOMEM
        whatever the given parameter is. */
-    mmk_when (m, malloc_mock, with (mmk_any (size_t)),
-            .then_return = NULL,
+    void *result = NULL;
+    mmk_when (malloc (mmk_any (size_t)),
+            .then_return = &result,
             .then_errno = ENOMEM);
 
-    assert(malloc(42) == NULL && errno == ENOMEM);
+    assert (malloc(42) == result && errno == ENOMEM);
 
-    mmk_mock_destroy(m);
+    mmk_mock_destroy (malloc);
 }
 ```
 
