@@ -30,7 +30,10 @@ next:
 
     push    %eax                                // Setup mock context
     mov     (start - next - 0x8)(%eax), %eax
-    mov     %eax, mmk_ctx
+    push    %eax                                // Call mmk_set_ctx
+    mov     0x4(%eax), %eax
+    call    *%eax
+    pop     %eax
 
     mov     (%eax), %eax                        // Check if context was asked
     call    *%eax
@@ -43,8 +46,10 @@ next:
     jmp     *%eax
 
 ret_ctx:
-    mov     mmk_ctx, %eax
-    add     $0x4, %esp
+    pop     %eax
+    mov     (start - next - 0x8)(%eax), %eax
+    mov     0x8(%eax), %eax                     // Call mmk_ctx
+    call    *%eax
     ret
 
 .globl mmk_trampoline_end

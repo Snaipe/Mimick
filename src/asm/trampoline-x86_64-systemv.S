@@ -21,6 +21,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+# define PUSHDQ(Reg) \
+    sub $0x10, %rsp; \
+    movdqu Reg, (%rsp)
+
+# define POPDQ(Reg) \
+    movdqu (%rsp), Reg; \
+    add $0x10, %rsp
+
 .globl mmk_trampoline
 mmk_trampoline:
 start:
@@ -30,10 +39,46 @@ next:
 
     push    %rax                                // Setup mock context
     mov     (start - next - 0x10)(%rax), %rax
-    mov     %rax, mmk_ctx
+
+    push    %rdi                                // Save caller ctx
+    push    %rsi
+    push    %rdx
+    push    %rcx
+    push    %r8
+    push    %r9
+    PUSHDQ  (%xmm0)
+    PUSHDQ  (%xmm1)
+    PUSHDQ  (%xmm2)
+    PUSHDQ  (%xmm3)
+    PUSHDQ  (%xmm4)
+    PUSHDQ  (%xmm5)
+    PUSHDQ  (%xmm6)
+    PUSHDQ  (%xmm7)
+
+    mov     %rax, %rdi                          // Call mmk_set_ctx
+    push    %rax
+    mov     0x8(%rax), %rax
+    call    *%rax
+    pop     %rax
 
     mov     (%rax), %rax                        // Check if context was asked
     call    *%rax
+
+    POPDQ   (%xmm7)                             // Restore caller ctx
+    POPDQ   (%xmm6)
+    POPDQ   (%xmm5)
+    POPDQ   (%xmm4)
+    POPDQ   (%xmm3)
+    POPDQ   (%xmm2)
+    POPDQ   (%xmm1)
+    POPDQ   (%xmm0)
+    pop     %r9
+    pop     %r8
+    pop     %rcx
+    pop     %rdx
+    pop     %rsi
+    pop     %rdi
+
     test    %rax, %rax
     jnz     ret_ctx
 
@@ -43,8 +88,10 @@ next:
     jmp     *%rax
 
 ret_ctx:                                        // Return context
-    mov     mmk_ctx, %rax
-    add     $0x8, %rsp
+    pop     %rax
+    mov     (start - next - 0x10)(%rax), %rax
+    mov     0x10(%rax), %rax                    // Call mmk_ctx
+    call    *%rax
     ret
 
 .globl mmk_trampoline_end

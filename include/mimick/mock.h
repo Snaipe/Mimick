@@ -134,7 +134,7 @@ void *mmk_mock_params_next(mmk_mock mock, void *prev);
         static MMK_MANGLE(Id, returntype) zero__; \
         struct mmk_matcher *matcher_ctx = mmk_matcher_ctx();                   \
         if (matcher_ctx) { \
-            struct mmk_mock *mock = mmk_stub_context(mmk_ctx); \
+            struct mmk_mock *mock = mmk_stub_context(mmk_ctx ()); \
             if (matcher_ctx->kind == 0) { \
                 struct MMK_MANGLE(Id, binding) *bind = mmk_malloc (sizeof (struct MMK_MANGLE(Id, binding))); \
                 bind->result = *mmk_when_get_result(); \

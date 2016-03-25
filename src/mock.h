@@ -26,6 +26,8 @@
 
 struct mmk_stub {
     int (*ctx_asked)(void);
+    void (*ctx_set)(mmk_stub);
+    mmk_stub (*ctx_get)(void);
     void *ctx;
     char *name;
     char *path;
@@ -45,5 +47,6 @@ struct mmk_mock {
 
 struct mmk_stub *mmk_ask_ctx (mmk_fn fn);
 int mmk_ctx_asked (void);
+void mmk_set_ctx(mmk_stub stub);
 
 #endif /* !MOCK_H_ */

@@ -39,7 +39,7 @@ void mmk_init (void);
 typedef void (*mmk_fn)(void);
 typedef struct mmk_stub *mmk_stub;
 
-extern mmk_stub mmk_ctx;
+mmk_stub mmk_ctx(void);
 
 void *mmk_stub_context (mmk_stub stub);
 mmk_stub mmk_stub_create (const char *target, mmk_fn fn, void *ctx);

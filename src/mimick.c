@@ -30,7 +30,6 @@
 #include "mock.h"
 #include "threadlocal.h"
 
-mmk_stub mmk_ctx;
 static struct {
     plt_ctx plt;
 } self;
@@ -50,7 +49,7 @@ void *mmk_stub_context (mmk_stub stub)
 
 struct mmk_params *mmk_mock_get_params(void)
 {
-    mmk_mock mock = mmk_stub_context(mmk_ctx);
+    mmk_mock mock = mmk_stub_context(mmk_ctx ());
     return mock->params;
 }
 
@@ -74,6 +73,8 @@ void mmk_stub_create_static (mmk_stub stub, const char *target, mmk_fn fn, void 
 
     *stub = (struct mmk_stub) {
         .ctx_asked = mmk_ctx_asked,
+        .ctx_set = mmk_set_ctx,
+        .ctx_get = mmk_ctx,
         .ctx = ctx,
         .name = name,
         .path = path,
@@ -207,7 +208,7 @@ void *mmk_mock_params_next(mmk_mock mock, void *prev) {
 
 void mmk_verify_register_call (void *params, size_t size)
 {
-    mmk_mock mock = mmk_stub_context (mmk_ctx);
+    mmk_mock mock = mmk_stub_context (mmk_ctx ());
     if (!mock->call_data) {
         mock->call_data = mmk_malloc (4096);
         mmk_assert (mock->call_data);
@@ -231,4 +232,16 @@ void mmk_verify_register_call (void *params, size_t size)
     *times = 1;
 
     mock->call_data_top += size + sizeof (size_t);
+}
+
+static MMK_THREAD_LOCAL mmk_stub mmk_ctx_;
+
+mmk_stub mmk_ctx(void)
+{
+    return mmk_ctx_;
+}
+
+void mmk_set_ctx(mmk_stub stub)
+{
+    mmk_ctx_ = stub;
 }
