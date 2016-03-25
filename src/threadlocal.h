@@ -36,6 +36,7 @@
 
 # if defined __GNUC__ && defined _WIN32
 #  include <windows.h>
+#  include "assert.h"
 
 #  define tls_set(Type, Var, Val) __extension__ ({ \
             __typeof__(Type) *v__ = NULL; \
@@ -48,7 +49,11 @@
             } \
             *v__ = (Val); \
         })
-#  define tls_get(Type, Var) (*(__typeof__(Type)*)TlsGetValue(Var))
+#  define tls_get(Type, Var) __extension__ ({ \
+            __typeof__(Type)* v__ = TlsGetValue (Var); \
+            mmk_assert (v__ != NULL); \
+            *v__; \
+        })
 # else
 #  define tls_set(Type, Var, Val) ((Var) = (Val))
 #  define tls_get(Type, Var) (Var)
