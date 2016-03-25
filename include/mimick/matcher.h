@@ -24,7 +24,7 @@
 #ifndef MIMICK_MATCHER_H_
 # define MIMICK_MATCHER_H_
 
-# include "offset.h"
+# include <stddef.h>
 
 /* Using anonymous structs in compound literals is perfectly valid C,
    and we use this behaviour in Mimick. This MSVC warning does nothing
@@ -53,13 +53,19 @@ struct mmk_matcher {
 };
 
 # define mmk_matcher_val_(Kind, Type, Val) (mmk_matcher_add(Kind, __COUNTER__), ((Type) Val))
+# undef mmk_any
 # define mmk_any(Type)      mmk_matcher_val_(MMK_MATCHER_ANY, Type, { 0 })
+# undef mmk_neq
 # define mmk_neq(Type, Val) mmk_matcher_val_(MMK_MATCHER_NEQ, Type, Val)
+# undef mmk_lt
 # define mmk_lt(Type, Val)  mmk_matcher_val_(MMK_MATCHER_LT, Type, Val)
+# undef mmk_leq
 # define mmk_leq(Type, Val) mmk_matcher_val_(MMK_MATCHER_LEQ, Type, Val)
+# undef mmk_gt
 # define mmk_gt(Type, Val)  mmk_matcher_val_(MMK_MATCHER_GT, Type, Val)
+# undef mmk_geq
 # define mmk_geq(Type, Val) mmk_matcher_val_(MMK_MATCHER_GEQ, Type, Val)
-
+# undef mmk_that
 # define mmk_that(Predicate) ((struct mmk_matcher *) &(struct { struct mmk_matcher matcher; void (*val)(void); }) { .val = (void (*)(void)) Predicate })
 
 void mmk_matcher_init(int counter, char *callexpr);

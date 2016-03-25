@@ -22,8 +22,8 @@
  * THE SOFTWARE.
  */
 #include <stdlib.h>
-#include "assert.h"
 #include "mimick.h"
+#include "assert.h"
 #include "plt.h"
 #include "trampoline.h"
 #include "vitals.h"
@@ -31,6 +31,7 @@
 #include "threadlocal.h"
 
 static struct {
+    int initialized;
     plt_ctx plt;
 } self;
 
@@ -40,6 +41,8 @@ void mmk_init (void)
     mmk_assert (self.plt != (void*) -1);
 
     mmk_init_vital_functions (self.plt);
+
+    self.initialized = 1;
 }
 
 void *mmk_stub_context (mmk_stub stub)
@@ -55,11 +58,11 @@ struct mmk_params *mmk_mock_get_params(void)
 
 void mmk_stub_create_static (mmk_stub stub, const char *target, mmk_fn fn, void *ctx)
 {
-    char *name = mmk_malloc (strlen(target) + 1);
-    strcpy(name, target);
+    char *name = mmk_malloc (mmk_strlen(target) + 1);
+    mmk_strcpy(name, target);
 
     char *path = NULL;
-    char *delim = strchr(name, '@');
+    char *delim = mmk_strchr(name, '@');
     if (delim != NULL) {
         *delim = 0;
         path = delim + 1;
@@ -87,6 +90,9 @@ void mmk_stub_create_static (mmk_stub stub, const char *target, mmk_fn fn, void 
 
 mmk_stub mmk_stub_create (const char *target, mmk_fn fn, void *ctx)
 {
+    if (!self.initialized)
+        mmk_init();
+
     mmk_stub stub = mmk_malloc (sizeof (struct mmk_stub));
     mmk_stub_create_static (stub, target, fn, ctx);
     return stub;
@@ -110,6 +116,9 @@ static MMK_THREAD_LOCAL(mmk_stub) mmk_ctx_;
 
 mmk_fn mmk_mock_create_internal (const char *target, mmk_fn fn)
 {
+    if (!self.initialized)
+        mmk_init();
+
     tls_set(int, ask_ctx, 0);
     tls_set(mmk_stub, mmk_ctx_, NULL);
 
@@ -119,18 +128,19 @@ mmk_fn mmk_mock_create_internal (const char *target, mmk_fn fn)
         .params = NULL,
     };
 
-    char *name_end = strchr(target, '@');
+    char *name_end = mmk_strchr(target, '@');
     size_t name_sz;
     if (name_end == NULL)
-        name_sz = strlen(target);
+        name_sz = mmk_strlen(target);
     else
         name_sz = (size_t) (name_end - target);
     char *name = mmk_malloc (name_sz + 1);
-    strncpy(name, target, name_sz);
+    mmk_strncpy(name, target, name_sz);
     name[name_sz] = '\0';
 
     ctx->stubs = mmk_stub_create (name, fn, ctx);
-    ctx->stubs->next = mmk_stub_create (target, fn, ctx);
+    if (name_end && !mmk_strneq(name_end + 1, "self", 4))
+        ctx->stubs->next = mmk_stub_create (target, fn, ctx);
     mmk_free(name);
     return (mmk_fn) ctx->stubs->trampoline;
 }
@@ -148,11 +158,8 @@ int mmk_ctx_asked (void)
     return asked;
 }
 
-void mmk_mock_destroy_internal (mmk_fn fn)
+void mmk_mock_destroy_internal (struct mmk_mock_ctx *mock)
 {
-    struct mmk_stub *stub = mmk_ask_ctx (fn);
-    struct mmk_mock_ctx *mock = mmk_stub_context (stub);
-
     for (struct mmk_stub *s = mock->stubs; s;) {
         struct mmk_stub *next = s->next;
         mmk_stub_destroy (s);
@@ -170,6 +177,15 @@ void mmk_mock_destroy_internal (mmk_fn fn)
         p = pnext;
     }
     mmk_free (mock);
+}
+
+#undef mmk_reset
+void mmk_reset (mmk_fn fn)
+{
+    struct mmk_stub *stub = mmk_ask_ctx (fn);
+    struct mmk_mock_ctx *mock = mmk_stub_context (stub);
+
+    mmk_mock_destroy_internal (mock);
 }
 
 static int find_and_inc_call_matching (struct mmk_mock_ctx *mock, void *params, size_t size)

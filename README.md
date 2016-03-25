@@ -36,8 +36,6 @@ Here is a simple usage of Mimick to mock the `malloc` function:
 mmk_mock_define (malloc_mock, void *, size_t, size);
 
 int main(void) {
-    mmk_init ();
-
     /* Mock the malloc function in the current module using 
        the `malloc_mock` blueprint. */
     mmk_mock ("malloc@self", malloc_mock);

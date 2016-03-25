@@ -37,10 +37,11 @@ struct mmk_params {
 struct mmk_params *mmk_mock_get_params(void);
 void *mmk_mock_params_begin(struct mmk_mock_ctx *mock);
 void *mmk_mock_params_next(struct mmk_mock_ctx *mock, void *prev);
-void mmk_mock_destroy_internal (mmk_fn fn);
+mmk_fn mmk_mock_create_internal (const char *target, mmk_fn fn);
 
 # undef mmk_reset
-# define mmk_reset(Fn) mmk_mock_destroy_internal ((mmk_fn) Fn);
+void mmk_reset (mmk_fn fn);
+# define mmk_reset(Fn) mmk_reset ((mmk_fn) Fn);
 
 # undef mmk_mock
 # define mmk_mock(Target, Id) (MMK_MANGLE(Id, create)((Target)))
@@ -121,78 +122,76 @@ void mmk_mock_destroy_internal (mmk_fn fn);
 # undef mmk_mock_define
 # define mmk_mock_define(Id, ...)                                              \
     typedef MMK_EXPAND(MMK_VA_HEAD(__VA_ARGS__)) MMK_MANGLE(Id, returntype);   \
-    typedef MMK_MANGLE(Id, returntype)(*MMK_MANGLE(Id, fn))(                   \
+    typedef MMK_MANGLE(Id, returntype)(*Id)(                                   \
             MMK_EXPAND(MMK_PARAM_LIST(MMK_VA_TAIL(__VA_ARGS__))));             \
     struct MMK_MANGLE(Id, params) {                                            \
-        size_t mmk_times__;  \
+        size_t mmk_times__;                                                    \
         MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_FIELD, Id, MMK_VA_TAIL(__VA_ARGS__)))\
     };                                                                         \
     struct MMK_MANGLE(Id, binding) {                                           \
-        struct mmk_params item;                                              \
+        struct mmk_params item;                                                \
         struct mmk_result result;                                              \
-        struct MMK_MANGLE(Id, params) params; \
+        struct MMK_MANGLE(Id, params) params;                                  \
     };                                                                         \
     static MMK_MANGLE(Id, returntype) MMK_MANGLE(Id, stub)(                    \
         MMK_EXPAND(MMK_PARAM_LIST(MMK_VA_TAIL(__VA_ARGS__))))                  \
     {                                                                          \
-        static MMK_MANGLE(Id, returntype) zero__; \
+        static MMK_MANGLE(Id, returntype) zero__;                              \
         struct mmk_matcher *matcher_ctx = mmk_matcher_ctx();                   \
-        if (matcher_ctx) { \
-            struct mmk_mock_ctx *mock = mmk_stub_context(mmk_ctx ()); \
-            if (matcher_ctx->kind == 0) { \
-                struct MMK_MANGLE(Id, binding) *bind = mmk_malloc (sizeof (struct MMK_MANGLE(Id, binding))); \
-                bind->result = *mmk_when_get_result(); \
-                MMK_PAIR_APPLY(MMK_SET_PARAMS, Id, MMK_VA_TAIL(__VA_ARGS__))            \
-                mmk_when_impl(mock, bind); \
-            } else if (matcher_ctx->kind == 1) { \
+        if (matcher_ctx) {                                                     \
+            struct mmk_mock_ctx *mock = mmk_stub_context(mmk_ctx ());          \
+            if (matcher_ctx->kind == 0) {                                      \
+                struct MMK_MANGLE(Id, binding) *bind =                         \
+                    mmk_malloc (sizeof (struct MMK_MANGLE(Id, binding)));      \
+                bind->result = *mmk_when_get_result();                         \
+                MMK_PAIR_APPLY(MMK_SET_PARAMS, Id, MMK_VA_TAIL(__VA_ARGS__))   \
+                mmk_when_impl(mock, bind);                                     \
+            } else if (matcher_ctx->kind == 1) {                               \
                 size_t times = 0;                                              \
-                for (struct MMK_MANGLE(Id, params) *p =                 \
+                for (struct MMK_MANGLE(Id, params) *p =                        \
                             mmk_mock_params_begin(mock);                       \
                         p; p = mmk_mock_params_next(mock, p))                  \
                 {                                                              \
                     struct mmk_matcher *m = matcher_ctx;                       \
-                    size_t markmask = m->prio;            \
+                    size_t markmask = m->prio;                                 \
                     MMK_EXPAND(MMK_PAIR_APPLY(MMK_TRYVERIFY, Id,               \
                             MMK_VA_TAIL(__VA_ARGS__)))                         \
-                    times += p->mmk_times__;                                    \
+                    times += p->mmk_times__;                                   \
             fail:                                                              \
                     continue;                                                  \
                 }                                                              \
-                for (struct mmk_matcher *m = matcher_ctx, *next; m;) { \
-                    next = m->next; \
-                    mmk_free (m); \
-                    m = next; \
-                } \
-                mmk_verify_set_times(times); \
-            } \
-            return zero__; \
-        } \
-        mmk_verify_register_call (&(struct MMK_MANGLE(Id, params)) {    \
+                for (struct mmk_matcher *m = matcher_ctx, *next; m;) {         \
+                    next = m->next;                                            \
+                    mmk_free (m);                                              \
+                    m = next;                                                  \
+                }                                                              \
+                mmk_verify_set_times(times);                                   \
+            }                                                                  \
+            return zero__;                                                     \
+        }                                                                      \
+        mmk_verify_register_call (&(struct MMK_MANGLE(Id, params)) {           \
                 MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_VERIFY_PARAM, Id,            \
                             MMK_VA_TAIL(__VA_ARGS__)))                         \
-            }, sizeof (struct MMK_MANGLE(Id, params)));                 \
+            }, sizeof (struct MMK_MANGLE(Id, params)));                        \
         struct mmk_params *param = mmk_mock_get_params();                      \
         for (; param; param = param->next) {                                   \
-            struct MMK_MANGLE(Id, binding) *bind = (void*) param;                  \
+            struct MMK_MANGLE(Id, binding) *bind = (void*) param;              \
             struct mmk_matcher *m = param->matcher_ctx;                        \
-            size_t markmask = m->prio;                    \
+            size_t markmask = m->prio;                                         \
             MMK_EXPAND(MMK_PAIR_APPLY(MMK_TRYMATCH, Id,                        \
                     MMK_VA_TAIL(__VA_ARGS__)))                                 \
-            if (bind->result.then_errno)                                               \
-                errno = bind->result.then_errno;                                       \
-            if (bind->result.then_return) \
-                return *(MMK_MANGLE(Id, returntype)*) bind->result.then_return;            \
-            return zero__; \
+            if (bind->result.then_errno)                                       \
+                errno = bind->result.then_errno;                               \
+            if (bind->result.then_return)                                      \
+                return *(MMK_MANGLE(Id, returntype)*) bind->result.then_return;\
+            return zero__;                                                     \
         }                                                                      \
-        return zero__; \
+        return zero__;                                                         \
     }                                                                          \
-    static inline MMK_MANGLE(Id, fn) MMK_MANGLE(Id, create)(const char *tgt) { \
-        return (MMK_MANGLE(Id, fn)) mmk_mock_create_internal(tgt, (mmk_fn) MMK_MANGLE(Id, stub)); \
-    } \
+    static inline Id MMK_MANGLE(Id, create)(const char *tgt) {                 \
+        return (Id) mmk_mock_create_internal(tgt,                              \
+                (mmk_fn) MMK_MANGLE(Id, stub));                                \
+    }                                                                          \
     typedef int MMK_MANGLE(Id, dummy)
-
-mmk_fn mmk_mock_create_internal (const char *target, mmk_fn fn);
-struct mmk_item *mmk_pop_params (void);
-void mmk_bind (struct mmk_mock_ctx mock, const char **params_str, void *params);
 
 #endif /* !MIMICK_MOCK_H_ */

@@ -24,41 +24,44 @@
 #ifndef MIMICK_H_
 # define MIMICK_H_
 
-# include <stdint.h>
-# include <stdbool.h>
-# include <string.h>
 # include "mimick/preprocess.h"
-# include "mimick/item.h"
-# include "mimick/offset.h"
-# include "mimick/matcher.h"
-
-void mmk_init (void);
-
-/* Stub API */
 
 typedef void (*mmk_fn)(void);
 typedef struct mmk_stub *mmk_stub;
+typedef struct mmk_mock_ctx *mmk_mock_ctx;
+
+/* Stub API */
 
 mmk_stub mmk_ctx(void);
-
 void *mmk_stub_context (mmk_stub stub);
 mmk_stub mmk_stub_create (const char *target, mmk_fn fn, void *ctx);
 void mmk_stub_destroy (mmk_stub stub);
 
 /* Mock API */
 
-struct mmk_mock_ctx;
-
 # define mmk_val(Type, ...) (&(Type) { __VA_ARGS__ })
 
 # define mmk_mock(Target, Id) <internal>
 # define mmk_mock_define(Id, ReturnType, ...) <internal>
-# define mmk_mock_define_void(Id, ReturnType, ...) <internal>
+# define mmk_mock_define_void(Id, ...) <internal>
 # define mmk_when(CallExpr, ...) <internal>
 # define mmk_verify(CallExpr, ...) <internal>
 # define mmk_reset(Mock) <internal>
 
+/* Matcher API */
+
+# define mmk_any(Type) <internal>
+# define mmk_neq(Type, Val) <internal>
+# define mmk_lt(Type, Val) <internal>
+# define mmk_leq(Type, Val) <internal>
+# define mmk_gt(Type, Val) <internal>
+# define mmk_geq(Type, Val) <internal>
+# define mmk_that(Predicate) <internal>
+
+/* Internals */
+
 # include "mimick/mock.h"
+# include "mimick/matcher.h"
 
 # ifndef MMK_DO_NOT_UNOPTIMIZE
 #  if defined __GNUC__

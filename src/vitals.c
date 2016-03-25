@@ -34,6 +34,29 @@ char *mmk_strchr(const char *buf, int c)
     return NULL;
 }
 
+char *mmk_strcpy(char *dst, const char *src)
+{
+    for (; *src; ++dst, ++src)
+        *dst = *src;
+    *dst = '\0';
+    return dst;
+}
+
+char *mmk_strncpy(char *dst, const char *src, size_t n)
+{
+    for (; *src && n; ++dst, ++src, --n)
+        *dst = *src;
+    *dst = '\0';
+    return dst;
+}
+
+size_t mmk_strlen(const char *s)
+{
+    size_t len = 0;
+    for (; *s; ++len, ++s);
+    return len;
+}
+
 int mmk_isspace(int c)
 {
     return c == ' ' || c == '\t' || c == '\r' || c == '\n';

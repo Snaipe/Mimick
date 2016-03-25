@@ -1,5 +1,6 @@
 #include <mimick.h>
 #include <errno.h>
+#include <string.h>
 #include "assert.h"
 #include "strdup.h"
 
@@ -41,7 +42,6 @@ void test_error_case(void)
 
 int main(void)
 {
-    mmk_init();
     test_simple_case();
     test_error_case();
     return 0;
