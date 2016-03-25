@@ -21,22 +21,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-.globl mmk_trampoline
-mmk_trampoline:
-start:
-    call    next                                // Retrieve IP
-next:
-    pop     %eax
+#include "mimick.h"
+#include "mimick/verify.h"
+#include "threadlocal.h"
 
-    push    %eax                                // Setup mock context
-    mov     (start - next - 0x8)(%eax), %eax
-    mov     %eax, mmk_ctx
+static MMK_THREAD_LOCAL size_t times;
 
-    pop     %eax
-    mov     (start - next - 0x4)(%eax), %eax    // Retrieve offset at
-                                                // the start of the map
-    jmp     *%eax
+void mmk_verify_set_times(size_t t)
+{
+    times = t;
+}
 
-.globl mmk_trampoline_end
-mmk_trampoline_end:
-    nop
+int mmk_verify_times(struct mmk_verify_params *params)
+{
+    if (params->never)
+        return times == 0;
+    if (params->at_least_once)
+        return times > 0;
+    if (params->that)
+        return params->that(times);
+    return params->times == times;
+}

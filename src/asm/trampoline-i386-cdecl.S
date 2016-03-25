@@ -26,16 +26,31 @@ mmk_trampoline:
 start:
     call    next                                // Retrieve IP
 next:
-    pop     %rax
+    pop     %eax
 
-    push    %rax                                // Setup mock context
-    mov     (start - next - 0x10)(%rax), %rax
-    mov     %rax, mmk_ctx
+    push    %eax                                // Setup mock context
+    mov     (start - next - 0x8)(%eax), %eax
+    push    %eax                                // Call mmk_set_ctx
+    mov     0x4(%eax), %eax
+    call    *%eax
+    pop     %eax
 
-    pop     %rax
-    mov     (start - next - 0x8)(%rax), %rax    // Retrieve offset at
+    mov     (%eax), %eax                        // Check if context was asked
+    call    *%eax
+    test    %eax, %eax
+    jnz     ret_ctx
+
+    pop     %eax
+    mov     (start - next - 0x4)(%eax), %eax    // Retrieve offset at
                                                 // the start of the map
-    jmp     *%rax
+    jmp     *%eax
+
+ret_ctx:
+    pop     %eax
+    mov     (start - next - 0x8)(%eax), %eax
+    mov     0x8(%eax), %eax                     // Call mmk_ctx
+    call    *%eax
+    ret
 
 .globl mmk_trampoline_end
 mmk_trampoline_end:

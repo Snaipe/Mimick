@@ -35,10 +35,22 @@ next:
   and     eax, 0fffff000h
   push    eax
   mov     eax, dword ptr [eax]                      ; Setup mock context
-  mov     mmk_ctx, eax
+  push    eax                                       ; Call mmk_set_ctx
+  call    dword ptr [eax + 4h]
+  pop     eax
+
+  call    dword ptr [eax]                           ; Check if context was asked
+  test    eax, eax
+  jnz     ret_ctx
 
   pop     eax                                       ; Retrieve offset at
   jmp     dword ptr [eax + 4h]                      ; the start of the map
+
+ret_ctx:                                            ; Return context
+  pop     eax
+  mov     eax, dword ptr [eax]
+  call    dword ptr [eax + 8h]                     ; Call mmk_ctx
+  ret
 mmk_trampoline_end label far
 
 public mmk_trampoline

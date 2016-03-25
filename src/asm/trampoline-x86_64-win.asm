@@ -23,6 +23,16 @@
 ;
 .CODE
 
+PUSHDQ MACRO Reg;
+    sub rsp, 10h
+    movdqu dqword [rsp], Reg
+ENDM
+
+POPDQ MACRO Reg;
+    movdqu Reg, dqword [rsp]
+    add rsp, 10h
+ENDM
+
 ; mmk_ctx defined as proc instead of qword to avoid
 ; MASM's relative addressing bullshit
 extern mmk_ctx:proc
@@ -35,13 +45,42 @@ next:
   and     rax, 0fffffffffffff000h
   push    rax
   mov     rax, qword ptr [rax]                      ; Setup mock context
-  push    rbx
-  mov     rbx, mmk_ctx
-  mov     [rbx], rax
-  pop     rbx
+
+  push    rcx                                       ; Save caller ctx
+  push    rdx
+  push    r8
+  push    r9
+  PUSHDQ  xmm0
+  PUSHDQ  xmm1
+  PUSHDQ  xmm2
+  PUSHDQ  xmm3
+
+  mov     rcx, rax                                  ; Call mmk_set_ctx
+  push    rax
+  call    qword ptr [rax + 8h]
+  pop     rax
+
+  call    qword ptr [rax]                           ; Check if context was asked
+
+  POPDQ   xmm3                                      ; Restore caller ctx
+  POPDQ   xmm2
+  POPDQ   xmm1
+  POPDQ   xmm0
+  pop     r9
+  pop     r8
+  pop     rdx
+  pop     rcx
+
+  test    rax, rax
+  jnz     ret_ctx
 
   pop     rax                                       ; Retrieve offset at
   jmp     qword ptr [rax + 8h]                      ; the start of the map
+
+ret_ctx:                                            ; Return context
+  pop     rax
+  mov     rax, qword ptr [rax]
+  ret
 mmk_trampoline_end label far
 
 public mmk_trampoline
