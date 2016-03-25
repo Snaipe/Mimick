@@ -25,20 +25,20 @@
 #include "mimick/verify.h"
 #include "threadlocal.h"
 
-static MMK_THREAD_LOCAL size_t times;
+static MMK_THREAD_LOCAL(size_t) times;
 
 void mmk_verify_set_times(size_t t)
 {
-    times = t;
+    tls_set(size_t, times, t);
 }
 
 int mmk_verify_times(struct mmk_verify_params *params)
 {
     if (params->never)
-        return times == 0;
+        return tls_get(size_t, times) == 0;
     if (params->at_least_once)
-        return times > 0;
+        return tls_get(size_t, times) > 0;
     if (params->that)
-        return params->that(times);
-    return params->times == times;
+        return params->that(tls_get(size_t, times));
+    return params->times == tls_get(size_t, times);
 }

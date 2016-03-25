@@ -28,9 +28,7 @@
 #include "vitals.h"
 #include "threadlocal.h"
 
-MMK_THREAD_LOCAL struct {
-    struct mmk_matcher *matcher;
-} matcher_ctx;
+static MMK_THREAD_LOCAL(struct mmk_matcher *) matcher_ctx;
 
 static char *mmk_matcher_skipspace(char *buf)
 {
@@ -92,30 +90,30 @@ void mmk_matcher_init(int kind, char *callexpr)
     }
 
     ctx->prio = markmask;
-    matcher_ctx.matcher = ctx;
+    tls_set(struct mmk_matcher *, matcher_ctx, ctx);
 }
 
 void mmk_matcher_term(void)
 {
-    matcher_ctx.matcher = NULL;
+    tls_set(struct mmk_matcher *, matcher_ctx, NULL);
 }
 
 struct mmk_matcher *mmk_matcher_ctx(void)
 {
-    return matcher_ctx.matcher;
+    return tls_get(struct mmk_matcher *, matcher_ctx);
 }
 
 void mmk_matcher_add(enum mmk_matcher_kind kind, int counter)
 {
     struct mmk_matcher *out = mmk_malloc (sizeof (struct mmk_matcher));
-    struct mmk_matcher *prev = matcher_ctx.matcher;
+    struct mmk_matcher *prev = tls_get(struct mmk_matcher *, matcher_ctx);
 
     *out = (struct mmk_matcher) {
         .kind = kind,
         .prio = counter,
     };
 
-    for (struct mmk_matcher *m = matcher_ctx.matcher->next;
+    for (struct mmk_matcher *m = tls_get(struct mmk_matcher *, matcher_ctx)->next;
             m != NULL && m->prio < out->prio;
             prev = m, m = m->next)
         continue;

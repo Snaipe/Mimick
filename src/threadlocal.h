@@ -25,11 +25,33 @@
 # define THREADLOCAL_H_
 
 # if __STDC_VERSION__ >= 201112L && !defined __STDC_NO_THREADS__
-#  define MMK_THREAD_LOCAL _Thread_Local
+#  define MMK_THREAD_LOCAL(Type) _Thread_Local Type
 # elif defined _MSC_VER
-#  define MMK_THREAD_LOCAL __declspec(thread)
+#  define MMK_THREAD_LOCAL(Type) __declspec(thread) Type
+# elif defined __GNUC__ && defined _WIN32
+#  define MMK_THREAD_LOCAL(Type) DWORD
 # elif defined __GNUC__
-#  define MMK_THREAD_LOCAL __thread
+#  define MMK_THREAD_LOCAL(Type) __thread Type
+# endif
+
+# if defined __GNUC__ && defined _WIN32
+#  include <windows.h>
+
+#  define tls_set(Type, Var, Val) __extension__ ({ \
+            __typeof__(Type) *v__ = NULL; \
+            if ((Var) == 0) { \
+                (Var) = TlsAlloc (); \
+                v__ = mmk_malloc (sizeof (*v__)); \
+                TlsSetValue ((Var), v__); \
+            } else { \
+                v__ = TlsGetValue (Var); \
+            } \
+            *v__ = (Val); \
+        })
+#  define tls_get(Type, Var) (*(__typeof__(Type)*)TlsGetValue(Var))
+# else
+#  define tls_set(Type, Var, Val) ((Var) = (Val))
+#  define tls_get(Type, Var) (Var)
 # endif
 
 #endif /* !THREADLOCAL_H_ */

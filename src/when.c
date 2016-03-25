@@ -27,16 +27,16 @@
 #include "threadlocal.h"
 #include "mock.h"
 
-MMK_THREAD_LOCAL struct mmk_result *cur_result;
+static MMK_THREAD_LOCAL(struct mmk_result *) cur_result;
 
 void mmk_when_init (struct mmk_result *res)
 {
-    cur_result = res;
+    tls_set(struct mmk_result *, cur_result, res);
 }
 
 struct mmk_result *mmk_when_get_result (void)
 {
-    return cur_result;
+    return tls_get(struct mmk_result *, cur_result);
 }
 
 void mmk_when_impl (struct mmk_mock *mock, void *data)

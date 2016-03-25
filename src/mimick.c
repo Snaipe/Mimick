@@ -105,11 +105,13 @@ void mmk_stub_destroy (mmk_stub stub)
     mmk_free (stub);
 }
 
-static MMK_THREAD_LOCAL int ask_ctx;
+static MMK_THREAD_LOCAL(int) ask_ctx;
+static MMK_THREAD_LOCAL(mmk_stub) mmk_ctx_;
 
 mmk_fn mmk_mock_create_internal (const char *target, mmk_fn fn)
 {
-    ask_ctx = 0;
+    tls_set(int, ask_ctx, 0);
+    tls_set(mmk_stub, mmk_ctx_, NULL);
 
     mmk_mock ctx = mmk_malloc (sizeof (struct mmk_mock));
     mmk_assert (ctx);
@@ -135,14 +137,14 @@ mmk_fn mmk_mock_create_internal (const char *target, mmk_fn fn)
 
 struct mmk_stub *mmk_ask_ctx (mmk_fn fn)
 {
-    ask_ctx = 1;
+    tls_set(int, ask_ctx, 1);
     return ((struct mmk_stub *(*)(void)) fn)();
 }
 
 int mmk_ctx_asked (void)
 {
-    int asked = ask_ctx;
-    ask_ctx = 0;
+    int asked = tls_get(int, ask_ctx);
+    tls_set(int, ask_ctx, 0);
     return asked;
 }
 
@@ -234,14 +236,12 @@ void mmk_verify_register_call (void *params, size_t size)
     mock->call_data_top += size + sizeof (size_t);
 }
 
-static MMK_THREAD_LOCAL mmk_stub mmk_ctx_;
-
 mmk_stub mmk_ctx(void)
 {
-    return mmk_ctx_;
+    return tls_get(mmk_stub, mmk_ctx_);
 }
 
 void mmk_set_ctx(mmk_stub stub)
 {
-    mmk_ctx_ = stub;
+    tls_set(mmk_stub, mmk_ctx_, stub);
 }
