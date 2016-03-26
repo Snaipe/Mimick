@@ -21,8 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-.globl mmk_trampoline
-mmk_trampoline:
+#ifdef _WIN32
+# define SYMBOL(Name) \
+    .globl _ ## Name; \
+    _ ## Name
+#else
+# define SYMBOL(Name) \
+    .globl Name; \
+    Name
+#endif
+
+SYMBOL(mmk_trampoline):
 start:
     call    next                                // Retrieve IP
 next:
@@ -52,6 +61,5 @@ ret_ctx:
     call    *%eax
     ret
 
-.globl mmk_trampoline_end
-mmk_trampoline_end:
+SYMBOL(mmk_trampoline_end):
     nop
