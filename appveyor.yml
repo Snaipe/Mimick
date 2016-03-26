@@ -16,6 +16,10 @@ init:
           $env:PATH = "C:\msys64\mingw64\bin;" + $env:PATH
           pacman --noconfirm --needed -S base-devel git zip mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake 2> $NULL
         }
+      } else {
+        if ($env:PLATFORM -ne "x86") {
+          $env:CMAKE_OPTS = $env:CMAKE_OPTS + " -A '$env:PLATFORM'"
+        }
       }
       $error.Clear()
   - set "PATH=%PATH%;%APPVEYOR_BUILD_FOLDER%\build;%APPVEYOR_BUILD_FOLDER%\build\%CONFIGURATION%"
@@ -26,14 +30,13 @@ environment:
   CI_NAME: appveyor
   CI_JOB_ID: $(APPVEYOR_JOB_ID)
   GCOV_PREFIX: $(APPVEYOR_BUILD_FOLDER)
-  GENERATOR_PLATFORM: -A $(PLATFORM)
   matrix:
   - COMPILER: mingw
     GENERATOR: "MSYS Makefiles"
     CMAKE_OPTS: -DCMAKE_SYSTEM_PROCESSOR="%PLATFORM%" -DCMAKE_TOOLCHAIN_FILE="../.cmake/Toolchains/Toolchain-mingw-w64.cmake"
   - COMPILER: msvc
     GENERATOR: "Visual Studio 14 2015"
-    CMAKE_OPTS: -DCMAKE_SYSTEM_PROCESSOR="%PLATFORM%" "%GENERATOR_PLATFORM%"
+    CMAKE_OPTS: -DCMAKE_SYSTEM_PROCESSOR="%PLATFORM%"
     CFLAGS: /MP
     CXXFLAGS: /MP
 
@@ -50,7 +53,6 @@ configuration:
 
 install:
   - ps: $env:RELEASE_NAME = $env:APPVEYOR_REPO_BRANCH -replace "/", "-"
-  - if "%PLATFORM%" == "x86" SET GENERATOR_PLATFORM=""
   # Hack to make git think it is on the tip of the repo branch
   - 'git checkout -B %APPVEYOR_REPO_BRANCH%'
   # Configure project
