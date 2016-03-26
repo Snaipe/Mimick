@@ -13,7 +13,7 @@ if (WIN32)
     SET(CMAKE_C_COMPILER "C:/msys64/mingw${BITS}/bin/gcc.exe")
     SET(CMAKE_CXX_COMPILER "C:/msys64/mingw${BITS}/bin/g++.exe")
     SET(CMAKE_RC_COMPILER "C:/msys64/mingw${BITS}/bin/windres.exe")
-    SET(CMAKE_FIND_ROOT_PATH "C:/msys64/mingw${BITS}/bin")
+    SET(CMAKE_FIND_ROOT_PATH "C:/msys64/mingw${BITS}" "C:/msys64/mingw${BITS}/${CMAKE_SYSTEM_PROCESSOR}-w64-mingw32")
 else ()
     # which compilers to use for C and C++
     SET(CMAKE_C_COMPILER ${CMAKE_SYSTEM_PROCESSOR}-w64-mingw32-gcc)
