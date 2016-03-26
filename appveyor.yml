@@ -43,6 +43,7 @@ install:
   # Configure project
   - 'mkdir build && cd build'
   - >
+      sh -c '
       cmake
       -Wno-dev
       -DCMAKE_INSTALL_PREFIX="mimick-%RELEASE_NAME%"
@@ -50,6 +51,7 @@ install:
       %CMAKE_OPTS%
       -G "%GENERATOR%"
       ..
+      '
 
 build_script:
   - cmake --build .
