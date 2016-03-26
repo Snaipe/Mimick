@@ -16,10 +16,11 @@ init:
         }
       } else {
         if ($env:PLATFORM -ne "x86") {
-          $env:CMAKE_OPTS = $env:CMAKE_OPTS + " -A '$env:PLATFORM'"
+          $env:CMAKE_OPTS = $env:CMAKE_OPTS + " -A $env:PLATFORM"
         }
       }
       $error.Clear()
+  - echo CMAKE_OPTS = %CMAKE_OPTS%
   - set "PATH=%PATH%;%APPVEYOR_BUILD_FOLDER%\build;%APPVEYOR_BUILD_FOLDER%\build\%CONFIGURATION%"
 
 environment:
