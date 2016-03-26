@@ -1,10 +1,10 @@
 # the name of the target operating system
 set(CMAKE_SYSTEM_NAME Windows)
 
-if (CMAKE_SYSTEM_PROCESSOR MATCHES "^x86")
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "^x86$")
     set (CMAKE_SYSTEM_PROCESSOR i686)
     set (BITS 32)
-elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "^x64")
+elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "^x64$")
     set (CMAKE_SYSTEM_PROCESSOR x86_64)
     set (BITS 64)
 endif ()
