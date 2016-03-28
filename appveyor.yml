@@ -1,4 +1,4 @@
-version: 0.1.0_b{build}-{branch}
+version: 2.2.0_b{build}-{branch}
 
 init:
   - git config --global core.autocrlf input
@@ -32,10 +32,9 @@ environment:
   matrix:
   - COMPILER: mingw
     GENERATOR: "MSYS Makefiles"
-    CMAKE_OPTS: -DCMAKE_SYSTEM_PROCESSOR="%PLATFORM%" -DCMAKE_TOOLCHAIN_FILE="../.cmake/Toolchains/Toolchain-mingw-w64.cmake"
+    CMAKE_OPTS: -DCMAKE_TOOLCHAIN_FILE="../.cmake/Toolchains/Toolchain-mingw-w64.cmake"
   - COMPILER: msvc
     GENERATOR: "Visual Studio 14 2015"
-    CMAKE_OPTS: -DCMAKE_SYSTEM_PROCESSOR="%PLATFORM%"
     CFLAGS: /MP
     CXXFLAGS: /MP
 
@@ -61,6 +60,7 @@ install:
       -Wno-dev
       -DCMAKE_INSTALL_PREFIX="mimick-%RELEASE_NAME%"
       -DCMAKE_BUILD_TYPE="%CONFIGURATION%"
+      -DCMAKE_SYSTEM_PROCESSOR="%PLATFORM%"
       %CMAKE_OPTS%
       -G "%GENERATOR%"
       ..
