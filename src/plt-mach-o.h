@@ -21,23 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef PLT_H_
-# define PLT_H_
+#ifndef PLT_MACH_O_H_
+# define PLT_MACH_O_H_
 
-# include "config.h"
+typedef int plt_lib;
+typedef void *plt_ctx;
+typedef void *plt_got;
+typedef void (plt_fn)(void);
 
-# if defined MMK_EXE_FMT_ELF
-#  include "plt-elf.h"
-# elif defined MMK_EXE_FMT_PE
-#  include "plt-pe.h"
-# elif defined MMK_EXE_FMT_MACH_O
-#  include "plt-mach-o.h"
-# endif
-
-plt_ctx plt_init_ctx(void);
-plt_lib plt_get_lib(plt_ctx ctx, const char *name);
-plt_fn **plt_get_offset(plt_lib lib, const char *name);
-void plt_set_offset(plt_fn **offset, plt_fn *newval);
-plt_fn *plt_get_real_fn(plt_ctx ctx, const char *name);
-
-#endif /* !PLT_H_ */
+#endif /* !PLT_MACH_O_H_ */
