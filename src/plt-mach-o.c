@@ -50,12 +50,6 @@ typedef struct segment_command_64 segment_cmd;
 # error Unsupported architecture
 #endif
 
-static inline void *get_real_address(plt_lib lib, void *addr) {
-    if (!addr)
-        return NULL;
-    return (char *) addr + _dyld_get_image_vmaddr_slide(lib);
-}
-
 plt_ctx plt_init_ctx(void)
 {
     return NULL;
