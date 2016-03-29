@@ -53,6 +53,21 @@ int main(void) {
 }
 ```
 
+Or, alternatively:
+
+```c
+malloc_mock mock = mmk_mock("malloc@self", malloc_mock);
+
+void *result = NULL;
+mmk_when(mock(mmk_any(size_t)),
+        .then_return = &result,
+        .then_errno = ENOMEM);
+
+assert(malloc(42) == result && errno == ENOMEM);
+
+mmk_reset(mock);
+```
+
 Other samples may be found in the [samples](./sample/) directory.
 
 ## Compatibility matrix

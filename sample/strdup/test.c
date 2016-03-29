@@ -28,16 +28,17 @@ void test_simple_case(void)
 
 void test_error_case(void)
 {
-    mmk_mock("malloc@lib:strdup", malloc_mock);
+    /* Alternative usage */
+    malloc_mock mock = mmk_mock("malloc@lib:strdup", malloc_mock);
 
-    mmk_when(malloc(mmk_any(size_t)),
+    mmk_when(mock(mmk_any(size_t)),
             .then_return = &(void *) { NULL },
             .then_errno = ENOMEM);
 
     char *dup = my_strdup("foo");
     mmk_assert(dup == NULL && errno == ENOMEM);
 
-    mmk_reset(malloc);
+    mmk_reset(mock);
 }
 
 int main(void)
