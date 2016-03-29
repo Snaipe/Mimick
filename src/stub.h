@@ -33,8 +33,8 @@ struct mmk_stub {
     void *ctx;
     char *name;
     char *path;
-    plt_fn *orig;
-    plt_fn **offset;
+    plt_offset *offsets;
+    size_t nb_offsets;
     plt_fn *trampoline;
     struct mmk_stub *next;
 };

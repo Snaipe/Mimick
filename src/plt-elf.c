@@ -23,11 +23,13 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
-#include "assert.h"
 #include <string.h>
-#include "plt-elf.h"
-#include "trampoline.h"
+
+#include "assert.h"
 #include "config.h"
+#include "plt.h"
+#include "trampoline.h"
+#include "vitals.h"
 
 #if MMK_BITS == 32
 typedef Elf32_Word ElfWord;
@@ -54,6 +56,8 @@ typedef ElfW(Auxinfo) ElfAux;
 #endif
 
 extern char **environ;
+
+static plt_fn **plt_get_offset(plt_lib lib, const char *name);
 
 static void *lib_dt_lookup(plt_lib lib, ElfSWord tag)
 {
@@ -226,7 +230,7 @@ static uintptr_t get_offset(struct rel_info *info, ElfW(Sym) *symtab,
     return 0;
 }
 
-plt_fn **plt_get_offset(plt_lib lib, const char *name)
+static plt_fn **plt_get_offset(plt_lib lib, const char *name)
 {
     ElfW(Sym) *symtab   = (ElfW(Sym)*)  lib_dt_lookup(lib, DT_SYMTAB);
     const char *strtab  = (const char*) lib_dt_lookup(lib, DT_STRTAB);
@@ -257,9 +261,32 @@ plt_fn **plt_get_offset(plt_lib lib, const char *name)
     return NULL;
 }
 
-void plt_set_offset(plt_fn **offset, plt_fn *newval)
+plt_offset *plt_get_offsets(plt_lib lib, const char *name, size_t *n)
 {
-    *offset = newval;
+    plt_fn **off = plt_get_offset(lib, name);
+    if (off) {
+        plt_offset *ot = mmk_malloc(sizeof (plt_offset));
+        *n = 1;
+        *ot = (plt_offset) { .offset = off };
+        return ot;
+    }
+    return NULL;
+}
+
+void plt_set_offsets(plt_offset *offset, size_t nb_off, plt_fn *newval)
+{
+    for (size_t i = 0; i < nb_off; ++i) {
+        if (!offset[i].oldval)
+            offset[i].oldval = *offset[i].offset;
+        *offset[i].offset = newval;
+    }
+}
+
+void plt_reset_offsets(plt_offset *offset, size_t nb_off)
+{
+    for (size_t i = 0; i < nb_off; ++i) {
+        *offset[i].offset = offset[i].oldval;
+    }
 }
 
 plt_fn *plt_get_real_fn(plt_ctx ctx, const char *name)

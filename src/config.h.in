@@ -5,11 +5,13 @@
 #cmakedefine MMK_BITS @MMK_BITS@
 #cmakedefine MMK_EXE_FMT_ELF @MMK_EXE_FMT_ELF@
 #cmakedefine MMK_EXE_FMT_PE @MMK_EXE_FMT_PE@
+#cmakedefine MMK_EXE_FMT_MACH_O @MMK_EXE_FMT_MACH_O@
 #cmakedefine HAVE__R_DEBUG @HAVE__R_DEBUG@
 #cmakedefine HAVE__DYNAMIC @HAVE__DYNAMIC@
 #cmakedefine HAVE_ELF_AUXV_T @HAVE_ELF_AUXV_T@
 #cmakedefine HAVE_ELF_AUXINFO @HAVE_ELF_AUXINFO@
 #cmakedefine HAVE_MMAP @HAVE_MMAP@
 #cmakedefine HAVE_MMAP_MAP_ANONYMOUS @HAVE_MMAP_MAP_ANONYMOUS@
+#cmakedefine HAVE_MMAP_MAP_ANON @HAVE_MMAP_MAP_ANON@
 
 #endif /* !CONFIG_H_IN_ */

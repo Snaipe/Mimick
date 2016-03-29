@@ -90,19 +90,21 @@ function (mmk_check_type_exists _T _H _VAR)
   " ${_VAR})
 endfunction ()
 
-if (MMK_EXE_FMT_ELF)
-  list(APPEND CMAKE_REQUIRED_DEFINITIONS -D_GNU_SOURCE)
+list(APPEND CMAKE_REQUIRED_DEFINITIONS -D_GNU_SOURCE)
 
+if (MMK_EXE_FMT_ELF)
   check_symbol_exists(_r_debug link.h HAVE__R_DEBUG)
   check_symbol_exists(_DYNAMIC link.h HAVE__DYNAMIC)
-  check_symbol_exists(mmap sys/mman.h HAVE_MMAP)
-  check_symbol_exists(MAP_ANONYMOUS sys/mman.h HAVE_MMAP_MAP_ANONYMOUS)
 
   mmk_check_type_exists(Elf${MMK_BITS}_auxv_t elf.h HAVE_ELF_AUXV_T)
   mmk_check_type_exists(Elf${MMK_BITS}_Auxinfo elf.h HAVE_ELF_AUXINFO)
-
-  list(REMOVE_ITEM CMAKE_REQUIRED_DEFINITIONS -D_GNU_SOURCE)
 endif ()
+
+check_symbol_exists(mmap sys/mman.h HAVE_MMAP)
+check_symbol_exists(MAP_ANONYMOUS sys/mman.h HAVE_MMAP_MAP_ANONYMOUS)
+check_symbol_exists(MAP_ANON sys/mman.h HAVE_MMAP_MAP_ANON)
+
+list(REMOVE_ITEM CMAKE_REQUIRED_DEFINITIONS -D_GNU_SOURCE)
 
 include_directories(include src)
 add_subdirectory (src)

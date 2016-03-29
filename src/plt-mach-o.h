@@ -21,45 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#if defined _WIN32 || defined __APPLE__
-# define SYMBOL(Name) \
-    .globl _ ## Name; \
-    _ ## Name
-#else
-# define SYMBOL(Name) \
-    .globl Name; \
-    Name
-#endif
+#ifndef PLT_MACH_O_H_
+# define PLT_MACH_O_H_
 
-SYMBOL(mmk_trampoline):
-start:
-    call    next                                // Retrieve IP
-next:
-    pop     %eax
+typedef int plt_lib;
+typedef void *plt_ctx;
+typedef void *plt_got;
+typedef void (plt_fn)(void);
 
-    push    %eax                                // Setup mock context
-    mov     (start - next - 0x8)(%eax), %eax
-    push    %eax                                // Call mmk_set_ctx
-    mov     0x4(%eax), %eax
-    call    *%eax
-    pop     %eax
-
-    mov     (%eax), %eax                        // Check if context was asked
-    call    *%eax
-    test    %eax, %eax
-    jnz     ret_ctx
-
-    pop     %eax
-    mov     (start - next - 0x4)(%eax), %eax    // Retrieve offset at
-                                                // the start of the map
-    jmp     *%eax
-
-ret_ctx:
-    pop     %eax
-    mov     (start - next - 0x8)(%eax), %eax
-    mov     0x8(%eax), %eax                     // Call mmk_ctx
-    call    *%eax
-    ret
-
-SYMBOL(mmk_trampoline_end):
-    nop
+#endif /* !PLT_MACH_O_H_ */

@@ -22,6 +22,16 @@
  * THE SOFTWARE.
  */
 
+#ifdef __APPLE__
+# define SYMBOL(Name) \
+    .globl _ ## Name; \
+    _ ## Name
+#else
+# define SYMBOL(Name) \
+    .globl Name; \
+    Name
+#endif
+
 # define PUSHDQ(Reg) \
     sub $0x10, %rsp; \
     movdqu Reg, (%rsp)
@@ -30,8 +40,7 @@
     movdqu (%rsp), Reg; \
     add $0x10, %rsp
 
-.globl mmk_trampoline
-mmk_trampoline:
+SYMBOL(mmk_trampoline):
 start:
     call    next                                // Retrieve IP
 next:
@@ -94,6 +103,5 @@ ret_ctx:                                        // Return context
     call    *%rax
     ret
 
-.globl mmk_trampoline_end
-mmk_trampoline_end:
+SYMBOL(mmk_trampoline_end):
     nop

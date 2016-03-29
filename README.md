@@ -57,10 +57,13 @@ Other samples may be found in the [samples](./sample/) directory.
 
 ## Compatibility matrix
 
+Labels: **N/T**: Not Tested, **N/A**: Not Applicable
+
 | Arch | Linux | OS X | FreeBSD | Windows |
 | --- | --- | --- | --- | --- |
-| x86 | Yes | No | Yes | Yes |
-| x86\_64 | Yes | No | Yes | Yes |
+| x86 | Yes | Yes | Yes | Yes |
+| x86\_64 | Yes | Yes | Yes | Yes |
+| PPC | No | No | No | N/A |
 
 ## F.A.Q.
 
