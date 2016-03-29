@@ -88,9 +88,18 @@ A. No. Static functions are, by definition, *private* implementations details,
    (and should not) be mocked/stubbed.
 
 **Q. Can I mock/stub functions inside a static library?**  
-A. No. Functions inside a static library are moved inside the executable and are not
-   called using the PLT. You need to build a shared library, otherwise the functions
-   cannot be stubbed nor mocked.
+A. *Maybe*. Functions inside a static library are moved inside the executable and are not
+   called using the PLT by default. You need to build your library to use Position-Independent
+   Code, otherwise the functions cannot be stubbed nor mocked.
+
+**Q. I am mocking a standard library function, but `mmk_when` and `mmk_verify`
+  are not working, why is this happening?**  
+A. It's very possible that your compiler is optimizing away your function
+   call inside `mmk_when` or `mmk_verify` since it has determined that there
+   are no visible side effects in not calling the function. Compile your tests
+   without optimizations (with a compiler flag or the `mmk_no_optimize`
+   function attribute if it is available to your compiler), or use the function
+   pointer returned by `mmk_mock` rather than the function itself.
 
 **Q. Does this run on embedded systems / bare metal?**  
 A. No. Unless your target system supports dynamic linking, Mimick won't work *at all*.
