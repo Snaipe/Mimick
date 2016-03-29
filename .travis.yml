@@ -29,6 +29,12 @@ matrix:
       os: osx
     - env: CONFIGURATION=RelWithDebInfo
       os: osx
+    - env: CONFIGURATION=Debug           ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-darwin-i686
+      os: osx
+    - env: CONFIGURATION=Release         ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-darwin-i686
+      os: osx
+    - env: CONFIGURATION=RelWithDebInfo  ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-darwin-i686
+      os: osx
 
 before_install:
   - if [ -z "${TARGET}" ]; then export TARGET=${ARCH}; fi
