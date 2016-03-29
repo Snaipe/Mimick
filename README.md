@@ -76,9 +76,9 @@ Labels: **N/T**: Not Tested, **N/A**: Not Applicable
 
 | Arch | Linux | OS X | FreeBSD | Windows |
 | --- | --- | --- | --- | --- |
-| x86 | Yes | Yes | Yes | Yes |
-| x86\_64 | Yes | Yes | Yes | Yes |
-| PPC | No | No | No | N/A |
+| x86 | ✓ | ✓ | ✓ | ✓ |
+| x86\_64 | ✓ | ✓ | ✓ | ✓ |
+| PPC | ✕ | ✕ | ✕ | N/A |
 
 ## F.A.Q.
 
