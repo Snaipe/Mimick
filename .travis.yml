@@ -1,5 +1,4 @@
 language: c
-compiler: gcc
 
 sudo: false
 
@@ -14,30 +13,48 @@ matrix:
   # Linux
     # x86_64
     - env: CONFIGURATION=Debug
+      compiler: gcc
     - env: CONFIGURATION=Release
+      compiler: gcc
     - env: CONFIGURATION=RelWithDebInfo
+      compiler: gcc
     # i386
     - env: CONFIGURATION=Debug           ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-i686
+      compiler: gcc
     - env: CONFIGURATION=Release         ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-i686
+      compiler: gcc
     - env: CONFIGURATION=RelWithDebInfo  ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-i686
+      compiler: gcc
 
   # OS X
     # x86_64
     - env: CONFIGURATION=Debug
       os: osx
+      compiler: clang
     - env: CONFIGURATION=Release
       os: osx
+      compiler: clang
     - env: CONFIGURATION=RelWithDebInfo
       os: osx
+      compiler: clang
     - env: CONFIGURATION=Debug           ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-darwin-i686
       os: osx
+      compiler: clang
     - env: CONFIGURATION=Release         ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-darwin-i686
       os: osx
+      compiler: clang
     - env: CONFIGURATION=RelWithDebInfo  ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-darwin-i686
       os: osx
+      compiler: clang
 
 before_install:
   - if [ -z "${TARGET}" ]; then export TARGET=${ARCH}; fi
+  - |
+      if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$CC" = "clang" ]; then
+        brew update
+        brew unlink cmake
+        brew install llvm cmake
+      fi
 
 script:
   - mkdir -p build && cd $_
