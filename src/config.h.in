@@ -5,6 +5,7 @@
 #cmakedefine MMK_BITS @MMK_BITS@
 #cmakedefine MMK_EXE_FMT_ELF @MMK_EXE_FMT_ELF@
 #cmakedefine MMK_EXE_FMT_PE @MMK_EXE_FMT_PE@
+#cmakedefine MMK_EXE_FMT_MACH_O @MMK_EXE_FMT_MACH_O@
 #cmakedefine HAVE__R_DEBUG @HAVE__R_DEBUG@
 #cmakedefine HAVE__DYNAMIC @HAVE__DYNAMIC@
 #cmakedefine HAVE_ELF_AUXV_T @HAVE_ELF_AUXV_T@

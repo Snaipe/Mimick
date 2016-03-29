@@ -63,7 +63,7 @@ void mmk_stub_destroy(mmk_stub stub);
 # include "mimick/matcher.h"
 
 # ifndef MMK_DO_NOT_UNOPTIMIZE
-#  if defined __GNUC__
+#  if defined __GNUC__ && !defined __clang__
 #   pragma GCC optimize "O0"
 #  elif defined _MSC_VER
 #   pragma optimize("", off)
