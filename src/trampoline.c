@@ -44,10 +44,15 @@ plt_fn *create_trampoline(void *ctx, plt_fn *routine)
 
     mmk_assert(trampoline_sz < PAGE_SIZE);
 
-# ifdef HAVE_MMAP_MAP_ANONYMOUS
+# if defined HAVE_MMAP_MAP_ANONYMOUS
     void **map = mmap(NULL, PAGE_SIZE,
             PROT_READ | PROT_WRITE | PROT_EXEC,
             MAP_PRIVATE | MAP_ANONYMOUS,
+            -1, 0);
+# elif defined HAVE_MMAP_MAP_ANON
+    void **map = mmap(NULL, PAGE_SIZE,
+            PROT_READ | PROT_WRITE | PROT_EXEC,
+            MAP_PRIVATE | MAP_ANON,
             -1, 0);
 # else
     int fd = open("/dev/zero", O_RDWR);
@@ -61,7 +66,7 @@ plt_fn *create_trampoline(void *ctx, plt_fn *routine)
     mmk_assert(close(fd) != -1);
 # endif
 
-    mmk_assert(map != NULL);
+    mmk_assert(map != MAP_FAILED);
 
     *map = ctx;
     *(map + 1) = (void *) routine;
