@@ -6,7 +6,7 @@
 
 mmk_mock_define(malloc_mock, void *, size_t, size);
 
-void test_simple_case(void)
+void mmk_no_optimize test_simple_case(void)
 {
     static char ref[] = "hello";
     char buf[sizeof (ref)];
@@ -26,7 +26,7 @@ void test_simple_case(void)
     mmk_reset(malloc);
 }
 
-void test_error_case(void)
+void mmk_no_optimize test_error_case(void)
 {
     mmk_mock("malloc@lib:strdup", malloc_mock);
 

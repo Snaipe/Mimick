@@ -70,6 +70,14 @@ void mmk_stub_destroy(mmk_stub stub);
 #  endif
 # endif
 
+# if defined __clang__
+#  define mmk_no_optimize __attribute__((optnone))
+# elif __GNUC__ >= 4 && __GNUC_MINOR__ >= 4
+#  define mmk_no_optimize __attribute__((optimize(0)))
+# else
+#  define mmk_no_optimize
+# endif
+
 # ifndef MMK_DO_NOT_DISABLE_WARNINGS
 #  if defined __GNUC__
 #   pragma GCC diagnostic ignored "-Wunused-result"
