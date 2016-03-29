@@ -25,11 +25,11 @@
 
 PUSHDQ MACRO Reg;
     sub rsp, 10h
-    movdqu dqword [rsp], Reg
+    movdqu xmmword ptr [rsp], Reg
 ENDM
 
 POPDQ MACRO Reg;
-    movdqu Reg, dqword [rsp]
+    movdqu Reg, xmmword ptr [rsp]
     add rsp, 10h
 ENDM
 

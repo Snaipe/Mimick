@@ -21,6 +21,10 @@ else ()
 endif ()
 
 if (MSVC)
+    if (NOT CMAKE_GENERATOR_PLATFORM)
+        set (_ARCH "x86")
+    endif ()
+
     enable_language (ASM_MASM)
     if (CMAKE_GENERATOR MATCHES "^.*Win64$" OR _ARCH MATCHES "${AMD64}")
         set (MMK_ARCH "x86_64")
