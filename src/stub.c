@@ -56,10 +56,11 @@ void mmk_stub_create_static(struct mmk_stub *stub,
     }
 
     plt_lib lib = plt_get_lib(mmk_plt_ctx(), path);
-    mmk_assert(lib != NULL);
+    mmk_assert(lib);
 
-    plt_fn **off = plt_get_offset(lib, name);
-    mmk_assert(off != NULL);
+    size_t nb_off = 0;
+    plt_offset *off = plt_get_offsets(lib, name, &nb_off);
+    mmk_assert(off != NULL && nb_off > 0);
 
     *stub = (struct mmk_stub) {
         .ctx_asked = mmk_ctx_asked,
@@ -68,11 +69,11 @@ void mmk_stub_create_static(struct mmk_stub *stub,
         .ctx = ctx,
         .name = name,
         .path = path,
-        .orig = *off,
-        .offset = off,
+        .offsets = off,
+        .nb_offsets = nb_off,
     };
     stub->trampoline = create_trampoline(stub, (plt_fn *) fn);
-    plt_set_offset(off, stub->trampoline);
+    plt_set_offsets(off, nb_off, stub->trampoline);
 }
 
 struct mmk_stub *mmk_stub_create(const char *target, mmk_fn fn, void *ctx)
@@ -86,7 +87,8 @@ struct mmk_stub *mmk_stub_create(const char *target, mmk_fn fn, void *ctx)
 
 void mmk_stub_destroy_static(struct mmk_stub *stub)
 {
-    plt_set_offset(stub->offset, stub->orig);
+    plt_reset_offsets(stub->offsets, stub->nb_offsets);
+    mmk_free(stub->offsets);
     destroy_trampoline(stub->trampoline);
     mmk_free(stub->name);
 }

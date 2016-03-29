@@ -34,10 +34,16 @@
 #  include "plt-mach-o.h"
 # endif
 
+typedef struct plt_offset {
+    plt_fn **offset;
+    plt_fn *oldval;
+} plt_offset;
+
 plt_ctx plt_init_ctx(void);
 plt_lib plt_get_lib(plt_ctx ctx, const char *name);
-plt_fn **plt_get_offset(plt_lib lib, const char *name);
-void plt_set_offset(plt_fn **offset, plt_fn *newval);
+plt_offset *plt_get_offsets(plt_lib lib, const char *name, size_t *n);
+void plt_set_offsets(plt_offset *offset, size_t nb_off, plt_fn *newval);
+void plt_reset_offsets(plt_offset *offset, size_t nb_off);
 plt_fn *plt_get_real_fn(plt_ctx ctx, const char *name);
 
 #endif /* !PLT_H_ */

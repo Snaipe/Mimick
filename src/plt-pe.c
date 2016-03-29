@@ -21,14 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include "assert.h"
-#include <stdint.h>
-
 #include "plt.h"
-#include <tlhelp32.h>
+
 #include <malloc.h>
+#include <stdint.h>
+#include <tlhelp32.h>
+
+#include "assert.h"
+#include "vitals.h"
 
 #define IDIR_IMPORT 1 // Index of the import directory entry
+
+static plt_fn **plt_get_offset(plt_lib lib, const char *name);
 
 plt_ctx plt_init_ctx(void) {
     return NULL;
@@ -107,7 +111,7 @@ static inline PIMAGE_IMPORT_DESCRIPTOR get_first_import_descriptor(plt_lib lib)
     return (PIMAGE_IMPORT_DESCRIPTOR) ((char *) lib + off);
 }
 
-plt_fn **plt_get_offset(plt_lib lib, const char *name)
+static plt_fn **plt_get_offset(plt_lib lib, const char *name)
 {
     char *base = lib;
     for (PIMAGE_IMPORT_DESCRIPTOR entry = get_first_import_descriptor(lib);
@@ -129,12 +133,40 @@ plt_fn **plt_get_offset(plt_lib lib, const char *name)
     return NULL;
 }
 
-void plt_set_offset(plt_fn **offset, plt_fn *newval)
+plt_offset *plt_get_offsets(plt_lib lib, const char *name, size_t *n)
+{
+    plt_fn **off = plt_get_offset(lib, name);
+    if (off) {
+        plt_offset *ot = mmk_malloc(sizeof (plt_offset));
+        *n = 1;
+        *ot = (plt_offset) { .offset = off };
+        return ot;
+    }
+    return NULL;
+}
+
+static void plt_set_offset(plt_fn **offset, plt_fn *newval)
 {
     DWORD old;
     VirtualProtect(offset, sizeof (void*), PAGE_EXECUTE_READWRITE, &old);
     *offset = newval;
     VirtualProtect(offset, sizeof (void*), old, &old);
+}
+
+void plt_set_offsets(plt_offset *offset, size_t nb_off, plt_fn *newval)
+{
+    for (size_t i = 0; i < nb_off; ++i) {
+        if (!offset[i].oldval)
+            offset[i].oldval = *offset[i].offset;
+        plt_set_offset(offset[i].offset, newval);
+    }
+}
+
+void plt_reset_offsets(plt_offset *offset, size_t nb_off)
+{
+    for (size_t i = 0; i < nb_off; ++i) {
+        plt_set_offset(offset[i].offset, offset[i].oldval);
+    }
 }
 
 plt_fn *plt_get_real_fn(plt_ctx ctx, const char *name)

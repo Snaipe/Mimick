@@ -22,17 +22,30 @@
  * THE SOFTWARE.
  */
 
-#include <mach-o/getsect.h>
+#include <dlfcn.h>
 #include <mach-o/dyld.h>
 #include <mach-o/loader.h>
 #include <mach-o/nlist.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "assert.h"
+#include "plt.h"
+#include "vitals.h"
 
 #if MMK_BITS == 32
 typedef struct mach_header mach_hdr;
 typedef struct nlist sym;
+typedef struct section section;
+typedef struct segment_command segment_cmd;
+#define MMK_LC_SEGMENT LC_SEGMENT
 #elif MMK_BITS == 64
 typedef struct mach_header_64 mach_hdr;
 typedef struct nlist_64 sym;
+typedef struct section_64 section;
+typedef struct segment_command_64 segment_cmd;
+#define MMK_LC_SEGMENT LC_SEGMENT_64
 #else
 # error Unsupported architecture
 #endif
@@ -51,8 +64,8 @@ plt_ctx plt_init_ctx(void)
 plt_lib plt_get_lib(plt_ctx ctx, const char *name)
 {
     (void) ctx;
-    if (!name || !strncmp(name, "self"))
-        return 0;
+    if (!name || !strcmp(name, "self"))
+        return -1;
 
     enum selector {
         NONE, LIB, FILE, SYM
@@ -85,8 +98,6 @@ plt_lib plt_get_lib(plt_ctx ctx, const char *name)
 
     size_t nb_images = _dyld_image_count();
     for (size_t i = 1; i < nb_images; ++i) {
-        const struct mach_header *hdr = _dyld_get_image_header(i);
-
         if (sel == LIB) {
             size_t len = val_len + 8;
             char pattern[len];
@@ -99,83 +110,175 @@ plt_lib plt_get_lib(plt_ctx ctx, const char *name)
             if (img_name && !strcmp(img_name, name))
                 return i;
         } else if (sel == SYM) {
-            plt_fn **sym = plt_get_offset(i, val);
-            if (sym)
+            plt_offset *off = plt_get_offsets(i, val, NULL);
+            mmk_free(off);
+            if (off)
                 return i;
         }
     }
+    return 0;
 }
 
-static plt_fn **get_offset(plt_fn **got, const sym *symtab, size_t nsyms,
+static size_t get_offsets(size_t *off, size_t n,
+        const sym *symtab, const uint32_t *isymtab, size_t nsyms,
         const char *strtab, const char *name)
 {
-    for (size_t i = 0; i < nsyms; ++i) {
-        const char *symname = strtab + symtab[i].n_un.n_strx;
+    size_t j = 0;
+    for (size_t i = 0; j < n && i < nsyms; ++i) {
+        if (isymtab[i] == INDIRECT_SYMBOL_LOCAL ||
+            isymtab[i] == INDIRECT_SYMBOL_ABS)
+            continue;
+
+        const sym *s = &symtab[isymtab[i]];
+        const char *symname = strtab + s->n_un.n_strx;
+
         if (!strcmp(symname + 1, name))
-            return &got[i];
+            off[j++] = i;
     }
-    return NULL;
+    return j;
 }
 
-static inline void *ptr_add(void *ptr, size_t off)
+static inline void *ptr_add(const void *ptr, size_t off)
 {
     return (char *) ptr + off;
 }
 
 static void find_tables(const struct mach_header *hdr,
-        const sym **symtab, size_t *nsyms, const char **strtab)
+        const sym **symtab, const char **strtab, const uint32_t **isymtab, size_t *nisyms)
 {
+    int symtab_found = 0, dysymtab_found = 0;
     const struct load_command *lc = ptr_add(hdr, sizeof (mach_hdr));
     for (size_t i = 0; i < hdr->ncmds; ++i, lc = ptr_add(lc, lc->cmdsize)) {
-        if (lc.cmd == LC_SYMTAB) {
+        if (lc->cmd == LC_SYMTAB) {
             const struct symtab_command *sc = (void *) lc;
             *symtab = ptr_add(hdr, sc->symoff);
             *strtab = ptr_add(hdr, sc->stroff);
-            *nsyms = sc->nsyms;
-            return;
+            symtab_found = 1;
+        } else if (lc->cmd == LC_DYSYMTAB) {
+            const struct dysymtab_command *dsc = (void *) lc;
+            *isymtab = ptr_add(hdr, dsc->indirectsymoff);
+            *nisyms = dsc->nindirectsyms;
+            dysymtab_found = 1;
         }
+        
+        if (symtab_found && dysymtab_found)
+            return;
     }
 }
 
-plt_fn **plt_get_offset(plt_lib lib, const char *name)
+static const section *get_section(const struct mach_header *hdr,
+        const char *segname, const char *sectname)
 {
-    size_t sz;
+    const struct load_command *lc = ptr_add(hdr, sizeof (mach_hdr));
+    for (size_t i = 0; i < hdr->ncmds; ++i, lc = ptr_add(lc, lc->cmdsize)) {
+        if (lc->cmd == MMK_LC_SEGMENT) {
+            const segment_cmd *sc = (void *) lc;
+            if (strncmp(segname, sc->segname, 16))
+                continue;
+            const section *s = ptr_add(sc, sizeof (segment_cmd));
+            for (size_t j = 0; j < sc->nsects; ++j, ++s) {
+                if (!strncmp(sectname, s->sectname, 16))
+                    return s;
+            }
+        }
+    }
+    return NULL;
+}
+
+static inline plt_fn **find_offset_in(const struct mach_header *hdr,
+        const section *sec, size_t *indices, size_t n)
+{
+    plt_fn **got = ptr_add(hdr, sec->offset);
+
+    uint32_t idx_start = sec->reserved1;
+    uint32_t count = sec->size / sizeof (void *);
+
+    for (size_t i = 0; i < n; ++i) {
+        if (indices[i] >= idx_start && indices[i] < idx_start + count)
+            return &got[indices[i] - idx_start];
+    }
+    return NULL;
+}
+
+plt_offset *plt_get_offsets(plt_lib lib, const char *name, size_t *count)
+{
+    mmk_assert(lib);
+    if (lib == -1)
+        lib = 0;
+
     const struct mach_header *hdr = _dyld_get_image_header(lib);
 
     if (!hdr)
         return NULL;
 
-    plt_fn **got = getsectdatafromheader(hdr, "__DATA", "__la_symbol_ptr", &sz);
-    got = get_real_address(lib, got);
-
-    if (!got)
-        return NULL;
+    volatile const char *libname = _dyld_get_image_name(lib);
+    (void) libname;
 
     const sym *symtab = NULL;
     const char *strtab = NULL;
+    const uint32_t *isymtab = NULL;
     size_t nsyms = 0;
 
-    find_tables(hdr, &symtab, &nsyms, &strtab);
+    find_tables(hdr, &symtab, &strtab, &isymtab, &nsyms);
 
-    return get_offset(got, symtab, nsyms, strtab, name);
+    if (!symtab || !strtab || !isymtab || !nsyms)
+        return NULL;
+
+    size_t indices[32];
+
+    size_t n = get_offsets(indices, 32, symtab, isymtab, nsyms, strtab, name);
+
+    if (n == 0)
+        return NULL;
+
+    if (!count)
+        return mmk_malloc(1);
+
+    /* First offset is duplicated, so we ignore it by decrementing the count */
+    plt_offset *ot = mmk_malloc(sizeof (plt_offset) * (n - 1));
+
+    static const char *gots[] = {
+        "__la_symbol_ptr", "__nl_symbol_ptr", "__got"
+    };
+
+    size_t offidx = 0;
+    for (size_t sidx = 0; sidx < sizeof (gots) / sizeof (char *); ++sidx) {
+        const section *got = get_section(hdr, SEG_DATA, gots[sidx]);
+        if (!got)
+            continue;
+
+        plt_fn **off = find_offset_in(hdr, got, indices, n);
+        if (!off)
+            continue;
+
+        ot[offidx++] = (plt_offset) { .offset = off };
+    }
+    *count = offidx;
+
+    return ot;
 }
 
-void plt_set_offset(plt_fn **offset, plt_fn *newval)
+void plt_set_offsets(plt_offset *offset, size_t nb_off, plt_fn *newval)
 {
-    *offset = newval;
+    for (size_t i = 0; i < nb_off; ++i) {
+        if (!offset[i].oldval)
+            offset[i].oldval = *offset[i].offset;
+        *offset[i].offset = newval;
+    }
+}
+
+void plt_reset_offsets(plt_offset *offset, size_t nb_off)
+{
+    for (size_t i = 0; i < nb_off; ++i) {
+        *offset[i].offset = offset[i].oldval;
+    }
 }
 
 plt_fn *plt_get_real_fn(plt_ctx ctx, const char *name)
 {
-    /* TODO: same as above, this is not thread safe. */
+    (void) ctx;
 
-    size_t nb_images = _dyld_image_count();
-    for (size_t i = 1; i < nb_images; ++i) {
-        plt_fn **sym = plt_get_offset(i, val);
-        if (sym)
-            return *sym;
-    }
-    return NULL;
+    /* We could iterate through the images ourselves, but dlsym is more
+     * convenient here */
+    return (plt_fn *) dlsym(RTLD_DEFAULT, name);
 }
-
-#endif /* !PLT_H_ */
