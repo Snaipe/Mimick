@@ -11,6 +11,7 @@ addons:
 
 matrix:
   include:
+  # Linux
     # x86_64
     - env: CONFIGURATION=Debug
     - env: CONFIGURATION=Release
@@ -19,6 +20,15 @@ matrix:
     - env: CONFIGURATION=Debug           ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-i686
     - env: CONFIGURATION=Release         ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-i686
     - env: CONFIGURATION=RelWithDebInfo  ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-i686
+
+  # OS X
+    # x86_64
+    - env: CONFIGURATION=Debug
+      os: osx
+    - env: CONFIGURATION=Release
+      os: osx
+    - env: CONFIGURATION=RelWithDebInfo
+      os: osx
 
 before_install:
   - if [ -z "${TARGET}" ]; then export TARGET=${ARCH}; fi
