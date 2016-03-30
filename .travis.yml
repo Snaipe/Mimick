@@ -90,9 +90,11 @@ script:
   - |
       if [ -n "${TOOLCHAIN}" ]; then
         TC_FILE="../.cmake/Toolchains/Toolchain-${TOOLCHAIN}.cmake"
-        export CMAKE_OPTS="${CMAKE_OPTS} -DARCH=${ARCH:-Generic}"
-        export CMAKE_OPTS="${CMAKE_OPTS} -DTARGET=${TARGET:-Any}"
-        export CMAKE_OPTS="${CMAKE_OPTS} -DSYSTEM=Linux"
+        if [ -n "${ARCH}" ]; then
+            export CMAKE_OPTS="${CMAKE_OPTS} -DARCH=${ARCH}"
+            export CMAKE_OPTS="${CMAKE_OPTS} -DTARGET=${TARGET}"
+            export CMAKE_OPTS="${CMAKE_OPTS} -DSYSTEM=Linux"
+        fi
         export CMAKE_OPTS="${CMAKE_OPTS} -DCMAKE_TOOLCHAIN_FILE=${TC_FILE}"
       fi
   - >
