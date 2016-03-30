@@ -12,6 +12,7 @@ _packages:
       packages:
       - qemu-user
       - gcc-arm-linux-gnueabihf
+      - libc6-dev-armhf-cross
 
 _environments:
   - &i386-env
