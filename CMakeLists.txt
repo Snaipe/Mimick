@@ -126,7 +126,7 @@ function (add_mimick_sample _NAME)
     add_dependencies (mimick_tests ${_NAME})
 
     if (USE_QEMU)
-        add_test (${_NAME} qemu-${MMK_ARCH} ${_NAME})
+        add_test (${_NAME} qemu-${MMK_ARCH} -L "${CMAKE_FIND_ROOT_PATH}" ${_NAME})
     else ()
         add_test (${_NAME} ${_NAME})
     endif ()
