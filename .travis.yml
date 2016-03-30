@@ -94,7 +94,6 @@ script:
         if [ -n "${ARCH}" ]; then
             export CMAKE_OPTS="${CMAKE_OPTS} -DARCH=${ARCH}"
             export CMAKE_OPTS="${CMAKE_OPTS} -DTARGET=${TARGET}"
-            export CMAKE_OPTS="${CMAKE_OPTS} -DSYSTEM=Linux"
         fi
         export CMAKE_OPTS="${CMAKE_OPTS} -DCMAKE_TOOLCHAIN_FILE=${TC_FILE}"
       fi
