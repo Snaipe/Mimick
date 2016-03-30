@@ -12,7 +12,7 @@ A KISS, cross-platform C Mocking library
 
 **Warning**: this library is still experimental. Use at your own risk.
 
-Mimick aims to be a simple of use and powerful mocking and stubbing framework for C.
+Mimick aims to be a simple of use and powerful mocking and stubbing library for C.
 
 It doesn't rely on external code generation or compiler plugin to work -- simply
 link the library to your tests, and you're good to go!
