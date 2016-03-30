@@ -26,6 +26,8 @@
 
 typedef struct mmk_mock_ctx *mmk_mock_ctx;
 
+# include <errno.h>
+
 # include "matcher.h"
 # include "alloc.h"
 # include "when.h"
@@ -121,24 +123,26 @@ void mmk_reset(mmk_fn fn);
 
 # define MMK_SET_PARAMS(Id, T, X) bind->params.X = X;
 
-# undef mmk_mock_define
-# define mmk_mock_define(Id, ...)                                              \
-    typedef MMK_EXPAND(MMK_VA_HEAD(__VA_ARGS__)) MMK_MANGLE(Id, returntype);   \
+# define MMK_MOCK_DEFINE_TYPES(Id, ReturnType, ...)                            \
+    typedef ReturnType MMK_MANGLE(Id, returntype);                             \
     typedef MMK_MANGLE(Id, returntype)(*Id)(                                   \
-            MMK_EXPAND(MMK_PARAM_LIST(MMK_VA_TAIL(__VA_ARGS__))));             \
+            MMK_EXPAND(MMK_PARAM_LIST(__VA_ARGS__)));                          \
     struct MMK_MANGLE(Id, params) {                                            \
         size_t mmk_times__;                                                    \
-        MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_FIELD, Id, MMK_VA_TAIL(__VA_ARGS__)))\
+        MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_FIELD, Id, __VA_ARGS__))             \
     };                                                                         \
     struct MMK_MANGLE(Id, binding) {                                           \
         struct mmk_params item;                                                \
         struct mmk_result result;                                              \
         struct MMK_MANGLE(Id, params) params;                                  \
     };                                                                         \
+
+# define MMK_MOCK_DEFINE(PreDecl, Return, Id, ...)                             \
+    MMK_EXPAND(MMK_MOCK_DEFINE_TYPES(Id, __VA_ARGS__))                         \
     static MMK_MANGLE(Id, returntype) MMK_MANGLE(Id, stub)(                    \
         MMK_EXPAND(MMK_PARAM_LIST(MMK_VA_TAIL(__VA_ARGS__))))                  \
     {                                                                          \
-        static MMK_MANGLE(Id, returntype) zero__;                              \
+        PreDecl(Id);                                                           \
         struct mmk_matcher *matcher_ctx = mmk_matcher_ctx();                   \
         if (matcher_ctx) {                                                     \
             struct mmk_mock_ctx *mock = mmk_stub_context(mmk_ctx ());          \
@@ -156,11 +160,12 @@ void mmk_reset(mmk_fn fn);
                 {                                                              \
                     struct mmk_matcher *m = matcher_ctx;                       \
                     size_t markmask = m->prio;                                 \
+                    (void) markmask;                                           \
                     MMK_EXPAND(MMK_PAIR_APPLY(MMK_TRYVERIFY, Id,               \
                             MMK_VA_TAIL(__VA_ARGS__)))                         \
                     times += p->mmk_times__;                                   \
-            fail:                                                              \
-                    continue;                                                  \
+                    goto fail;                                                 \
+                    fail:;                                                     \
                 }                                                              \
                 for (struct mmk_matcher *m = matcher_ctx, *next; m;) {         \
                     next = m->next;                                            \
@@ -169,9 +174,10 @@ void mmk_reset(mmk_fn fn);
                 }                                                              \
                 mmk_verify_set_times(times);                                   \
             }                                                                  \
-            return zero__;                                                     \
+            Return(zero__);                                                    \
         }                                                                      \
         mmk_verify_register_call (&(struct MMK_MANGLE(Id, params)) {           \
+                .mmk_times__ = 0,                                              \
                 MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_VERIFY_PARAM, Id,            \
                             MMK_VA_TAIL(__VA_ARGS__)))                         \
             }, sizeof (struct MMK_MANGLE(Id, params)));                        \
@@ -180,20 +186,37 @@ void mmk_reset(mmk_fn fn);
             struct MMK_MANGLE(Id, binding) *bind = (void*) param;              \
             struct mmk_matcher *m = param->matcher_ctx;                        \
             size_t markmask = m->prio;                                         \
+            (void) markmask;                                                   \
             MMK_EXPAND(MMK_PAIR_APPLY(MMK_TRYMATCH, Id,                        \
                     MMK_VA_TAIL(__VA_ARGS__)))                                 \
             if (bind->result.then_errno)                                       \
                 errno = bind->result.then_errno;                               \
             if (bind->result.then_return)                                      \
-                return *(MMK_MANGLE(Id, returntype)*) bind->result.then_return;\
-            return zero__;                                                     \
+                Return(*(MMK_MANGLE(Id, returntype)*) bind->result.then_return);\
+            Return(zero__);                                                    \
         }                                                                      \
-        return zero__;                                                         \
+        Return(zero__);                                                        \
     }                                                                          \
     static inline Id MMK_MANGLE(Id, create)(const char *tgt) {                 \
         return (Id) mmk_mock_create_internal(tgt,                              \
                 (mmk_fn) MMK_MANGLE(Id, stub));                                \
     }                                                                          \
     typedef int MMK_MANGLE(Id, dummy)
+
+# define MMK_MOCK_DEFINE_ZERO(Id) static MMK_MANGLE(Id, returntype) zero__
+
+# define MMK_MOCK_VALUE_RETURN(Val) return (Val)
+# define MMK_MOCK_VOID_RETURN(Val) return
+
+# undef mmk_mock_define
+# define mmk_mock_define(Id, ...)                       \
+    MMK_EXPAND(MMK_MOCK_DEFINE(MMK_MOCK_DEFINE_ZERO,    \
+            MMK_MOCK_VALUE_RETURN, Id, __VA_ARGS__))
+
+# undef mmk_mock_vdefine
+# define mmk_mock_vdefine(...)                                  \
+    MMK_EXPAND(MMK_MOCK_DEFINE(MMK_NOOP_FN,                     \
+            MMK_MOCK_VOID_RETURN, MMK_VA_HEAD(__VA_ARGS__),     \
+            void, MMK_VA_TAIL(__VA_ARGS__)))
 
 #endif /* !MIMICK_MOCK_H_ */

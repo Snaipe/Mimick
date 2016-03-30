@@ -37,7 +37,7 @@ struct mmk_result *mmk_when_get_result(void);
 # define mmk_when(CallExpr, ...) \
         (mmk_matcher_init(0, #CallExpr), \
         mmk_when_init(&(struct mmk_result) { __VA_ARGS__ }), \
-        (CallExpr), \
+        (void) (CallExpr), \
         mmk_matcher_term())
 
 #endif /* !MMK_WHEN_H_ */

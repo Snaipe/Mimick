@@ -25,6 +25,7 @@
 # define MIMICK_PREPROCESS_H_
 
 # define MMK_NOOP do {} while(0)
+# define MMK_NOOP_FN(...) MMK_NOOP
 
 # define MMK_EXPAND(x) x
 # define MMK_IDENTITY(...) __VA_ARGS__
