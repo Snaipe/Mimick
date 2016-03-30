@@ -77,7 +77,7 @@ Supported Compilers: GCC 4.6+, Clang 3.5+, MSVC 14+
 Labels: **N/T**: Not Tested, **N/A**: Not Applicable
 
 | Arch | Linux | OS X/iOS | FreeBSD | Windows |
-| --- | --- | --- | --- | --- |
+| --- |:---:|:---:|:---:|:---:|
 | x86 | ✓ | ✓ | ✓ | ✓ |
 | x86\_64 | ✓ | ✓ | ✓ | ✓ |
 | ARM | ✓ | N/T | ✓ | ✕ |
