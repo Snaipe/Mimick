@@ -2,11 +2,27 @@ language: c
 
 sudo: false
 
-addons:
-  apt:
-    packages:
-      - qemu-user
+_packages:
+  - &i386-packages
+    apt:
+      packages:
       - gcc-multilib
+  - &arm-packages
+    apt:
+      packages:
+      - qemu-user
+      - gcc-arm-linux-gnueabihf
+
+_environments:
+  - &i386-env:
+    TOOLCHAIN: gcc-i686
+  - &i386-darwin-env:
+    TOOLCHAIN: gcc-darwin-i686
+  - &arm-env:
+    ARCH: arm
+    TARGET: linux-gnueabihf
+    TOOLCHAIN: gcc-generic
+    CMAKE_OPTS: '-DUSE_QEMU=ON'
 
 matrix:
   include:
@@ -19,11 +35,24 @@ matrix:
     - env: CONFIGURATION=RelWithDebInfo
       compiler: gcc
     # i386
-    - env: CONFIGURATION=Debug           ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-i686
+    - env: {CONFIGURATION: Debug,           <<: *i386-env}
+      addons: *i386-packages
       compiler: gcc
-    - env: CONFIGURATION=Release         ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-i686
+    - env: {CONFIGURATION: Release,         <<: *i386-env}
+      addons: *i386-packages
       compiler: gcc
-    - env: CONFIGURATION=RelWithDebInfo  ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-i686
+    - env: {CONFIGURATION: RelWithDebInfo,  <<: *i386-env}
+      addons: *i386-packages
+      compiler: gcc
+    # ARM
+    - env: {CONFIGURATION: Debug,           <<: *arm-env}
+      addons: *arm-packages
+      compiler: gcc
+    - env: {CONFIGURATION: Release,         <<: *arm-env}
+      addons: *arm-packages
+      compiler: gcc
+    - env: {CONFIGURATION: RelWithDebInfo,  <<: *arm-env}
+      addons: *arm-packages
       compiler: gcc
 
   # OS X
@@ -37,13 +66,13 @@ matrix:
     - env: CONFIGURATION=RelWithDebInfo
       os: osx
       compiler: clang
-    - env: CONFIGURATION=Debug           ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-darwin-i686
+    - env: {CONFIGURATION: Debug,           <<: *i386-darwin-env}
       os: osx
       compiler: clang
-    - env: CONFIGURATION=Release         ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-darwin-i686
+    - env: {CONFIGURATION: Release,         <<: *i386-darwin-env}
       os: osx
       compiler: clang
-    - env: CONFIGURATION=RelWithDebInfo  ARCH=x86 TARGET=i386 TOOLCHAIN=gcc-darwin-i686
+    - env: {CONFIGURATION: RelWithDebInfo,  <<: *i386-darwin-env}
       os: osx
       compiler: clang
 
@@ -61,8 +90,8 @@ script:
   - |
       if [ -n "${TOOLCHAIN}" ]; then
         TC_FILE="../.cmake/Toolchains/Toolchain-${TOOLCHAIN}.cmake"
-        export CMAKE_OPTS="${CMAKE_OPTS} -DARCH=${ARCH}"
-        export CMAKE_OPTS="${CMAKE_OPTS} -DTARGET=${TARGET}"
+        export CMAKE_OPTS="${CMAKE_OPTS} -DARCH=${ARCH:-Generic}"
+        export CMAKE_OPTS="${CMAKE_OPTS} -DTARGET=${TARGET:-Any}"
         export CMAKE_OPTS="${CMAKE_OPTS} -DSYSTEM=Linux"
         export CMAKE_OPTS="${CMAKE_OPTS} -DCMAKE_TOOLCHAIN_FILE=${TC_FILE}"
       fi
