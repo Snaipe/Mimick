@@ -2,7 +2,13 @@
 # Redistribution and use of this file is allowed according to the terms of the MIT license.
 # For details see the LICENSE file distributed with Criterion.
 
-set (ASM_FILES src/asm/trampoline-${MMK_ARCH}-${MMK_ABI}${ASM_EXTENSION})
+if (MMK_ARCH STREQUAL MMK_ABI)
+    set (ASM_ID ${MMK_ARCH})
+else ()
+    set (ASM_ID ${MMK_ARCH}-${MMK_ABI})
+endif ()
+
+set (ASM_FILES src/asm/trampoline-${ASM_ID}${ASM_EXTENSION})
 
 set (SOURCE_FILES ${ASM_FILES}
     src/assert.h
