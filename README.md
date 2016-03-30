@@ -80,7 +80,7 @@ Labels: **N/T**: Not Tested, **N/A**: Not Applicable
 | --- | --- | --- | --- | --- |
 | x86 | ✓ | ✓ | ✓ | ✓ |
 | x86\_64 | ✓ | ✓ | ✓ | ✓ |
-| ARM | ✓ | N/T | ✓ | No |
+| ARM | ✓ | N/T | ✓ | ✕ |
 | ARM64 | ✕ | ✕ | ✕ | N/A |
 | PPC | ✕ | ✕ | ✕ | N/A |
 
