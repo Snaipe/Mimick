@@ -44,7 +44,6 @@ mmk_trampoline:
 
     pop     {ip, lr}
     pop     {r0, r1, r2, r3}
-    push    {ip, lr}
 
     ldr     pc, [ip, #-4]                       // Trampoline jump
 
