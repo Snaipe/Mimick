@@ -151,6 +151,13 @@ endfunction ()
 
 function (add_mimick_test _NAME)
     add_executable (${_NAME} EXCLUDE_FROM_ALL ${ARGN})
+
+    if (NOT MSVC)
+        foreach (ARG ${ARGN})
+            set_source_files_properties (${ARG} PROPERTIES COMPILE_FLAGS -O0)
+        endforeach ()
+    endif ()
+
     target_link_libraries (${_NAME} mimick)
     add_mimick_sample(${_NAME})
 endfunction ()
