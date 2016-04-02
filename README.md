@@ -106,4 +106,8 @@ A. It's very possible that your compiler is optimizing away your function
    pointer returned by `mmk_mock` rather than the function itself.
 
 **Q. Does this run on embedded systems / bare metal?**  
-A. No. Unless your target system supports dynamic linking, Mimick won't work *at all*.
+A. Yes, but on very specific conditions. Your code must be position-independent,
+   call functions using a global offset table or similar mechanism, and use
+   an executable format that Mimick can handle (ELF, PE, Mach-O).  
+   You also need to provide definitions for some functions like malloc, realloc,
+   and free.
