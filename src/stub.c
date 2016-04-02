@@ -39,13 +39,16 @@ void *mmk_stub_context(struct mmk_stub *stub)
     return stub->ctx;
 }
 
-void mmk_stub_create_static(struct mmk_stub *stub,
+int mmk_stub_create_static(struct mmk_stub *stub,
         const char *target, mmk_fn fn, void *ctx)
 {
     tls_set(int, ask_ctx, 0);
     tls_set(struct mmk_stub *, mmk_ctx_, NULL);
 
     char *name = mmk_malloc(mmk_strlen(target) + 1);
+    if (!name)
+        return -ENOMEM;
+
     mmk_strcpy(name, target);
 
     char *path = NULL;
@@ -56,11 +59,13 @@ void mmk_stub_create_static(struct mmk_stub *stub,
     }
 
     plt_lib lib = plt_get_lib(mmk_plt_ctx(), path);
-    mmk_assert(lib);
+    if (!lib)
+        return -ENOENT;
 
     size_t nb_off = 0;
     plt_offset *off = plt_get_offsets(lib, name, &nb_off);
-    mmk_assert(off != NULL && nb_off > 0);
+    if (!off || !nb_off)
+        return -ENOENT;
 
     *stub = (struct mmk_stub) {
         .ctx_asked = mmk_ctx_asked,
@@ -74,6 +79,8 @@ void mmk_stub_create_static(struct mmk_stub *stub,
     };
     stub->trampoline = create_trampoline(stub, (plt_fn *) fn);
     plt_set_offsets(off, nb_off, stub->trampoline);
+
+    return 0;
 }
 
 struct mmk_stub *mmk_stub_create(const char *target, mmk_fn fn, void *ctx)
@@ -81,7 +88,12 @@ struct mmk_stub *mmk_stub_create(const char *target, mmk_fn fn, void *ctx)
     mmk_init();
 
     struct mmk_stub *stub = mmk_malloc(sizeof (struct mmk_stub));
-    mmk_stub_create_static(stub, target, fn, ctx);
+    int rc = mmk_stub_create_static(stub, target, fn, ctx);
+    if (rc < 0) {
+        mmk_free (stub);
+        errno = rc;
+        stub = MMK_STUB_INVALID;
+    }
     return stub;
 }
 

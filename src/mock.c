@@ -48,9 +48,18 @@ mmk_fn mmk_mock_create_internal(const char *target, mmk_fn fn)
     mmk_strncpy(name, target, name_sz);
     name[name_sz] = '\0';
 
-    ctx->stubs = mmk_stub_create(name, fn, ctx);
-    if (name_end && !mmk_strneq(name_end + 1, "self", 4))
-        ctx->stubs->next = mmk_stub_create(target, fn, ctx);
+    int self = !name_end || mmk_strneq(name_end + 1, "self", 4);
+
+    ctx->stubs = mmk_stub_create(target, fn, ctx);
+    if (ctx->stubs == MMK_STUB_INVALID) {
+        fprintf(stderr, "mimick: Could not find GOT "
+                "entry for function %s.\n", target);
+        abort();
+    }
+
+    if (!self)
+        ctx->stubs->next = mmk_stub_create(name, fn, ctx);
+
     mmk_free(name);
     return (mmk_fn) ctx->stubs->trampoline;
 }

@@ -29,6 +29,9 @@
 typedef void(*mmk_fn)(void);
 typedef struct mmk_stub *mmk_stub;
 
+# define MMK_STUB_INVALID ((mmk_stub)0)
+# define MMK_MOCK_INVALID ((mmk_fn)0)
+
 /* Stub API */
 
 mmk_stub mmk_ctx(void);
