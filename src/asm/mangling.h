@@ -21,39 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include "mangling.h"
+#ifndef ASM_MANGLING_H_
+# define ASM_MANGLING_H_
 
-.globl MANGLE(mmk_trampoline)
-MANGLE(mmk_trampoline):
-start:
-    call    next                                // Retrieve IP
-next:
-    pop     %eax
+# include "config.h"
 
-    push    %eax                                // Setup mock context
-    mov     (start - next - 0x8)(%eax), %eax
-    push    %eax                                // Call mmk_set_ctx
-    mov     0x4(%eax), %eax
-    call    *%eax
-    pop     %eax
+# define MANGLING_STR_(x) #x
+# define MANGLING_STR(x) MANGLING_STR_(x)
 
-    mov     (%eax), %eax                        // Check if context was asked
-    call    *%eax
-    test    %eax, %eax
-    jnz     ret_ctx
+# define MANGLING_HEADER_ mangling/MMK_MANGLING.h
+# define MANGLING_HEADER MANGLING_STR(MANGLING_HEADER_)
 
-    pop     %eax
-    mov     (start - next - 0x4)(%eax), %eax    // Retrieve offset at
-                                                // the start of the map
-    jmp     *%eax
+# include MANGLING_HEADER
 
-ret_ctx:
-    pop     %eax
-    mov     (start - next - 0x8)(%eax), %eax
-    mov     0x8(%eax), %eax                     // Call mmk_ctx
-    call    *%eax
-    ret
-
-.globl MANGLE(mmk_trampoline_end)
-MANGLE(mmk_trampoline_end):
-    nop
+#endif /* !ASM_MANGLING_H_ */

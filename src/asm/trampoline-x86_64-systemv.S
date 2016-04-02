@@ -21,16 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
-#ifdef __APPLE__
-# define SYMBOL(Name) \
-    .globl _ ## Name; \
-    _ ## Name
-#else
-# define SYMBOL(Name) \
-    .globl Name; \
-    Name
-#endif
+#include "mangling.h"
 
 # define PUSHDQ(Reg) \
     sub $0x10, %rsp; \
@@ -40,7 +31,8 @@
     movdqu (%rsp), Reg; \
     add $0x10, %rsp
 
-SYMBOL(mmk_trampoline):
+.globl MANGLE(mmk_trampoline)
+MANGLE(mmk_trampoline):
 start:
     call    next                                // Retrieve IP
 next:
@@ -103,5 +95,6 @@ ret_ctx:                                        // Return context
     call    *%rax
     ret
 
-SYMBOL(mmk_trampoline_end):
+.globl MANGLE(mmk_trampoline_end)
+MANGLE(mmk_trampoline_end):
     nop
