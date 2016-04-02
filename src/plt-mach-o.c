@@ -70,7 +70,7 @@ plt_lib plt_get_lib(plt_ctx ctx, const char *name)
         sel = LIB;
     else if (!strncmp(name, "file:", 5))
         sel = FILE;
-    else if (!strncmp(name, "sym:", 5))
+    else if (!strncmp(name, "sym:", 4))
         sel = SYM;
     else {
 
