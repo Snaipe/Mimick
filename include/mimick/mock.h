@@ -123,13 +123,13 @@ void mmk_reset(mmk_fn fn);
 
 # define MMK_SET_PARAMS(Id, T, X) bind->params.X = X;
 
-# define MMK_MOCK_DEFINE_TYPES(Id, ReturnType, ...)                            \
-    typedef ReturnType MMK_MANGLE(Id, returntype);                             \
+# define MMK_MOCK_DEFINE_TYPES(Id, ...)                                        \
+    typedef MMK_VA_HEAD(__VA_ARGS__) MMK_MANGLE(Id, returntype);               \
     typedef MMK_MANGLE(Id, returntype)(*Id)(                                   \
-            MMK_EXPAND(MMK_PARAM_LIST(__VA_ARGS__)));                          \
+            MMK_EXPAND(MMK_PARAM_LIST(MMK_VA_TAIL(__VA_ARGS__))));             \
     struct MMK_MANGLE(Id, params) {                                            \
         size_t mmk_times__;                                                    \
-        MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_FIELD, Id, __VA_ARGS__))             \
+        MMK_EXPAND(MMK_PAIR_APPLY(MMK_DEF_FIELD, Id, MMK_VA_TAIL(__VA_ARGS__)))\
     };                                                                         \
     struct MMK_MANGLE(Id, binding) {                                           \
         struct mmk_params item;                                                \
