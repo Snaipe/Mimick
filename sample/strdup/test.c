@@ -4,7 +4,7 @@
 #include "assert.h"
 #include "strdup.h"
 
-mmk_mock_define(malloc_mock, void *, size_t, size);
+mmk_mock_define(malloc_mock, void *, size_t);
 
 void test_simple_case(void)
 {
