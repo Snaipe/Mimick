@@ -209,14 +209,11 @@ void mmk_reset(mmk_fn fn);
 # define MMK_MOCK_VOID_RETURN(Val) return
 
 # undef mmk_mock_define
-# define mmk_mock_define(Id, ...)                       \
-    MMK_EXPAND(MMK_MOCK_DEFINE(MMK_MOCK_DEFINE_ZERO,    \
-            MMK_MOCK_VALUE_RETURN, Id, __VA_ARGS__))
-
-# undef mmk_mock_vdefine
-# define mmk_mock_vdefine(...)                                  \
-    MMK_EXPAND(MMK_MOCK_DEFINE(MMK_NOOP_FN,                     \
-            MMK_MOCK_VOID_RETURN, MMK_VA_HEAD(__VA_ARGS__),     \
-            MMK_PREPEND_VOID(__VA_ARGS__)))
+# define mmk_mock_define(Id, ...)                                           \
+    MMK_EXPAND(MMK_COND_VOID(                                               \
+        MMK_MOCK_DEFINE,                                                    \
+            (MMK_MOCK_DEFINE_ZERO, MMK_MOCK_VALUE_RETURN, Id, __VA_ARGS__), \
+            (MMK_NOOP_FN,          MMK_MOCK_VOID_RETURN,  Id, __VA_ARGS__), \
+            MMK_VA_HEAD(__VA_ARGS__)))
 
 #endif /* !MIMICK_MOCK_H_ */

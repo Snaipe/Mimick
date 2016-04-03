@@ -45,7 +45,6 @@ void mmk_stub_destroy(mmk_stub stub);
 
 # define mmk_mock(Target, Id) <internal>
 # define mmk_mock_define(Id, ReturnType, ...) <internal>
-# define mmk_mock_define_void(Id, ...) <internal>
 # define mmk_when(CallExpr, ...) <internal>
 # define mmk_verify(CallExpr, ...) <internal>
 # define mmk_reset(Mock) <internal>

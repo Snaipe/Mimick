@@ -24,6 +24,15 @@
 #ifndef MIMICK_PREPROCESS_H_
 # define MIMICK_PREPROCESS_H_
 
+/* Welcome to the magical exhibition of sanity loss!
+ *
+ * In this exposition we shall see what contortions the human mind must
+ * sometimes go through to get a nice and usable API in the C programming
+ * language.
+ *
+ * Put on your seatbelts because this is going to be a wild ride.
+ */
+
 # define MMK_NOOP do {} while(0)
 # define MMK_NOOP_FN(...) MMK_NOOP
 
@@ -339,11 +348,17 @@
 
 # define MMK_PARAM_LIST(...) MMK_PARAM_LIST_SELECT(__VA_ARGS__)
 
-# define MMK_PREPEND_VOID(...) MMK_EXPAND(MMK_PREPEND_VOID_HELPER(MMK_VA_TAIL_SELECT(__VA_ARGS__), __VA_ARGS__))
+# define MMK_VOID_SELECT_TYPE_void() ,
+# define MMK_VOID_SELECT_TYPE_(T) MMK_VOID_SELECT_TYPE_ ## T ()
+# define MMK_VOID_SELECT_TYPE(T) MMK_VOID_SELECT_TYPE_(T)
 
-# define MMK_PREPEND_VOID_HELPER(N, ...)  MMK_EXPAND(MMK_PREPEND_VOID_HELPER_(N, __VA_ARGS__))
-# define MMK_PREPEND_VOID_HELPER_(N, ...) MMK_EXPAND(MMK_PREPEND_VOID_HELPER_##N(__VA_ARGS__))
-# define MMK_PREPEND_VOID_HELPER_1(Head) void
-# define MMK_PREPEND_VOID_HELPER_2(Head, ...) void, __VA_ARGS__
+# define MMK_VOID_SELECT(Macro, Params1, Params2, Type) MMK_EXPAND(MMK_VOID_SELECT_HELPER(MMK_VA_TAIL_SELECT(MMK_VOID_SELECT_TYPE(Type)), Macro, Params1, Params2))
+
+# define MMK_VOID_SELECT_HELPER(N, ...)  MMK_EXPAND(MMK_VOID_SELECT_HELPER_(N, __VA_ARGS__))
+# define MMK_VOID_SELECT_HELPER_(N, ...) MMK_EXPAND(MMK_VOID_SELECT_HELPER_##N(__VA_ARGS__))
+# define MMK_VOID_SELECT_HELPER_1(Macro, Params1, Params2) MMK_EXPAND(Macro Params1)
+# define MMK_VOID_SELECT_HELPER_2(Macro, Params1, Params2) MMK_EXPAND(Macro Params2)
+
+# define MMK_COND_VOID(Macro, Params1, Params2, ...) MMK_VOID_SELECT(Macro, Params1, Params2, __VA_ARGS__)
 
 #endif /* !MIMICK_PREPROCESS_H_ */
