@@ -39,7 +39,7 @@ void mmk_verify_register_call(void *params, size_t size);
 
 # undef mmk_verify
 # define mmk_verify(CallExpr, ...) \
-        (mmk_matcher_init(1, #CallExpr), \
+        (mmk_matcher_init(1), \
         (void) (CallExpr), \
         mmk_matcher_term(), \
         mmk_verify_times(&(struct mmk_verify_params) { __VA_ARGS__ }))

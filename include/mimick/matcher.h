@@ -33,18 +33,25 @@
 #  pragma warning (disable: 4116)
 # endif
 
+# define MMK_MATCHER_BIT_CMP (1 << (8 * sizeof (int) - 1))
+# define MMK_MATCHER_BIT_EQ (1 << 1)
+# define MMK_MATCHER_BIT_LT (1 << 2)
+# define MMK_MATCHER_BIT_GT (1 << 3)
+
 enum mmk_matcher_kind {
     MMK_MATCHER_ANY,
-    MMK_MATCHER_NEQ,
-    MMK_MATCHER_LT,
-    MMK_MATCHER_LEQ,
-    MMK_MATCHER_GT,
-    MMK_MATCHER_GEQ,
     MMK_MATCHER_THAT,
-};
 
-# define MMK_MATCHER_CMP_START MMK_MATCHER_NEQ
-# define MMK_MATCHER_CMP_END MMK_MATCHER_GEQ
+    MMK_MATCHER_EQ  = MMK_MATCHER_BIT_CMP | MMK_MATCHER_BIT_EQ,
+    MMK_MATCHER_NEQ = MMK_MATCHER_BIT_CMP | MMK_MATCHER_BIT_LT
+                    | MMK_MATCHER_BIT_GT,
+    MMK_MATCHER_LT  = MMK_MATCHER_BIT_CMP | MMK_MATCHER_BIT_LT,
+    MMK_MATCHER_LEQ = MMK_MATCHER_BIT_CMP | MMK_MATCHER_BIT_EQ
+                    | MMK_MATCHER_BIT_LT,
+    MMK_MATCHER_GT  = MMK_MATCHER_BIT_CMP | MMK_MATCHER_BIT_GT,
+    MMK_MATCHER_GEQ = MMK_MATCHER_BIT_CMP | MMK_MATCHER_BIT_EQ
+                    | MMK_MATCHER_BIT_GT,
+};
 
 struct mmk_matcher {
     enum mmk_matcher_kind kind;
@@ -55,6 +62,8 @@ struct mmk_matcher {
 # define mmk_matcher_val_(Kind, Type, Val) (mmk_matcher_add(Kind, __COUNTER__), ((Type) Val))
 # undef mmk_any
 # define mmk_any(Type)      mmk_matcher_val_(MMK_MATCHER_ANY, Type, { 0 })
+# undef mmk_eq
+# define mmk_eq(Type, Val)  mmk_matcher_val_(MMK_MATCHER_EQ, Type, Val)
 # undef mmk_neq
 # define mmk_neq(Type, Val) mmk_matcher_val_(MMK_MATCHER_NEQ, Type, Val)
 # undef mmk_lt
@@ -68,7 +77,7 @@ struct mmk_matcher {
 # undef mmk_that
 # define mmk_that(Predicate) ((struct mmk_matcher *) &(struct { struct mmk_matcher matcher; void (*val)(void); }) { .val = (void (*)(void)) Predicate })
 
-void mmk_matcher_init(int counter, char *callexpr);
+void mmk_matcher_init(int kind);
 void mmk_matcher_add(enum mmk_matcher_kind kind, int counter);
 void mmk_matcher_term(void);
 struct mmk_matcher *mmk_matcher_ctx(void);

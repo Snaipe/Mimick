@@ -30,66 +30,12 @@
 
 static MMK_THREAD_LOCAL(struct mmk_matcher *) matcher_ctx;
 
-static char *mmk_matcher_skipspace(char *buf)
-{
-    for (; mmk_isspace(*buf); ++buf)
-        continue;
-    return buf;
-}
-
-static char *mmk_matcher_next_param(char *buf)
-{
-    int in_chr = 0;
-    int in_str = 0;
-    int paren_lvl = 0;
-    int brace_lvl = 0;
-    int arr_lvl = 0;
-    for (; *buf && paren_lvl >= 0; ++buf) {
-        if (!in_chr && *buf == '"' && buf[-1] != '\\')
-            in_str ^= 1;
-        if (!in_str && *buf == '\'' && buf[-1] != '\\')
-            in_chr ^= 1;
-        if (!in_str && !in_chr) {
-            switch (*buf) {
-                case '(': ++paren_lvl; break;
-                case ')': --paren_lvl; break;
-                case '{': ++brace_lvl; break;
-                case '}': --brace_lvl; break;
-                case '[': ++arr_lvl;   break;
-                case ']': --arr_lvl;   break;
-            }
-        }
-        if (!paren_lvl && !brace_lvl && !arr_lvl && *buf == ',')
-            return buf + 1;
-    }
-    return NULL;
-}
-
-void mmk_matcher_init(int kind, char *callexpr)
+void mmk_matcher_init(int kind)
 {
     struct mmk_matcher *ctx = mmk_malloc(sizeof (struct mmk_matcher));
-    ctx->kind = (enum mmk_matcher_kind) kind;
-    ctx->next = NULL;
-
-    /* Mark which parameters are special. We do this by parsing
-     * the call expression, which should look like this:
-     *
-     *   call(foo, bar, mmk_any(baz_t))
-     *
-     * Special parameters are any parameters starting with mmk_*.
-     */
-
-    size_t markmask = 0;
-
-    char *start = mmk_strchr(callexpr, '(') + 1;
-    for (; start != NULL; start = mmk_matcher_next_param(start)) {
-        markmask <<= 1;
-        start = mmk_matcher_skipspace(start);
-        if (mmk_strneq(start, "mmk_", 4))
-            markmask |= 1;
-    }
-
-    ctx->prio = markmask;
+    *ctx = (struct mmk_matcher) {
+        .kind = (enum mmk_matcher_kind) kind,
+    };
     tls_set(struct mmk_matcher *, matcher_ctx, ctx);
 }
 

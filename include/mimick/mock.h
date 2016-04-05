@@ -61,65 +61,49 @@ void mmk_reset(mmk_fn fn);
 # define MMK_DEF_FIELD_(N, T) T param ## N;
 # define MMK_DEF_FIELD(N, _, T) MMK_DEF_FIELD_(N, T)
 
-# define MMK_TRYMATCH(N, Name, Type) \
-    if (markmask & 1) { \
-        m = m->next; \
-        if (m->kind >= MMK_MATCHER_CMP_START \
-                && m->kind <= MMK_MATCHER_CMP_END) { \
-            int res = mmk_memcmp(&param ## N, m + 1, sizeof (Type)); \
-            if (res < 0) \
-                if (m->kind != MMK_MATCHER_NEQ \
-                        && m->kind != MMK_MATCHER_LT) \
-                    continue; \
-            if (res > 0) \
-                if (m->kind != MMK_MATCHER_NEQ \
-                        && m->kind != MMK_MATCHER_GT) \
-                    continue; \
-            if (m->kind != MMK_MATCHER_LEQ \
-                    && m->kind != MMK_MATCHER_GEQ) \
-                continue; \
-        } else if (m->kind == MMK_MATCHER_THAT) { \
-            int (*predicate)(Type, Type) = (int (*)(Type, Type)) \
-                    mmk_matcher_get_predicate(m); \
-            if (!predicate(param ## N, *(Type*)(m + 1))) \
-                continue; \
-        } \
-    } else { \
-        if (mmk_memcmp(&param ## N, &bind->params.param ## N, sizeof (Type))) \
-            continue; \
-    } \
-    markmask >>= 1;
+# define MMK_TRYMATCH(N, Name, Type)                                           \
+    if (m->next) {                                                             \
+        m = m->next;                                                           \
+        if (m->kind & MMK_MATCHER_BIT_CMP) {                                   \
+            int res = mmk_memcmp(&param ## N, m + 1, sizeof (Type));           \
+            if (res == 0 && !(m->kind & MMK_MATCHER_BIT_EQ))                   \
+                continue;                                                      \
+            if (res < 0 && !(m->kind & MMK_MATCHER_BIT_LT))                    \
+                continue;                                                      \
+            if (res > 0 && !(m->kind & MMK_MATCHER_BIT_GT))                    \
+                continue;                                                      \
+        } else if (m->kind == MMK_MATCHER_THAT) {                              \
+            int (*predicate)(Type, Type) = (int (*)(Type, Type))               \
+                    mmk_matcher_get_predicate(m);                              \
+            if (!predicate(param ## N, *(Type*)(m + 1)))                       \
+                continue;                                                      \
+        }                                                                      \
+    } else {                                                                   \
+        if (mmk_memcmp(&param ## N, &bind->params.param ## N, sizeof (Type)))  \
+            continue;                                                          \
+    }
 
-# define MMK_TRYVERIFY(N, Id, Type) \
-    if (markmask & 1) { \
-        m = m->next; \
-        if (m->kind >= MMK_MATCHER_CMP_START \
-                && m->kind <= MMK_MATCHER_CMP_END) { \
-            int res = mmk_memcmp(&p->param ## N, \
-                    &param ## N, sizeof (Type)); \
-            if (res < 0 \
-                    && m->kind != MMK_MATCHER_NEQ \
-                    && m->kind != MMK_MATCHER_LT) \
-                goto fail; \
-            else if (res > 0 \
-                    && m->kind != MMK_MATCHER_NEQ \
-                    && m->kind != MMK_MATCHER_GT) \
-                goto fail; \
-            else if (res == 0 \
-                    && m->kind != MMK_MATCHER_LEQ \
-                    && m->kind != MMK_MATCHER_GEQ) \
-                goto fail; \
-        } else if (m->kind == MMK_MATCHER_THAT) { \
-            int (*predicate)(Type, Type) = (int (*)(Type, Type)) \
-                    mmk_matcher_get_predicate(m); \
-            if (!predicate(p->param ## N, param ## N)) \
-                goto fail; \
-        } \
-    } else { \
-        if (p->param ## N != param ## N) \
-            goto fail; \
-    } \
-    markmask >>= 1;
+# define MMK_TRYVERIFY(N, Id, Type)                                            \
+    if (m->next) {                                                             \
+        m = m->next;                                                           \
+        if (m->kind & MMK_MATCHER_BIT_CMP) {                                   \
+            int res = mmk_memcmp(&p->param ## N, &param ## N, sizeof (Type));  \
+            if (res == 0 && !(m->kind & MMK_MATCHER_BIT_EQ))                   \
+                goto fail;                                                     \
+            if (res < 0 && !(m->kind & MMK_MATCHER_BIT_LT))                    \
+                goto fail;                                                     \
+            if (res > 0 && !(m->kind & MMK_MATCHER_BIT_GT))                    \
+                goto fail;                                                     \
+        } else if (m->kind == MMK_MATCHER_THAT) {                              \
+            int (*predicate)(Type, Type) = (int (*)(Type, Type))               \
+                    mmk_matcher_get_predicate(m);                              \
+            if (!predicate(p->param ## N, param ## N))                         \
+                goto fail;                                                     \
+        }                                                                      \
+    } else {                                                                   \
+        if (p->param ## N != param ## N)                                       \
+            goto fail;                                                         \
+    }
 
 # define MMK_SET_PARAMS(N, Id, T) bind->params.param ## N = param ## N;
 
@@ -129,7 +113,7 @@ void mmk_reset(mmk_fn fn);
             MMK_EXPAND(MMK_PARAM_LIST(__VA_ARGS__)));                          \
     struct MMK_MANGLE(Id, params) {                                            \
         size_t mmk_times__;                                                    \
-        MMK_EXPAND(MMK_APPLY_N(MMK_DEF_FIELD, Id, __VA_ARGS__))   \
+        MMK_EXPAND(MMK_APPLY_N(MMK_DEF_FIELD, Id, __VA_ARGS__))                \
     };                                                                         \
     struct MMK_MANGLE(Id, binding) {                                           \
         struct mmk_params item;                                                \
@@ -150,7 +134,7 @@ void mmk_reset(mmk_fn fn);
                 struct MMK_MANGLE(Id, binding) *bind =                         \
                     mmk_malloc(sizeof (struct MMK_MANGLE(Id, binding)));       \
                 bind->result = *mmk_when_get_result();                         \
-                MMK_APPLY_N(MMK_SET_PARAMS, Id, __VA_ARGS__)      \
+                MMK_APPLY_N(MMK_SET_PARAMS, Id, __VA_ARGS__)                   \
                 mmk_when_impl(mock, bind);                                     \
             } else if (matcher_ctx->kind == 1) {                               \
                 size_t times = 0;                                              \
@@ -159,10 +143,8 @@ void mmk_reset(mmk_fn fn);
                         p; p = mmk_mock_params_next(mock, p))                  \
                 {                                                              \
                     struct mmk_matcher *m = matcher_ctx;                       \
-                    size_t markmask = m->prio;                                 \
-                    (void) markmask;                                           \
-                    MMK_EXPAND(MMK_APPLY_N(MMK_TRYVERIFY, Id,                  \
-                            __VA_ARGS__))                         \
+                    (void) m;                                                  \
+                    MMK_EXPAND(MMK_APPLY_N(MMK_TRYVERIFY, Id, __VA_ARGS__))    \
                     times += p->mmk_times__;                                   \
                     goto fail;                                                 \
                     fail:;                                                     \
@@ -178,21 +160,18 @@ void mmk_reset(mmk_fn fn);
         }                                                                      \
         mmk_verify_register_call (&(struct MMK_MANGLE(Id, params)) {           \
                 .mmk_times__ = 0,                                              \
-                MMK_EXPAND(MMK_APPLY_N(MMK_DEF_VERIFY_PARAM, Id,               \
-                            __VA_ARGS__))                         \
+                MMK_APPLY_N(MMK_DEF_VERIFY_PARAM, Id, __VA_ARGS__)             \
             }, sizeof (struct MMK_MANGLE(Id, params)));                        \
         struct mmk_params *param = mmk_mock_get_params();                      \
         for (; param; param = param->next) {                                   \
             struct MMK_MANGLE(Id, binding) *bind = (void*) param;              \
             struct mmk_matcher *m = param->matcher_ctx;                        \
-            size_t markmask = m->prio;                                         \
-            (void) markmask;                                                   \
-            MMK_EXPAND(MMK_APPLY_N(MMK_TRYMATCH, Id,                           \
-                    __VA_ARGS__))                                 \
+            (void) m;                                                          \
+            MMK_EXPAND(MMK_APPLY_N(MMK_TRYMATCH, Id, __VA_ARGS__))             \
             if (bind->result.then_errno)                                       \
                 errno = bind->result.then_errno;                               \
             if (bind->result.then_return)                                      \
-                Return(*(MMK_MANGLE(Id, returntype)*) bind->result.then_return);\
+                Return(*(MMK_MANGLE(Id, returntype)*)bind->result.then_return);\
             Return(zero__);                                                    \
         }                                                                      \
         Return(zero__);                                                        \
