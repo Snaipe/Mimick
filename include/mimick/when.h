@@ -25,6 +25,7 @@
 # define MMK_WHEN_H_
 
 struct mmk_result {
+    int sentinel_;
     int then_errno;
     void *then_return;
 };
@@ -36,7 +37,7 @@ struct mmk_result *mmk_when_get_result(void);
 # undef mmk_when
 # define mmk_when(CallExpr, ...) \
         (mmk_matcher_init(0), \
-        mmk_when_init(&(struct mmk_result) { __VA_ARGS__ }), \
+        mmk_when_init(&(struct mmk_result) { __VA_ARGS__, .sentinel_ = 0, }), \
         (void) (CallExpr), \
         mmk_matcher_term())
 

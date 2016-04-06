@@ -27,10 +27,12 @@
 # include <stddef.h>
 
 struct mmk_verify_params {
-    int at_least_once;
+    int sentinel_;
     int never;
+    size_t at_least;
+    size_t at_most;
     size_t times;
-    int (*that)(size_t);
+    int (*matching)(size_t);
 };
 
 void mmk_verify_set_times(size_t times);
@@ -42,6 +44,6 @@ void mmk_verify_register_call(void *params, size_t size);
         (mmk_matcher_init(1), \
         (void) (CallExpr), \
         mmk_matcher_term(), \
-        mmk_verify_times(&(struct mmk_verify_params) { __VA_ARGS__ }))
+        mmk_verify_times(&(struct mmk_verify_params){__VA_ARGS__,.sentinel_,}))
 
 #endif /* !MMK_VERIFY_H_ */

@@ -38,13 +38,16 @@ void mmk_verify_set_times(size_t t)
 
 int mmk_verify_times(struct mmk_verify_params *params)
 {
+    size_t t = tls_get(size_t, times);
     if (params->never)
-        return tls_get(size_t, times) == 0;
-    if (params->at_least_once)
-        return tls_get(size_t, times) > 0;
-    if (params->that)
-        return params->that(tls_get(size_t, times));
-    return params->times == tls_get(size_t, times);
+        return t == 0;
+    if (params->at_least || params->at_most) {
+        size_t most = params->at_most ? params->at_most : t;
+        return t >= params->at_least && t <= most;
+    }
+    if (params->matching)
+        return params->matching(t);
+    return params->times == t;
 }
 
 static int find_and_inc_call_matching(struct mmk_mock_ctx *mock,
