@@ -36,6 +36,8 @@ static MMK_THREAD_LOCAL(struct mmk_stub *) mmk_ctx_;
 
 void *mmk_stub_context(struct mmk_stub *stub)
 {
+    if (stub == MMK_STUB_INVALID)
+        return NULL;
     return stub->ctx;
 }
 
