@@ -64,8 +64,10 @@ void mmk_reset(mmk_fn fn);
 # define MMK_TRYMATCH(N, Name, Type)                                           \
     if (m->next) {                                                             \
         m = m->next;                                                           \
-        if (m->kind & MMK_MATCHER_BIT_CMP) {                                   \
-            int res = mmk_memcmp(&param ## N, m + 1, sizeof (Type));           \
+        if (m->kind == MMK_MATCHER_ANY) {                                      \
+            /* Ugly but keeps the indentation level as it is */                \
+        } else if (m->kind & MMK_MATCHER_BIT_CMP) {                            \
+            int res = mmk_memcmp(&param ## N, &param ## N, sizeof (Type));     \
             if (res == 0 && !(m->kind & MMK_MATCHER_BIT_EQ))                   \
                 continue;                                                      \
             if (res < 0 && !(m->kind & MMK_MATCHER_BIT_LT))                    \
@@ -73,9 +75,9 @@ void mmk_reset(mmk_fn fn);
             if (res > 0 && !(m->kind & MMK_MATCHER_BIT_GT))                    \
                 continue;                                                      \
         } else if (m->kind == MMK_MATCHER_THAT) {                              \
-            int (*predicate)(Type, Type) = (int (*)(Type, Type))               \
+            int (*predicate)(Type) = (int (*)(Type))                           \
                     mmk_matcher_get_predicate(m);                              \
-            if (!predicate(param ## N, *(Type*)(m + 1)))                       \
+            if (!predicate(param ## N))                                        \
                 continue;                                                      \
         }                                                                      \
     } else {                                                                   \
@@ -86,7 +88,9 @@ void mmk_reset(mmk_fn fn);
 # define MMK_TRYVERIFY(N, Id, Type)                                            \
     if (m->next) {                                                             \
         m = m->next;                                                           \
-        if (m->kind & MMK_MATCHER_BIT_CMP) {                                   \
+        if (m->kind == MMK_MATCHER_ANY) {                                      \
+            /* Ugly but keeps the indentation level as it is */                \
+        } else if (m->kind & MMK_MATCHER_BIT_CMP) {                            \
             int res = mmk_memcmp(&p->param ## N, &param ## N, sizeof (Type));  \
             if (res == 0 && !(m->kind & MMK_MATCHER_BIT_EQ))                   \
                 goto fail;                                                     \
@@ -95,13 +99,13 @@ void mmk_reset(mmk_fn fn);
             if (res > 0 && !(m->kind & MMK_MATCHER_BIT_GT))                    \
                 goto fail;                                                     \
         } else if (m->kind == MMK_MATCHER_THAT) {                              \
-            int (*predicate)(Type, Type) = (int (*)(Type, Type))               \
+            int (*predicate)(Type) = (int (*)(Type))                           \
                     mmk_matcher_get_predicate(m);                              \
-            if (!predicate(p->param ## N, param ## N))                         \
+            if (!predicate(p->param ## N))                                     \
                 goto fail;                                                     \
         }                                                                      \
     } else {                                                                   \
-        if (p->param ## N != param ## N)                                       \
+        if (mmk_memcmp(&p->param ## N, &param ## N, sizeof (Type)))            \
             goto fail;                                                         \
     }
 

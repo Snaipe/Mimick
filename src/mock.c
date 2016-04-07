@@ -95,7 +95,7 @@ void *mmk_mock_params_begin(struct mmk_mock_ctx *mock) {
 void *mmk_mock_params_next(struct mmk_mock_ctx *mock, void *prev) {
     char *ptr = prev;
     size_t sz = *(size_t*) (ptr - sizeof (size_t));
-    ptr += sz;
+    ptr += sz + sizeof (size_t);
     if (ptr >= mock->call_data + mock->call_data_top)
         return NULL;
     return ptr;
