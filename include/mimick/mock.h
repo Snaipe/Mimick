@@ -56,7 +56,7 @@ void mmk_reset(mmk_fn fn);
 # define MMK_MANGLE_(Id, Name) mmkuser_ ## Id ## _ ## Name
 # define MMK_MANGLE(Id, Name) MMK_MANGLE_(Id, Name)
 
-# define MMK_DEF_VERIFY_PARAM_VA(Id, ...) MMK_DEF_VERIFY_PARAM_VA_ ## Id (__VA_ARGS__)
+# define MMK_DEF_VERIFY_PARAM_VA(Id, ...) MMK_EXPAND(MMK_DEF_VERIFY_PARAM_VA_ ## Id (__VA_ARGS__))
 # define MMK_DEF_VERIFY_PARAM_VA_WITH(...)
 
 # define MMK_DEF_VERIFY_PARAM__(X) .X = X,
@@ -65,14 +65,14 @@ void mmk_reset(mmk_fn fn);
 # define MMK_DEF_VERIFY_PARAM_(N, Id, T) MMK_COND_VA(MMK_DEF_VERIFY_PARAM_VA, (WITHOUT, N, Id, T,), (WITH,), T)
 # define MMK_DEF_VERIFY_PARAM(N, Id, T) MMK_EXPAND(MMK_DEF_VERIFY_PARAM_(N, Id, T))
 
-# define MMK_DEF_FIELD_VA(Id, ...) MMK_DEF_FIELD_VA_ ## Id (__VA_ARGS__)
+# define MMK_DEF_FIELD_VA(Id, ...) MMK_EXPAND(MMK_DEF_FIELD_VA_ ## Id (__VA_ARGS__))
 # define MMK_DEF_FIELD_VA_WITH(...)
 # define MMK_DEF_FIELD_VA_WITHOUT(N, T, ...) T param ## N;
 
 # define MMK_DEF_FIELD_(N, T) MMK_COND_VA(MMK_DEF_FIELD_VA, (WITHOUT, N, T,), (WITH,), T)
 # define MMK_DEF_FIELD(N, _, T) MMK_EXPAND(MMK_DEF_FIELD_(N, T))
 
-# define MMK_TRYMATCH_VA(Id, ...) MMK_TRYMATCH_VA_ ## Id (__VA_ARGS__)
+# define MMK_TRYMATCH_VA(Id, ...) MMK_EXPAND(MMK_TRYMATCH_VA_ ## Id (__VA_ARGS__))
 # define MMK_TRYMATCH_VA_WITH(...)
 
 # define MMK_TRYMATCH_(N, Name, T) MMK_COND_VA(MMK_TRYMATCH_VA, (WITHOUT, N, Name, T,), (WITH,), T)
@@ -102,7 +102,7 @@ void mmk_reset(mmk_fn fn);
             continue;                                                          \
     }
 
-# define MMK_TRYVERIFY_VA(Id, ...) MMK_TRYVERIFY_VA_ ## Id (__VA_ARGS__)
+# define MMK_TRYVERIFY_VA(Id, ...) MMK_EXPAND(MMK_TRYVERIFY_VA_ ## Id (__VA_ARGS__))
 # define MMK_TRYVERIFY_VA_WITH(...)
 
 # define MMK_TRYVERIFY_(N, Name, T) MMK_COND_VA(MMK_TRYVERIFY_VA, (WITHOUT, N, Name, T,), (WITH,), T)
@@ -132,7 +132,7 @@ void mmk_reset(mmk_fn fn);
             goto fail;                                                         \
     }
 
-# define MMK_SET_PARAMS_VA(Id, ...) MMK_SET_PARAMS_VA_ ## Id (__VA_ARGS__)
+# define MMK_SET_PARAMS_VA(Id, ...) MMK_EXPAND(MMK_SET_PARAMS_VA_ ## Id (__VA_ARGS__))
 # define MMK_SET_PARAMS_VA_WITH(...)
 # define MMK_SET_PARAMS_VA_WITHOUT(N, Id, T, ...) bind->params.param ## N = param ## N;
 

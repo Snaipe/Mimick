@@ -593,7 +593,7 @@
 # define MMK_PARAM_PACK_SELECT_HELPER_1(...)
 # define MMK_PARAM_PACK_SELECT_HELPER_2(...) MMK_EXPAND(MMK_PARAM_PACK_NE(__VA_ARGS__))
 
-# define MMK_PARAM_PACK(...) MMK_PARAM_PACK_SELECT(__VA_ARGS__)
+# define MMK_PARAM_PACK(...) MMK_EXPAND(MMK_PARAM_PACK_SELECT(__VA_ARGS__))
 
 /* We need a second version of MMK_TOKEN_SELECT because it would get painted
  * blue otherwise, and we can't exactly defer it (or at least, attempts to
@@ -610,10 +610,10 @@
 # define MMK_VOID_SELECT_HELPER_1(Macro, Params1, Params2) MMK_EXPAND(Macro Params1)
 # define MMK_VOID_SELECT_HELPER_2(Macro, Params1, Params2) MMK_EXPAND(Macro Params2)
 
-# define MMK_COND_VOID(Macro, Params1, Params2, ...) MMK_VOID_SELECT(Macro, Params1, Params2, __VA_ARGS__)
+# define MMK_COND_VOID(Macro, Params1, Params2, ...) MMK_EXPAND(MMK_VOID_SELECT(Macro, Params1, Params2, __VA_ARGS__))
 
-# define MMK_VA_SELECT_TYPE_mmk_va_args() ,
-# define MMK_VA_SELECT_TYPE_(T) MMK_VA_SELECT_TYPE_ ## T ()
+# define MMK_VA_SELECT_TYPE_mmk_va_args(_) ,
+# define MMK_VA_SELECT_TYPE_(T) MMK_VA_SELECT_TYPE_ ## T (_)
 # define MMK_VA_SELECT_TYPE(T) MMK_VA_SELECT_TYPE_(T)
 
 # define MMK_VA_SELECT(Macro, Params1, Params2, Type) MMK_EXPAND(MMK_VA_SELECT_HELPER(MMK_VA_TAIL_SELECT(MMK_VA_SELECT_TYPE(Type)), Macro, Params1, Params2))
@@ -623,6 +623,6 @@
 # define MMK_VA_SELECT_HELPER_1(Macro, Params1, Params2) MMK_EXPAND(Macro Params1)
 # define MMK_VA_SELECT_HELPER_2(Macro, Params1, Params2) MMK_EXPAND(Macro Params2)
 
-# define MMK_COND_VA(Macro, Params1, Params2, ...) MMK_VA_SELECT(Macro, Params1, Params2, __VA_ARGS__)
+# define MMK_COND_VA(Macro, Params1, Params2, Tok) MMK_EXPAND(MMK_VA_SELECT(Macro, Params1, Params2, Tok))
 
 #endif /* !MIMICK_PREPROCESS_H_ */
