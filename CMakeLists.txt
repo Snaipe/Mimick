@@ -170,7 +170,7 @@ function (add_mimick_test _NAME)
         endforeach ()
     endif ()
 
-    target_link_libraries (${_NAME} mimick)
+    target_link_libraries (${_NAME} mimick foo)
     add_mimick_sample(${_NAME})
 endfunction ()
 
