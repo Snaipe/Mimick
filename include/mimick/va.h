@@ -21,28 +21,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef MMK_WHEN_H_
-# define MMK_WHEN_H_
+#ifndef MMK_VA_H_
+# define MMK_VA_H_
 
-# include "va.h"
-
-struct mmk_result {
-    int sentinel_;
-    int then_errno;
-    void *then_return;
-    void (*then_call)(void);
-    struct mmk_va_info *with_va;
+struct mmk_va_info {
+    size_t nb_args;
+    size_t *types;
 };
 
-void mmk_when_init(struct mmk_result *res);
-void mmk_when_impl(struct mmk_mock_ctx *mock, void *data);
-struct mmk_result *mmk_when_get_result(void);
+# define MMK_SIZEOF_T(N, _, T) sizeof (T),
 
-# undef mmk_when
-# define mmk_when(CallExpr, ...) \
-        (mmk_matcher_init(0), \
-        mmk_when_init(&(struct mmk_result) { __VA_ARGS__, .sentinel_ = 0, }), \
-        (void) (CallExpr), \
-        mmk_matcher_term())
+# define MMK_VA_IMPL(N, ...) &(struct mmk_va_info) {                        \
+        .nb_args = N,                                                       \
+        .types = &(size_t[N]) { MMK_APPLY_N(MMK_SIZEOF_T, _, __VA_ARGS__) } \
+    }
 
-#endif /* !MMK_WHEN_H_ */
+# undef mmk_va
+# define mmk_va(...) MMK_VA_IMPL(MMK_VA_NARGS(__VA_ARGS__), __VA_ARGS__)
+
+#endif /* !MMK_VA_H_ */
