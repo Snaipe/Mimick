@@ -115,6 +115,8 @@ void mmk_reset(mmk_fn fn);
     typedef MMK_VA_HEAD(__VA_ARGS__) MMK_MANGLE(Id, returntype);               \
     typedef MMK_MANGLE(Id, returntype)(*Id)(                                   \
             MMK_EXPAND(MMK_PARAM_LIST(__VA_ARGS__)));                          \
+    typedef MMK_MANGLE(Id, returntype)(*MMK_MANGLE(Id, delegate))(             \
+            MMK_EXPAND(MMK_PARAM_LIST(__VA_ARGS__)));                          \
     struct MMK_MANGLE(Id, params) {                                            \
         size_t mmk_times__;                                                    \
         MMK_EXPAND(MMK_APPLY_N(MMK_DEF_FIELD, Id, __VA_ARGS__))                \
@@ -125,7 +127,7 @@ void mmk_reset(mmk_fn fn);
         struct MMK_MANGLE(Id, params) params;                                  \
     };                                                                         \
 
-# define MMK_MOCK_DEFINE(PreDecl, Return, Id, ...)                             \
+# define MMK_MOCK_DEFINE(PreDecl, Return, ReturnSE, Id, ...)                   \
     MMK_EXPAND(MMK_MOCK_DEFINE_TYPES(Id, __VA_ARGS__))                         \
     static MMK_MANGLE(Id, returntype) MMK_MANGLE(Id, stub)(                    \
         MMK_EXPAND(MMK_PARAM_LIST(__VA_ARGS__)))                               \
@@ -174,6 +176,17 @@ void mmk_reset(mmk_fn fn);
             MMK_EXPAND(MMK_APPLY_N(MMK_TRYMATCH, Id, __VA_ARGS__))             \
             if (bind->result.then_errno)                                       \
                 errno = bind->result.then_errno;                               \
+            if (bind->result.then_call && !bind->result.then_return) {         \
+                ReturnSE(((MMK_MANGLE(Id, delegate)) bind->result.then_call)(  \
+                    MMK_EXPAND(MMK_PARAM_PACK(__VA_ARGS__)) \
+                ));                                                            \
+            }                                                                  \
+            if (bind->result.then_call && bind->result.then_return) {          \
+                (void) ((MMK_MANGLE(Id, delegate)) bind->result.then_call)(    \
+                    MMK_EXPAND(MMK_PARAM_PACK(__VA_ARGS__)) \
+                );                                                             \
+                Return(*(MMK_MANGLE(Id, returntype)*)bind->result.then_return);\
+            }                                                                  \
             if (bind->result.then_return)                                      \
                 Return(*(MMK_MANGLE(Id, returntype)*)bind->result.then_return);\
             Return(zero__);                                                    \
@@ -190,13 +203,20 @@ void mmk_reset(mmk_fn fn);
 
 # define MMK_MOCK_VALUE_RETURN(Val) return (Val)
 # define MMK_MOCK_VOID_RETURN(Val) return
+# define MMK_MOCK_VOID_RETURN_SE(Val) do { (void) (Val); return; } while (0)
 
 # undef mmk_mock_define
 # define mmk_mock_define(Id, ...)                                           \
     MMK_EXPAND(MMK_COND_VOID(                                               \
         MMK_MOCK_DEFINE,                                                    \
-            (MMK_MOCK_DEFINE_ZERO, MMK_MOCK_VALUE_RETURN, Id, __VA_ARGS__), \
-            (MMK_NOOP_FN,          MMK_MOCK_VOID_RETURN,  Id, __VA_ARGS__), \
+            (MMK_MOCK_DEFINE_ZERO,                                          \
+                MMK_MOCK_VALUE_RETURN,                                      \
+                MMK_MOCK_VALUE_RETURN,  \
+                Id, __VA_ARGS__), \
+            (MMK_NOOP_FN, \
+                MMK_MOCK_VOID_RETURN, \
+                MMK_MOCK_VOID_RETURN_SE, \
+                Id, __VA_ARGS__), \
             MMK_VA_HEAD(__VA_ARGS__)))
 
 #endif /* !MIMICK_MOCK_H_ */

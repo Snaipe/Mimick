@@ -28,6 +28,7 @@ struct mmk_result {
     int sentinel_;
     int then_errno;
     void *then_return;
+    void (*then_call)(void);
 };
 
 void mmk_when_init(struct mmk_result *res);
