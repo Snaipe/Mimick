@@ -7,6 +7,25 @@
 mmk_mock_define (fn_ii_mock, int, int);
 mmk_mock_define (fn_vv_mock, void);
 
+static int MMK_MANGLE(fn_ii_va_mock, serialize_va)(int i, va_list vl,
+    size_t *sz_out, struct mmk_va_param ***va_out)
+{
+    if (i <= 0)
+        return 0;
+
+    struct mmk_va_param **va_data = mmk_malloc(i * sizeof (void *));
+
+    // Expect all va parameters to be int
+    for (int j = 0; j < i; ++j) {
+        mmk_make_va_param(va_data[j], vl, int);
+    }
+
+    *sz_out = i;
+    *va_out = va_data;
+
+    return 1;
+}
+
 mmk_mock_define (fn_ii_va_mock, int, int, mmk_va_args);
 
 static int valid;
@@ -50,6 +69,14 @@ int main(void)
     mmk_assert(mmk_verify(fn_ii(42), .times = 1));
     mmk_assert(mmk_verify(fn_ii(12), .never = 1));
     mmk_reset(fn_ii);
+
+
+    mmk_mock("fn_ii_va", fn_ii_va_mock);
+    mmk_when(fn_ii_va(1, 42), .then_return = mmk_val(int, 1));
+
+    mmk_assert(fn_ii_va(1, 42) == 1);
+
+    mmk_reset(fn_ii_va);
 
     return 0;
 }

@@ -81,8 +81,6 @@ void mmk_matcher_init(int kind);
 void mmk_matcher_add(enum mmk_matcher_kind kind, int counter);
 void mmk_matcher_term(void);
 struct mmk_matcher *mmk_matcher_ctx(void);
-
-int mmk_memcmp(const void *s1, const void *s2, size_t n);
 void (*mmk_matcher_get_predicate(struct mmk_matcher *m))(void);
 
 #endif /* !MIMICK_MATCHER_H_ */
