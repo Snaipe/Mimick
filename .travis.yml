@@ -79,12 +79,6 @@ matrix:
 
 before_install:
   - if [ -z "${TARGET}" ]; then export TARGET=${ARCH}; fi
-  - |
-      if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$CC" = "clang" ]; then
-        brew update
-        brew unlink cmake
-        brew install llvm cmake
-      fi
 
 script:
   - mkdir -p build && cd $_
