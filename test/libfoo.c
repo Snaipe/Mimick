@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "libfoo.h"
 
 void fn_vv(void)
 {
