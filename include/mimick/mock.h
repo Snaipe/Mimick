@@ -58,26 +58,34 @@ void mmk_reset(mmk_fn fn);
 # define MMK_MANGLE_(Id, Name) mmkuser_ ## Id ## _ ## Name
 # define MMK_MANGLE(Id, Name) MMK_MANGLE_(Id, Name)
 
-# define MMK_DEF_VERIFY_PARAM_VA(Id, ...) MMK_EXPAND(MMK_DEF_VERIFY_PARAM_VA_ ## Id (__VA_ARGS__))
+# define MMK_DEF_VERIFY_PARAM_VA(Id, ...) \
+    MMK_EXPAND(MMK_DEF_VERIFY_PARAM_VA_ ## Id (__VA_ARGS__))
 # define MMK_DEF_VERIFY_PARAM_VA_WITH(...)
 
 # define MMK_DEF_VERIFY_PARAM__(X) .X = X,
-# define MMK_DEF_VERIFY_PARAM_VA_WITHOUT(N, Id, T, ...) MMK_DEF_VERIFY_PARAM__(param ## N)
+# define MMK_DEF_VERIFY_PARAM_VA_WITHOUT(N, Id, T, ...) \
+    MMK_DEF_VERIFY_PARAM__(param ## N)
 
-# define MMK_DEF_VERIFY_PARAM_(N, Id, T) MMK_COND_VA(MMK_DEF_VERIFY_PARAM_VA, (WITHOUT, N, Id, T,), (WITH,), T)
-# define MMK_DEF_VERIFY_PARAM(N, Id, T) MMK_EXPAND(MMK_DEF_VERIFY_PARAM_(N, Id, T))
+# define MMK_DEF_VERIFY_PARAM_(N, Id, T) \
+    MMK_COND_VA(MMK_DEF_VERIFY_PARAM_VA, (WITHOUT, N, Id, T,), (WITH,), T)
+# define MMK_DEF_VERIFY_PARAM(N, Id, T) \
+    MMK_EXPAND(MMK_DEF_VERIFY_PARAM_(N, Id, T))
 
-# define MMK_DEF_FIELD_VA(Id, ...) MMK_EXPAND(MMK_DEF_FIELD_VA_ ## Id (__VA_ARGS__))
+# define MMK_DEF_FIELD_VA(Id, ...) \
+    MMK_EXPAND(MMK_DEF_FIELD_VA_ ## Id (__VA_ARGS__))
 # define MMK_DEF_FIELD_VA_WITH(...)
 # define MMK_DEF_FIELD_VA_WITHOUT(N, T, ...) T param ## N;
 
-# define MMK_DEF_FIELD_(N, T) MMK_COND_VA(MMK_DEF_FIELD_VA, (WITHOUT, N, T,), (WITH,), T)
+# define MMK_DEF_FIELD_(N, T) \
+    MMK_COND_VA(MMK_DEF_FIELD_VA, (WITHOUT, N, T,), (WITH,), T)
 # define MMK_DEF_FIELD(N, _, T) MMK_EXPAND(MMK_DEF_FIELD_(N, T))
 
-# define MMK_TRYMATCH_VA(Id, ...) MMK_EXPAND(MMK_TRYMATCH_VA_ ## Id (__VA_ARGS__))
+# define MMK_TRYMATCH_VA(Id, ...) \
+    MMK_EXPAND(MMK_TRYMATCH_VA_ ## Id (__VA_ARGS__))
 # define MMK_TRYMATCH_VA_WITH(...)
 
-# define MMK_TRYMATCH_(N, Name, T) MMK_COND_VA(MMK_TRYMATCH_VA, (WITHOUT, N, Name, T,), (WITH,), T)
+# define MMK_TRYMATCH_(N, Name, T) \
+    MMK_COND_VA(MMK_TRYMATCH_VA, (WITHOUT, N, Name, T,), (WITH,), T)
 # define MMK_TRYMATCH(N, Name, T) MMK_EXPAND(MMK_TRYMATCH_(N, Name, T))
 
 # define MMK_TRYMATCH_VA_WITHOUT(N, Name, Type, ...)                           \
@@ -104,10 +112,14 @@ void mmk_reset(mmk_fn fn);
             continue;                                                          \
     }
 
-# define MMK_TRYVERIFY_VA(Id, ...) MMK_EXPAND(MMK_TRYVERIFY_VA_ ## Id (__VA_ARGS__))
+# define MMK_TRYVERIFY_VA(Id, ...) \
+    MMK_EXPAND(MMK_TRYVERIFY_VA_ ## Id (__VA_ARGS__))
+
 # define MMK_TRYVERIFY_VA_WITH(...)
 
-# define MMK_TRYVERIFY_(N, Name, T) MMK_COND_VA(MMK_TRYVERIFY_VA, (WITHOUT, N, Name, T,), (WITH,), T)
+# define MMK_TRYVERIFY_(N, Name, T) \
+    MMK_COND_VA(MMK_TRYVERIFY_VA, (WITHOUT, N, Name, T,), (WITH,), T)
+
 # define MMK_TRYVERIFY(N, Name, T) MMK_EXPAND(MMK_TRYVERIFY_(N, Name, T))
 
 # define MMK_TRYVERIFY_VA_WITHOUT(N, Name, Type, ...)                          \
@@ -134,11 +146,16 @@ void mmk_reset(mmk_fn fn);
             goto fail;                                                         \
     }
 
-# define MMK_SET_PARAMS_VA(Id, ...) MMK_EXPAND(MMK_SET_PARAMS_VA_ ## Id (__VA_ARGS__))
-# define MMK_SET_PARAMS_VA_WITH(...)
-# define MMK_SET_PARAMS_VA_WITHOUT(N, Id, T, ...) bind->params.param ## N = param ## N;
+# define MMK_SET_PARAMS_VA(Id, ...) \
+    MMK_EXPAND(MMK_SET_PARAMS_VA_ ## Id (__VA_ARGS__))
 
-# define MMK_SET_PARAMS_(N, Id, T) MMK_COND_VA(MMK_SET_PARAMS_VA, (WITHOUT, N, Id, T,), (WITH,), T)
+# define MMK_SET_PARAMS_VA_WITH(...)
+# define MMK_SET_PARAMS_VA_WITHOUT(N, Id, T, ...) \
+    bind->params.param ## N = param ## N;
+
+# define MMK_SET_PARAMS_(N, Id, T) \
+    MMK_COND_VA(MMK_SET_PARAMS_VA, (WITHOUT, N, Id, T,), (WITH,), T)
+
 # define MMK_SET_PARAMS(N, Id, T) MMK_EXPAND(MMK_SET_PARAMS_(N, Id, T))
 
 # define MMK_VA_TYPE(...) ...
@@ -167,11 +184,11 @@ void mmk_reset(mmk_fn fn);
     };                                                                         \
 
 # define MMK_MOCK_VA_PREDECL(Id, ...) \
-    MMK_MANGLE(Id, va_serializer) mmk_va_serializer__ = \
-        MMK_MANGLE(Id, serialize_va); \
-    va_list vl__, vl_cpy__; \
-    va_start(vl__, MMK_PARAM_N(param, \
-            MMK_DEC(MMK_DEC(MMK_VA_NARGS(MMK_VA_TAIL(__VA_ARGS__))))) \
+    MMK_MANGLE(Id, va_serializer) mmk_va_serializer__ =                 \
+        MMK_MANGLE(Id, serialize_va);                                   \
+    va_list vl__, vl_cpy__;                                             \
+    va_start(vl__, MMK_PARAM_N(param,                                   \
+            MMK_DEC(MMK_DEC(MMK_VA_NARGS(MMK_VA_TAIL(__VA_ARGS__)))))   \
     )
 
 # define MMK_MOCK_VA_COPY(...) \
@@ -242,18 +259,18 @@ void mmk_reset(mmk_fn fn);
         mmk_free(mmk_va_args__);                                               \
     } while (0)
 
-# define MMK_MOCK_VA_REGISTER_CALL(RegParams, ...) do { \
+# define MMK_MOCK_VA_REGISTER_CALL(RegParams, ...) do {                        \
         size_t mmk_va_args_sz__ = 0;                                           \
         struct mmk_va_param **mmk_va_args__ = NULL;                            \
-        MMK_MOCK_VA_COPY(_); \
-        int mmk_ok__ = \
-            mmk_va_serializer__(MMK_EXPAND(MMK_PARAM_PACK(__VA_ARGS__)), \
-                    &mmk_va_args_sz__, &mmk_va_args__); \
-        MMK_MOCK_VA_COPY_END(_); \
-        if (mmk_ok__) { \
-            (RegParams)->mmk_va_args_sz__ = mmk_va_args_sz__; \
-            (RegParams)->mmk_va_args__ = mmk_va_args__; \
-        } \
+        MMK_MOCK_VA_COPY(_);                                                   \
+        int mmk_ok__ =                                                         \
+            mmk_va_serializer__(MMK_EXPAND(MMK_PARAM_PACK(__VA_ARGS__)),       \
+                    &mmk_va_args_sz__, &mmk_va_args__);                        \
+        MMK_MOCK_VA_COPY_END(_);                                               \
+        if (mmk_ok__) {                                                        \
+            (RegParams)->mmk_va_args_sz__ = mmk_va_args_sz__;                  \
+            (RegParams)->mmk_va_args__ = mmk_va_args__;                        \
+        }                                                                      \
     } while (0)
 
 # define MMK_MOCK_DEFINE(PreDecl, Return, ReturnSE, VaMacro, Id, ...)          \
@@ -346,20 +363,21 @@ void mmk_reset(mmk_fn fn);
 # define MMK_MOCK_DEFINE_ZERO(Id) static MMK_MANGLE(Id, returntype) zero__
 
 # define MMK_MOCK_VALUE_RETURN(Val) return (Val)
-# define MMK_MOCK_VALUE_RETURN_SE(Id, VaMacro, Val) do { \
-        VaMacro(COPY)(_); \
-        MMK_MANGLE(Id, returntype) val__ = (Val); \
-        VaMacro(COPY_END)(_); \
-        VaMacro(END)(_); \
-        return val__; \
+# define MMK_MOCK_VALUE_RETURN_SE(Id, VaMacro, Val) do {    \
+        VaMacro(COPY)(_);                                   \
+        MMK_MANGLE(Id, returntype) mmk_val__ = (Val);       \
+        VaMacro(COPY_END)(_);                               \
+        VaMacro(END)(_);                                    \
+        return mmk_val__;                                   \
     } while (0)
+
 # define MMK_MOCK_VOID_RETURN(Val) return
-# define MMK_MOCK_VOID_RETURN_SE(Id, VaMacro, Val) do { \
-        VaMacro(COPY)(_); \
-        (void) (Val); \
-        VaMacro(COPY_END)(_); \
-        VaMacro(END)(_); \
-        return; \
+# define MMK_MOCK_VOID_RETURN_SE(Id, VaMacro, Val) do {     \
+        VaMacro(COPY)(_);                                   \
+        (void) (Val);                                       \
+        VaMacro(COPY_END)(_);                               \
+        VaMacro(END)(_);                                    \
+        return;                                             \
     } while (0)
 
 # define MMK_MOCK_VA(Id) MMK_MOCK_VA_ ## Id
@@ -367,28 +385,28 @@ void mmk_reset(mmk_fn fn);
 # define MMK_MOCK_VA_WITHOUT(Id) MMK_NOOP_FN
 
 # undef mmk_mock_define
-# define mmk_mock_define(Id, ...)                                           \
-    MMK_EXPAND(MMK_MOCK_DEFINE_IMPL(Id, \
-        MMK_EXPAND(MMK_COND_VA( \
-                MMK_MOCK_VA, \
-                (WITHOUT), \
-                (WITH), \
-                MMK_LAST(__VA_ARGS__))), \
+# define mmk_mock_define(Id, ...)                           \
+    MMK_EXPAND(MMK_MOCK_DEFINE_IMPL(Id,                     \
+        MMK_EXPAND(MMK_COND_VA(                             \
+                MMK_MOCK_VA,                                \
+                (WITHOUT),                                  \
+                (WITH),                                     \
+                MMK_LAST(__VA_ARGS__))),                    \
         __VA_ARGS__))
 
-# define MMK_MOCK_DEFINE_IMPL(Id, VaMacro, ...)                             \
-    MMK_EXPAND(MMK_COND_VOID(                                               \
-        MMK_MOCK_DEFINE,                                                    \
-            (MMK_MOCK_DEFINE_ZERO,                                          \
-                MMK_MOCK_VALUE_RETURN,                                      \
-                MMK_MOCK_VALUE_RETURN_SE,                                   \
-                VaMacro,                                                    \
-                Id, __VA_ARGS__),                                           \
-            (MMK_NOOP_FN,                                                   \
-                MMK_MOCK_VOID_RETURN,                                       \
-                MMK_MOCK_VOID_RETURN_SE,                                    \
-                VaMacro,                                                    \
-                Id, __VA_ARGS__),                                           \
+# define MMK_MOCK_DEFINE_IMPL(Id, VaMacro, ...)             \
+    MMK_EXPAND(MMK_COND_VOID(                               \
+        MMK_MOCK_DEFINE,                                    \
+            (MMK_MOCK_DEFINE_ZERO,                          \
+                MMK_MOCK_VALUE_RETURN,                      \
+                MMK_MOCK_VALUE_RETURN_SE,                   \
+                VaMacro,                                    \
+                Id, __VA_ARGS__),                           \
+            (MMK_NOOP_FN,                                   \
+                MMK_MOCK_VOID_RETURN,                       \
+                MMK_MOCK_VOID_RETURN_SE,                    \
+                VaMacro,                                    \
+                Id, __VA_ARGS__),                           \
             MMK_VA_HEAD(__VA_ARGS__)))
 
 #endif /* !MIMICK_MOCK_H_ */
