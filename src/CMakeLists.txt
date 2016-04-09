@@ -1,6 +1,6 @@
 # Copyright (C) 2016 Franklin "Snaipe" Mathieu.
 # Redistribution and use of this file is allowed according to the terms of the MIT license.
-# For details see the LICENSE file distributed with Criterion.
+# For details see the LICENSE file distributed with Mimick.
 
 if (MMK_ARCH STREQUAL MMK_ABI)
     set (ASM_ID ${MMK_ARCH})
