@@ -243,11 +243,10 @@ void mmk_reset(mmk_fn fn);
                     if (res > 0 && !(m->kind & MMK_MATCHER_BIT_GT))            \
                         goto fail;                                             \
                 } else if (m->kind == MMK_MATCHER_THAT) {                      \
-                    int (*predicate)(struct mmk_va_param *,                    \
-                                     struct mmk_va_param *) =                  \
-                        (int (*)(struct mmk_va_param *, struct mmk_va_param *))\
+                    int (*predicate)(struct mmk_va_param *) =                  \
+                        (int (*)(struct mmk_va_param *))                       \
                             mmk_matcher_get_predicate(m);                      \
-                    if (!predicate(mmk_vp_ref, mmk_vp))                        \
+                    if (!predicate(mmk_vp_ref))                                \
                         goto fail;                                             \
                 }                                                              \
             } else {                                                           \
