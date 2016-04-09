@@ -1,3 +1,18 @@
+2016-04-09  Franklin "Snaipe" Mathieu  <franklinmathieu@gmail.com>
+
+    * mimick: version 0.2.0.
+    * api: **Breaking**: Removed parameter names from mmk_mock_define.
+    * api: **Breaking**: Removed mmk_mock_vdefine (mmk_mock_define now accepts
+      void as a return type).
+    * api: Added error handling for stub & mock creation.
+    * api: Added support for variadic functions.
+    * arch: Added ARM support.
+    * core: Fixed sym selector not working for elf and mach-o.
+    * doc: Added doxygen documentation in mimick.h.
+    * matchers: **Breaking**: Mixing matchers and non-matchers parameters
+      is now unsupported.
+    * matchers: Added mmk_eq.
+
 2016-03-30  Franklin "Snaipe" Mathieu  <franklinmathieu@gmail.com>
 
-	* mimick: Initial release
+    * mimick: Initial release
