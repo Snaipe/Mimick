@@ -25,16 +25,11 @@
 # define MMK_VA_H_
 
 # include "string.h"
+# include "../mimick.h"
 
-struct mmk_va_info {
-    size_t nb_args;
-    size_t *types;
-};
-
-struct mmk_va_param {
-    size_t size;
-    char data[];
-};
+/* mmk_va_args is actually just a preprocessed token without any real
+   definition -- we just reserve it anyway in mimick.h. */
+# undef mmk_va_args
 
 # define mmk_make_va_param(vd, vl, type) do {                               \
         (vd) = mmk_malloc(sizeof (struct mmk_va_param) + sizeof (type));    \
@@ -42,15 +37,5 @@ struct mmk_va_param {
         type val = va_arg(vl, type);                                        \
         mmk_memcpy((vd)->data, &val, sizeof (type));                        \
     } while (0)
-
-# define MMK_SIZEOF_T(N, _, T) sizeof (T),
-
-# define MMK_VA_IMPL(N, ...) &(struct mmk_va_info) {                        \
-        .nb_args = N,                                                       \
-        .types = &(size_t[N]) { MMK_APPLY_N(MMK_SIZEOF_T, _, __VA_ARGS__) } \
-    }
-
-# undef mmk_va
-# define mmk_va(...) MMK_VA_IMPL(MMK_VA_NARGS(__VA_ARGS__), __VA_ARGS__)
 
 #endif /* !MMK_VA_H_ */
