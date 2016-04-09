@@ -58,6 +58,9 @@ plt_ctx mmk_plt_ctx(void)
 #undef mmk_reset
 void mmk_reset(mmk_fn fn)
 {
+    if (fn == MMK_MOCK_INVALID)
+        return;
+
     struct mmk_stub *stub = mmk_ask_ctx(fn);
     struct mmk_mock_ctx *mock = mmk_stub_context(stub);
 
