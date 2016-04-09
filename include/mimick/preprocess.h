@@ -231,16 +231,7 @@
 
 # define MMK_LAST__(n, ...) MMK_EXPAND(MMK_LAST_##n(__VA_ARGS__,))
 # define MMK_LAST_(n, ...) MMK_EXPAND(MMK_LAST__(n, __VA_ARGS__))
-# define MMK_LAST_NE(...) MMK_EXPAND(MMK_LAST_(MMK_VA_NARGS(,__VA_ARGS__), __VA_ARGS__))
-
-# define MMK_LAST_SELECT(...) MMK_EXPAND(MMK_LAST_SELECT_HELPER(MMK_VA_TAIL_SELECT(__VA_ARGS__), __VA_ARGS__))
-
-# define MMK_LAST_SELECT_HELPER(N, ...)  MMK_EXPAND(MMK_LAST_SELECT_HELPER_(N, __VA_ARGS__))
-# define MMK_LAST_SELECT_HELPER_(N, ...) MMK_EXPAND(MMK_LAST_SELECT_HELPER_##N(__VA_ARGS__))
-# define MMK_LAST_SELECT_HELPER_1(...)
-# define MMK_LAST_SELECT_HELPER_2(...) MMK_EXPAND(MMK_LAST_NE(MMK_VA_TAIL(__VA_ARGS__)))
-
-# define MMK_LAST(...) MMK_EXPAND(MMK_LAST_SELECT(__VA_ARGS__))
+# define MMK_LAST(...) MMK_EXPAND(MMK_LAST_(MMK_VA_NARGS(,__VA_ARGS__), __VA_ARGS__))
 
 # define MMK_PAIR_APPLY_1(Macro, Prefix, ...)
 # define MMK_PAIR_APPLY_2(Macro, Prefix, ...)
@@ -612,8 +603,8 @@
 
 # define MMK_COND_VOID(Macro, Params1, Params2, ...) MMK_EXPAND(MMK_VOID_SELECT(Macro, Params1, Params2, __VA_ARGS__))
 
-# define MMK_VA_SELECT_TYPE_mmk_va_args(_) ,
-# define MMK_VA_SELECT_TYPE_(T) MMK_VA_SELECT_TYPE_ ## T (_)
+# define MMK_VA_SELECT_TYPE_VAL_mmk_va_args() ,
+# define MMK_VA_SELECT_TYPE_(T) MMK_VA_SELECT_TYPE_VAL_ ## T ()
 # define MMK_VA_SELECT_TYPE(T) MMK_VA_SELECT_TYPE_(T)
 
 # define MMK_VA_SELECT(Macro, Params1, Params2, Type) MMK_EXPAND(MMK_VA_SELECT_HELPER(MMK_VA_TAIL_SELECT(MMK_VA_SELECT_TYPE(Type)), Macro, Params1, Params2))
