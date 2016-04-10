@@ -44,6 +44,7 @@ void mmk_verify_register_call(void *params, size_t size);
         (mmk_matcher_init(1), \
         (void) (CallExpr), \
         mmk_matcher_term(), \
+        mmk_mock_reset_call(__FILE__, __LINE__), \
         mmk_verify_times(&(struct mmk_verify_params) { \
             __VA_ARGS__, \
             .sentinel_=1, \

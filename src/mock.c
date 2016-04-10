@@ -26,7 +26,30 @@
 #include "core.h"
 #include "mimick.h"
 #include "mock.h"
+#include "threadlocal.h"
 #include "vitals.h"
+
+/* Anti-optimization checks */
+
+static MMK_THREAD_LOCAL(int) mock_called;
+
+void mmk_mock_report_call(void)
+{
+    tls_set(int, mock_called, 1);
+}
+
+void mmk_mock_reset_call(const char *file, int line)
+{
+    int val = tls_get(int, mock_called);
+    if (!val) {
+        mmk_fprintf(stderr, "mimick: %s:%d: mocked function was never called "
+                "-- was it optimized away?\n", file, line);
+        mmk_abort();
+    }
+    tls_set(int, mock_called, 0);
+}
+
+/* Mock creation */
 
 mmk_fn mmk_mock_create_internal(const char *target, mmk_fn fn)
 {

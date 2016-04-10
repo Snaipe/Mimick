@@ -46,6 +46,9 @@ void *mmk_mock_params_begin(struct mmk_mock_ctx *mock);
 void *mmk_mock_params_next(struct mmk_mock_ctx *mock, void *prev);
 mmk_fn mmk_mock_create_internal(const char *target, mmk_fn fn);
 
+void mmk_mock_report_call(void);
+void mmk_mock_reset_call(const char *file, int line);
+
 # undef mmk_reset
 void mmk_reset(mmk_fn fn);
 # define mmk_reset(Fn) mmk_reset((mmk_fn) Fn);
@@ -282,6 +285,7 @@ void mmk_reset(mmk_fn fn);
         struct mmk_matcher *matcher_ctx = mmk_matcher_ctx();                   \
         if (matcher_ctx) {                                                     \
             struct mmk_mock_ctx *mock = mmk_stub_context(mmk_ctx ());          \
+            mmk_mock_report_call();                                            \
             if (matcher_ctx->kind == 0) {                                      \
                 struct MMK_MANGLE(Id, binding) *bind =                         \
                     mmk_malloc(sizeof (struct MMK_MANGLE(Id, binding)));       \
