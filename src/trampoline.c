@@ -22,7 +22,9 @@
  * THE SOFTWARE.
  */
 #include <string.h>
-#include "assert.h"
+
+#include "mimick/assert.h"
+
 #include "trampoline.h"
 #define PAGE_SIZE 0x1000
 
@@ -81,7 +83,6 @@ void destroy_trampoline(plt_fn *trampoline)
 }
 #elif defined _WIN32
 # include <windows.h>
-# include "assert.h"
 
 plt_fn *create_trampoline(void *ctx, plt_fn *routine)
 {

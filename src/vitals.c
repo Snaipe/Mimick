@@ -1,4 +1,31 @@
-#include "assert.h"
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright © 2016 Franklin "Snaipe" Mathieu <http://snai.pe/>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+#include <stdarg.h>
+
+#include "mimick/assert.h"
+#include "mimick/preprocess.h"
+
 #include "vitals.h"
 
 int mmk_memcmp(const void *s1, const void *s2, size_t n)
@@ -80,12 +107,39 @@ void mmk_free(void *ptr)
     mmk_free_(ptr);
 }
 
+void (*mmk_abort_)(void);
+void mmk_abort(void)
+{
+    mmk_abort_();
+}
+
+void (*mmk_vfprintf_)(FILE *, const char *, va_list);
+void mmk_fprintf(FILE *f, const char *str, ...)
+{
+    va_list vl;
+    va_start(vl, str);
+    mmk_vfprintf_(f, str, vl);
+    va_end(vl);
+}
+
+/* Never called, this is used to put vital functions into our own PLT for
+   fast lookups */
+void mmk_fetch_plt(void)
+{
+    va_list vl;
+    vfprintf(stderr, "%s", vl);
+    abort();
+}
+
 void mmk_init_vital_functions(plt_ctx ctx)
 {
-    /* Fetch the following function into our own plt */
+    /* We initialize the GOT entries for these functions by calling them
+       beforehand */
     free(realloc(malloc(0), 0));
 
-    mmk_assert(mmk_malloc_  = (void *) plt_get_real_fn(ctx, "malloc"));
-    mmk_assert(mmk_realloc_ = (void *) plt_get_real_fn(ctx, "realloc"));
-    mmk_assert(mmk_free_    = (void *) plt_get_real_fn(ctx, "free"));
+    mmk_assert(mmk_malloc_      = (void *) plt_get_real_fn(ctx, "malloc"));
+    mmk_assert(mmk_realloc_     = (void *) plt_get_real_fn(ctx, "realloc"));
+    mmk_assert(mmk_free_        = (void *) plt_get_real_fn(ctx, "free"));
+    mmk_assert(mmk_vfprintf_    = (void *) plt_get_real_fn(ctx, "vfprintf"));
+    mmk_assert(mmk_abort_       = (void *) plt_get_real_fn(ctx, "abort"));
 }

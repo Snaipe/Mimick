@@ -36,7 +36,7 @@
 
 # if defined __GNUC__ && defined _WIN32
 #  include <windows.h>
-#  include "assert.h"
+#  include "mimick/assert.h"
 
 #  define tls_set(Type, Var, Val) __extension__ ({ \
             __typeof__(Type) *v__ = NULL; \

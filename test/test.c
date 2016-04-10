@@ -1,8 +1,8 @@
 #include <mimick.h>
+#include <mimick/assert.h>
 #include <stdlib.h>
 
 #include "libfoo.h"
-#include "assert.h"
 
 mmk_mock_define (fn_ii_mock, int, int);
 mmk_mock_define (fn_vv_mock, void);

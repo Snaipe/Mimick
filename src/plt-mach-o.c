@@ -30,7 +30,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "assert.h"
+#include "mimick/assert.h"
+
 #include "plt.h"
 #include "vitals.h"
 

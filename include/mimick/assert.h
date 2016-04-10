@@ -21,48 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <stdlib.h>
+#ifndef MMK_ASSERT_H_
+# define MMK_ASSERT_H_
 
-#include "mimick.h"
-#include "mimick/assert.h"
+# include <stdlib.h>
+# include <stdio.h>
 
-#include "mock.h"
-#include "plt.h"
-#include "stub.h"
-#include "vitals.h"
+# include "unmocked.h"
 
-static struct {
-    int initialized;
-    plt_ctx plt;
-} self;
+# define mmk_assert(Cond) do { \
+        if (!(Cond)) { \
+            mmk_fprintf(stderr, "%s:%d: Assertion failed: %s\n", \
+                    __FILE__, __LINE__, #Cond); \
+            mmk_abort(); \
+        } \
+    } while (0)
 
-void mmk_init(void)
-{
-    if (self.initialized)
-        return;
-
-    self.plt = plt_init_ctx();
-    mmk_assert(self.plt != (void*) -1);
-
-    mmk_init_vital_functions(self.plt);
-
-    self.initialized = 1;
-}
-
-plt_ctx mmk_plt_ctx(void)
-{
-    mmk_assert(self.initialized);
-    return self.plt;
-}
-
-#undef mmk_reset
-void mmk_reset(mmk_fn fn)
-{
-    if (fn == MMK_MOCK_INVALID)
-        return;
-
-    struct mmk_stub *stub = mmk_ask_ctx(fn);
-    struct mmk_mock_ctx *mock = mmk_stub_context(stub);
-
-    mmk_mock_destroy_internal(mock);
-}
+#endif /* !MMK_ASSERT_H_ */

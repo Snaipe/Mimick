@@ -23,10 +23,12 @@
  */
 #include <stddef.h>
 #include <stdint.h>
-#include "assert.h"
+
+#include "mimick/assert.h"
 #include "mimick/matcher.h"
-#include "vitals.h"
+
 #include "threadlocal.h"
+#include "vitals.h"
 
 static MMK_THREAD_LOCAL(struct mmk_matcher *) matcher_ctx;
 

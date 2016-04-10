@@ -21,8 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include "mimick/assert.h"
 
-#include "assert.h"
 #include "core.h"
 #include "mimick.h"
 #include "mock.h"
@@ -52,9 +52,9 @@ mmk_fn mmk_mock_create_internal(const char *target, mmk_fn fn)
 
     ctx->stubs = mmk_stub_create(target, fn, ctx);
     if (ctx->stubs == MMK_STUB_INVALID) {
-        fprintf(stderr, "mimick: Could not find GOT "
+        mmk_fprintf(stderr, "mimick: Could not find GOT "
                 "entry for function %s.\n", target);
-        abort();
+        mmk_abort();
     }
 
     if (!self)

@@ -21,18 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef ASSERT_H_
-# define ASSERT_H_
+#ifndef MMK_UNMOCKED_H_
+# define MMK_UNMOCKED_H_
 
-# include <stdlib.h>
 # include <stdio.h>
 
-# define mmk_assert(Cond) do { \
-        if (!(Cond)) { \
-            fprintf(stderr, "%s:%d: Assertion failed: %s\n", \
-                    __FILE__, __LINE__, #Cond); \
-            abort(); \
-        } \
-    } while (0)
+# include "alloc.h"
 
-#endif /* !ASSERT_H_ */
+void mmk_fprintf(FILE *f, const char *str, ...);
+void mmk_abort(void);
+
+#endif /* !MMK_UNMOCKED_H_ */

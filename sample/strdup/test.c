@@ -1,7 +1,7 @@
 #include <mimick.h>
+#include <mimick/assert.h>
 #include <errno.h>
 #include <string.h>
-#include "assert.h"
 #include "strdup.h"
 
 mmk_mock_define(malloc_mock, void *, size_t);
@@ -11,7 +11,9 @@ void test_simple_case(void)
     static char ref[] = "hello";
     char buf[sizeof (ref)];
 
-    mmk_mock("malloc@lib:strdup", malloc_mock);
+    malloc_mock m = mmk_mock("malloc@lib:strdup", malloc_mock);
+    mmk_assert((mmk_fn) m != MMK_MOCK_INVALID);
+
     mmk_when(malloc(sizeof(ref)), .then_return = &(char*) { buf });
 
     char *dup = my_strdup("hello");
@@ -30,6 +32,7 @@ void test_error_case(void)
 {
     /* Alternative usage */
     malloc_mock mock = mmk_mock("malloc@lib:strdup", malloc_mock);
+    mmk_assert((mmk_fn) mock != MMK_MOCK_INVALID);
 
     mmk_when(mock(mmk_any(size_t)),
             .then_return = &(void *) { NULL },

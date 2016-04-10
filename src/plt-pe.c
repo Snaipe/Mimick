@@ -27,7 +27,8 @@
 #include <stdint.h>
 #include <tlhelp32.h>
 
-#include "assert.h"
+#include "mimick/assert.h"
+
 #include "vitals.h"
 
 #define IDIR_IMPORT 1 // Index of the import directory entry

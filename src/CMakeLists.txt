@@ -11,7 +11,6 @@ endif ()
 set (ASM_FILES src/asm/trampoline-${ASM_ID}${ASM_EXTENSION})
 
 set (SOURCE_FILES ${ASM_FILES}
-    src/assert.h
     src/config.h
     src/core.c
     src/core.h

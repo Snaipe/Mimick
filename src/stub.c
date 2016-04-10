@@ -23,8 +23,8 @@
  */
 
 #include "mimick.h"
+#include "mimick/assert.h"
 
-#include "assert.h"
 #include "core.h"
 #include "stub.h"
 #include "threadlocal.h"

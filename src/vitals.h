@@ -25,7 +25,7 @@
 # define STRING_H_
 
 # include <stddef.h>
-# include "mimick/alloc.h"
+# include "mimick/unmocked.h"
 # include "plt.h"
 
 /* string functions that are notoriously replaced by sse2 variants are

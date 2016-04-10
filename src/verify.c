@@ -22,9 +22,9 @@
  * THE SOFTWARE.
  */
 #include "mimick.h"
+#include "mimick/assert.h"
 #include "mimick/verify.h"
 
-#include "assert.h"
 #include "mock.h"
 #include "threadlocal.h"
 #include "vitals.h"

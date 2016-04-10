@@ -25,7 +25,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "assert.h"
+#include "mimick/assert.h"
+
 #include "config.h"
 #include "plt.h"
 #include "trampoline.h"
