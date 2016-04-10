@@ -53,6 +53,15 @@ int mmk_strneq(const char *src, const char *ref, size_t n)
     return n == 0 || !*ref;
 }
 
+int mmk_streq(const char *src, const char *ref)
+{
+    for (; *src && *ref; ++src, ++ref) {
+        if (*src != *ref)
+            return 0;
+    }
+    return *ref == *src;
+}
+
 char *mmk_strchr(const char *buf, int c)
 {
     for (; *buf; ++buf)
@@ -124,19 +133,18 @@ void mmk_fprintf(FILE *f, const char *str, ...)
 
 /* Never called, this is used to put vital functions into our own PLT for
    fast lookups */
-void mmk_fetch_plt(void)
+void mmk_fetch_plt(int i, ...)
 {
     va_list vl;
+    va_start(vl, i);
+    free(realloc(malloc(0), 0));
     vfprintf(stderr, "%s", vl);
+    va_end(vl);
     abort();
 }
 
 void mmk_init_vital_functions(plt_ctx ctx)
 {
-    /* We initialize the GOT entries for these functions by calling them
-       beforehand */
-    free(realloc(malloc(0), 0));
-
     mmk_assert(mmk_malloc_      = (void *) plt_get_real_fn(ctx, "malloc"));
     mmk_assert(mmk_realloc_     = (void *) plt_get_real_fn(ctx, "realloc"));
     mmk_assert(mmk_free_        = (void *) plt_get_real_fn(ctx, "free"));

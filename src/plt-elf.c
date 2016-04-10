@@ -290,12 +290,55 @@ void plt_reset_offsets(plt_offset *offset, size_t nb_off)
     }
 }
 
+static unsigned long elf_hash (const char *s)
+{
+    unsigned long h = 0, high;
+    while (*s) {
+        h = (h << 4) + (unsigned char) *s++;
+        if ((high = h & 0xf0000000))
+            h ^= high >> 24;
+        h &= ~high;
+    }
+    return h;
+}
+
+static ElfW(Sym) *elf_hash_find(ElfW(Word) *hash, ElfW(Sym) *symtab,
+    const char *strtab, const char *name)
+{
+    struct {
+        ElfW(Word) nb_buckets;
+        ElfW(Word) nb_chains;
+    } *h_info = (void*) hash;
+
+    ElfW(Word) *buckets = (ElfW(Word)*) (h_info + 1);
+    ElfW(Word) *chains = (ElfW(Word)*) (h_info + 1) + h_info->nb_buckets;
+
+    unsigned long idx = elf_hash(name) % h_info->nb_buckets;
+
+    for (ElfW(Word) si = buckets[idx]; si != STN_UNDEF; si = chains[si]) {
+        if (mmk_streq(&strtab[symtab[si].st_name], name))
+            return &symtab[si];
+    }
+    return NULL;
+}
+
+static ElfW(Sym) *sym_lookup_dyn(plt_lib lib, const char *name)
+{
+    ElfW(Word) *hash    = (ElfW(Word)*) lib_dt_lookup(lib, DT_HASH);
+    ElfW(Sym) *symtab   = (ElfW(Sym)*)  lib_dt_lookup(lib, DT_SYMTAB);
+    const char *strtab  = (const char*) lib_dt_lookup(lib, DT_STRTAB);
+
+    if (!hash || !symtab || !strtab)
+        return NULL;
+    return elf_hash_find (hash, symtab, strtab, name);
+}
+
 plt_fn *plt_get_real_fn(plt_ctx ctx, const char *name)
 {
     for (struct link_map *lm = ctx->r_map; lm != NULL; lm = lm->l_next) {
-        plt_fn **fn = plt_get_offset(lm, name);
-        if (fn)
-            return *fn;
+        ElfW(Sym) *sym = sym_lookup_dyn(lm, name);
+        if (sym)
+            return (void *) (sym->st_value + lm->l_addr);
     }
     return NULL;
 }
