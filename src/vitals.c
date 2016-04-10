@@ -131,18 +131,6 @@ void mmk_fprintf(FILE *f, const char *str, ...)
     va_end(vl);
 }
 
-/* Never called, this is used to put vital functions into our own PLT for
-   fast lookups */
-void mmk_fetch_plt(int i, ...)
-{
-    va_list vl;
-    va_start(vl, i);
-    free(realloc(malloc(0), 0));
-    vfprintf(stderr, "%s", vl);
-    va_end(vl);
-    abort();
-}
-
 void mmk_init_vital_functions(plt_ctx ctx)
 {
     mmk_assert(mmk_malloc_      = (void *) plt_get_real_fn(ctx, "malloc"));
