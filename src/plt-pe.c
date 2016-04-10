@@ -173,8 +173,18 @@ void plt_reset_offsets(plt_offset *offset, size_t nb_off)
 plt_fn *plt_get_real_fn(plt_ctx ctx, const char *name)
 {
     (void) ctx;
-    plt_fn **fn = plt_find_offset(name, NULL);
-    if (fn)
-        return *fn;
+    HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,
+            GetCurrentProcessId());
+    mmk_assert(snap != INVALID_HANDLE_VALUE);
+
+    MODULEENTRY32 mod = { .dwSize = sizeof(MODULEENTRY32) };
+    for (BOOL more = Module32First(snap, &mod); more;
+            more = Module32Next(snap, &mod))
+    {
+        FARPROC fn = GetProcAddress(mod.hModule, name);
+        if (fn != NULL)
+            return (plt_fn *) fn;
+    }
+    mmk_assert(GetLastError() == ERROR_NO_MORE_FILES);
     return NULL;
 }
