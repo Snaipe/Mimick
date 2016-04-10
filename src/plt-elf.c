@@ -66,10 +66,7 @@ static void *lib_dt_lookup(plt_lib lib, ElfSWord tag)
     for (const ElfW(Dyn) *dyn = lib->l_ld; dyn->d_tag != DT_NULL; ++dyn) {
         if (dyn->d_tag == tag) {
             if (dyn->d_un.d_ptr >= base
-#if MMK_BITS == 64
-                    && ((ElfSWord) dyn->d_un.d_ptr) >= 0
-#endif
-                    )
+                    && (dyn->d_un.d_ptr >> (MMK_BITS - 8)) ^ 0xff)
                 return (void*) dyn->d_un.d_ptr;
             else
                 return (char*) base + dyn->d_un.d_ptr;
