@@ -40,6 +40,8 @@ char *mmk_strncpy(char *dst, const char *src, size_t n);
 size_t mmk_strlen(const char *s);
 int mmk_isspace(int c);
 
+void mmk_panic(const char *, ...);
+
 void mmk_init_vital_functions(plt_ctx ctx);
 
 #endif /* !STRING_H_ */

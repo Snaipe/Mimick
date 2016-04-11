@@ -89,12 +89,11 @@ plt_lib plt_get_lib(plt_ctx ctx, const char *name)
         char *end_sel = strchr(name, ':');
         if (end_sel) {
             size_t len = (size_t) (end_sel - name + 1);
-            fprintf(stderr, "mimick: unknown '%.*s' selector.\n", (int) len, name);
+            mmk_panic("mimick: unknown '%.*s' selector.\n", (int) len, name);
         } else {
-            fprintf(stderr, "mimick: unknown target kind '%s'.\n", name);
+            mmk_panic("mimick: unknown target kind '%s'.\n", name);
         }
     }
-    abort();
 }
 
 static inline PIMAGE_NT_HEADERS nt_header_from_lib(plt_lib lib)

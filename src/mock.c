@@ -42,9 +42,8 @@ void mmk_mock_reset_call(const char *file, int line)
 {
     int val = tls_get(int, mock_called);
     if (!val) {
-        mmk_fprintf(stderr, "mimick: %s:%d: mocked function was never called "
-                "-- was it optimized away?\n", file, line);
-        mmk_abort();
+        mmk_panic("mimick: %s:%d: mocked function was never called "
+                  "-- was it optimized away?\n", file, line);
     }
     tls_set(int, mock_called, 0);
 }
@@ -60,8 +59,7 @@ mmk_fn mmk_mock_create_internal(const char *target, mmk_fn fn,
     if (!ctx) {
         if (opts.noabort)
             return MMK_MOCK_INVALID;
-        mmk_fprintf(stderr, "mimick: Mock allocation for %s failed.\n", target);
-        mmk_abort();
+        mmk_panic("mimick: Mock allocation for %s failed.\n", target);
     }
     *ctx = (struct mmk_mock_ctx) {
         .params = NULL,
@@ -80,8 +78,7 @@ mmk_fn mmk_mock_create_internal(const char *target, mmk_fn fn,
             mmk_free(ctx);
             return MMK_MOCK_INVALID;
         }
-        mmk_fprintf(stderr, "mimick: Mock allocation for %s failed.\n", target);
-        mmk_abort();
+        mmk_panic("mimick: Mock allocation for %s failed.\n", target);
     }
 
     mmk_strncpy(name, target, name_sz);
@@ -96,9 +93,8 @@ mmk_fn mmk_mock_create_internal(const char *target, mmk_fn fn,
             mmk_free(name);
             return MMK_MOCK_INVALID;
         }
-        mmk_fprintf(stderr, "mimick: Could not find GOT "
-                "entry for function %s.\n", target);
-        mmk_abort();
+        mmk_panic("mimick: Could not find GOT "
+                  "entry for function %s.\n", target);
     }
 
     if (!self)
