@@ -310,8 +310,15 @@ plt_fn *plt_get_real_fn(plt_ctx ctx, const char *name)
 {
     for (struct link_map *lm = ctx->r_map; lm != NULL; lm = lm->l_next) {
         ElfW(Sym) *sym = sym_lookup_dyn(lm, name);
-        if (sym)
+        if (sym) {
+            /* Some compilers (e.g. ICC) put unresolved symbols into the
+               symbol table with a size of 0. We ignore them to avoid
+               getting the address of the PLT stub. */
+            if (sym->st_size == 0)
+                continue;
+
             return (void *) (sym->st_value + lm->l_addr);
+        }
     }
     return NULL;
 }
