@@ -36,10 +36,10 @@ MANGLE(mmk_trampoline):
 start:
     call    next                                // Retrieve IP
 next:
-    pop     %rax
+    pop     %r11
 
-    push    %rax                                // Setup mock context
-    mov     (start - next - 0x10)(%rax), %rax
+    push    %r11                                // Setup mock context
+    mov     (start - next - 0x10)(%r11), %r11
 
     push    %rdi                                // Save caller ctx
     push    %rsi
@@ -56,14 +56,19 @@ next:
     PUSHDQ  (%xmm6)
     PUSHDQ  (%xmm7)
 
-    mov     %rax, %rdi                          // Call mmk_set_ctx
     push    %rax
-    mov     0x8(%rax), %rax
-    call    *%rax
-    pop     %rax
 
-    mov     (%rax), %rax                        // Check if context was asked
-    call    *%rax
+    mov     %r11, %rdi                          // Call mmk_set_ctx
+    push    %r11
+    mov     0x8(%r11), %r11
+    call    *%r11
+    pop     %r11
+
+    mov     (%r11), %r11                        // Check if context was asked
+    call    *%r11
+
+    mov     %rax, %r11
+    pop     %rax
 
     POPDQ   (%xmm7)                             // Restore caller ctx
     POPDQ   (%xmm6)
@@ -80,19 +85,19 @@ next:
     pop     %rsi
     pop     %rdi
 
-    test    %rax, %rax
+    test    %r11, %r11
     jnz     ret_ctx
 
-    pop     %rax
-    mov     (start - next - 0x8)(%rax), %rax    // Retrieve offset at
+    pop     %r11
+    mov     (start - next - 0x8)(%r11), %r11    // Retrieve offset at
                                                 // the start of the map
-    jmp     *%rax
+    jmp     *%r11
 
 ret_ctx:                                        // Return context
-    pop     %rax
-    mov     (start - next - 0x10)(%rax), %rax
-    mov     0x10(%rax), %rax                    // Call mmk_ctx
-    call    *%rax
+    pop     %r11
+    mov     (start - next - 0x10)(%r11), %r11
+    mov     0x10(%r11), %r11                    // Call mmk_ctx
+    call    *%r11
     ret
 
 .globl MANGLE(mmk_trampoline_end)
