@@ -24,6 +24,8 @@
 #ifndef PLT_H_
 # define PLT_H_
 
+# include <stddef.h>
+
 # include "config.h"
 
 # if defined MMK_EXE_FMT_ELF
