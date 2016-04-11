@@ -21,34 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef PLT_H_
-# define PLT_H_
+#include "plt.h"
+#include "vitals.h"
 
-# include "config.h"
+enum plt_selector plt_get_selector(const char *target, const char **val)
+{
+    enum plt_selector sel = PLT_SEL_NONE;
+    if (mmk_strneq(target, "lib:", 4))
+        sel = PLT_SEL_LIB;
+    else if (mmk_strneq(target, "file:", 5))
+        sel = PLT_SEL_FILE;
+    else if (mmk_strneq(target, "sym:", 4))
+        sel = PLT_SEL_SYM;
+    else if (mmk_streq(target, "self"))
+        target = "";
+    else {
 
-# if defined MMK_EXE_FMT_ELF
-#  include "plt-elf.h"
-# elif defined MMK_EXE_FMT_PE
-#  include "plt-pe.h"
-# elif defined MMK_EXE_FMT_MACH_O
-#  include "plt-mach-o.h"
-# endif
+        char *end_sel = mmk_strchr(target, ':');
+        if (end_sel) {
+            size_t len = (size_t) (end_sel - target);
+            mmk_panic("mimick: unknown '%.*s' selector.\n", (int) len, target);
+        } else {
+            mmk_panic("mimick: unknown target kind '%s'.\n", target);
+        }
+    }
 
-typedef struct plt_offset {
-    plt_fn **offset;
-    plt_fn *oldval;
-} plt_offset;
-
-enum plt_selector {
-    PLT_SEL_NONE, PLT_SEL_LIB, PLT_SEL_FILE, PLT_SEL_SYM
-};
-
-plt_ctx plt_init_ctx(void);
-plt_lib plt_get_lib(plt_ctx ctx, const char *name);
-plt_offset *plt_get_offsets(plt_lib lib, const char *name, size_t *n);
-void plt_set_offsets(plt_offset *offset, size_t nb_off, plt_fn *newval);
-void plt_reset_offsets(plt_offset *offset, size_t nb_off);
-plt_fn *plt_get_real_fn(plt_ctx ctx, const char *name);
-enum plt_selector plt_get_selector(const char *target, const char **val);
-
-#endif /* !PLT_H_ */
+    *val = sel == PLT_SEL_NONE ? target : mmk_strchr(target, ':') + 1;
+    return sel;
+}

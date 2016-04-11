@@ -17,6 +17,7 @@ set (SOURCE_FILES ${ASM_FILES}
     src/matcher.c
     src/mock.c
     src/mock.h
+    src/plt.c
     src/plt.h
     src/plt-${MMK_EXE_FORMAT}.c
     src/plt-${MMK_EXE_FORMAT}.h

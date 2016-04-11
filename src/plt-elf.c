@@ -151,38 +151,15 @@ plt_ctx plt_init_ctx(void)
 plt_lib plt_get_lib(plt_ctx ctx, const char *name)
 {
     if (!name)
-        name = "self";
+        return ctx->r_map;
 
-    enum selector {
-        NONE, LIB, FILE, SYM
-    };
-
-    enum selector sel = NONE;
-    if (!strncmp(name, "lib:", 4))
-        sel = LIB;
-    else if (!strncmp(name, "file:", 5))
-        sel = FILE;
-    else if (!strncmp(name, "sym:", 4))
-        sel = SYM;
-    else if (!strcmp(name, "self"))
-        name = "";
-    else {
-
-        char *end_sel = strchr(name, ':');
-        if (end_sel) {
-            size_t len = (size_t) (end_sel - name + 1);
-            mmk_panic("mimick: unknown '%.*s' selector.\n", (int) len, name);
-        } else {
-            mmk_panic("mimick: unknown target kind '%s'.\n", name);
-        }
-    }
-
-    const char *val = sel == NONE ? name : strchr(name, ':') + 1;
+    const char *val = NULL;
+    enum plt_selector sel = plt_get_selector(name, &val);
     size_t val_len = strlen(val);
     int libc = !strcmp(val, "c");
 
     for (struct link_map *lm = ctx->r_map; lm != NULL; lm = lm->l_next) {
-        if (sel == LIB) {
+        if (sel == PLT_SEL_LIB) {
             if (libc) {
                 if (strstr(lm->l_name, "/libc.so")
                  || strstr(lm->l_name, "/musl.so"))
@@ -194,10 +171,10 @@ plt_lib plt_get_lib(plt_ctx ctx, const char *name)
                 if (strstr(lm->l_name, pattern))
                     return lm;
             }
-        } else if (sel == NONE || sel == FILE) {
+        } else if (sel == PLT_SEL_NONE || sel == PLT_SEL_FILE) {
             if (!strcmp(name, lm->l_name))
                 return lm;
-        } else if (sel == SYM) {
+        } else if (sel == PLT_SEL_SYM) {
             plt_fn **sym = plt_get_offset(lm, val);
             if (sym)
                 return lm;

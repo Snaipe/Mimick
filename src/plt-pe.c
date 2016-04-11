@@ -66,34 +66,29 @@ plt_lib plt_get_lib(plt_ctx ctx, const char *name)
     if (!name)
         name = "self";
 
-    if (!strcmp(name, "self"))
+    if (mmk_streq(name, "self"))
         return GetModuleHandle(NULL);
 
-    if (!strncmp(name, "file:", 5) || !strncmp(name, "lib:", 4)) {
-        const char *val = strchr(name, ':') + 1;
+    const char *val = NULL;
+    enum plt_selector sel = plt_get_selector(name, &val);
+    size_t val_len = mmk_strlen(val);
+
+    if (sel == PLT_SEL_FILE || sel == PLT_SEL_LIB) {
         HMODULE m = GetModuleHandle(val);
         if (!m) {
-            size_t sz = strlen(val) + 4;
+            size_t sz = val_len + 4;
             char *buf = alloca(sz);
             snprintf(buf, sz, "lib%s", val);
             m = GetModuleHandle(buf);
         }
         return m;
-    } else if (strncmp(name, "sym:", 4)) {
+    } else if (sel == PLT_SEL_SYM) {
         plt_lib lib;
         plt_fn **fn = plt_find_offset(name + 4, &lib);
         if (fn)
             return lib;
-        return NULL;
-    } else {
-        char *end_sel = strchr(name, ':');
-        if (end_sel) {
-            size_t len = (size_t) (end_sel - name + 1);
-            mmk_panic("mimick: unknown '%.*s' selector.\n", (int) len, name);
-        } else {
-            mmk_panic("mimick: unknown target kind '%s'.\n", name);
-        }
     }
+    return NULL;
 }
 
 static inline PIMAGE_NT_HEADERS nt_header_from_lib(plt_lib lib)

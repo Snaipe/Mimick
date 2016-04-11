@@ -62,29 +62,8 @@ plt_lib plt_get_lib(plt_ctx ctx, const char *name)
     if (!name || !strcmp(name, "self"))
         return -1;
 
-    enum selector {
-        NONE, LIB, FILE, SYM
-    };
-
-    enum selector sel = NONE;
-    if (!strncmp(name, "lib:", 4))
-        sel = LIB;
-    else if (!strncmp(name, "file:", 5))
-        sel = FILE;
-    else if (!strncmp(name, "sym:", 4))
-        sel = SYM;
-    else {
-
-        char *end_sel = strchr(name, ':');
-        if (end_sel) {
-            size_t len = (size_t) (end_sel - name + 1);
-            mmk_panic("mimick: unknown '%.*s' selector.\n", (int) len, name);
-        } else {
-            mmk_panic("mimick: unknown target kind '%s'.\n", name);
-        }
-    }
-
-    const char *val = sel == NONE ? name : strchr(name, ':') + 1;
+    const char *val = NULL;
+    enum plt_selector sel = plt_get_selector(name, &val);
     size_t val_len = strlen(val);
 
     /* TODO: this is not thread safe, as another thread can load or unload
@@ -92,18 +71,18 @@ plt_lib plt_get_lib(plt_ctx ctx, const char *name)
 
     size_t nb_images = _dyld_image_count();
     for (size_t i = 1; i < nb_images; ++i) {
-        if (sel == LIB) {
+        if (sel == PLT_SEL_LIB) {
             size_t len = val_len + 8;
             char pattern[len];
             snprintf(pattern, len, "/lib%s.dylib", val);
             const char *img_name = _dyld_get_image_name(i);
             if (img_name && strstr(img_name, pattern))
                 return i;
-        } else if (sel == NONE || sel == FILE) {
+        } else if (sel == PLT_SEL_NONE || sel == PLT_SEL_FILE) {
             const char *img_name = _dyld_get_image_name(i);
             if (img_name && !strcmp(img_name, name))
                 return i;
-        } else if (sel == SYM) {
+        } else if (sel == PLT_SEL_SYM) {
             plt_offset *off = plt_get_offsets(i, val, NULL);
             mmk_free(off);
             if (off)
