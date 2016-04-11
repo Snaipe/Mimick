@@ -34,7 +34,8 @@ struct mmk_mock_ctx {
     size_t call_data_size;
 };
 
-mmk_fn mmk_mock_create_internal(const char *target, mmk_fn fn);
+mmk_fn mmk_mock_create_internal(const char *target, mmk_fn fn,
+        struct mmk_mock_options opts);
 void mmk_mock_destroy_internal(struct mmk_mock_ctx *mock);
 
 #endif /* !MOCK_H_ */

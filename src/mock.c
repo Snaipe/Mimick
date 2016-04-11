@@ -51,12 +51,18 @@ void mmk_mock_reset_call(const char *file, int line)
 
 /* Mock creation */
 
-mmk_fn mmk_mock_create_internal(const char *target, mmk_fn fn)
+mmk_fn mmk_mock_create_internal(const char *target, mmk_fn fn,
+        struct mmk_mock_options opts)
 {
     mmk_init();
 
     struct mmk_mock_ctx *ctx = mmk_malloc(sizeof (struct mmk_mock_ctx));
-    mmk_assert(ctx);
+    if (!ctx) {
+        if (opts.noabort)
+            return MMK_MOCK_INVALID;
+        mmk_fprintf(stderr, "mimick: Mock allocation for %s failed.\n", target);
+        mmk_abort();
+    }
     *ctx = (struct mmk_mock_ctx) {
         .params = NULL,
     };
@@ -68,6 +74,16 @@ mmk_fn mmk_mock_create_internal(const char *target, mmk_fn fn)
     else
         name_sz = (size_t) (name_end - target);
     char *name = mmk_malloc(name_sz + 1);
+
+    if (!name) {
+        if (opts.noabort) {
+            mmk_free(ctx);
+            return MMK_MOCK_INVALID;
+        }
+        mmk_fprintf(stderr, "mimick: Mock allocation for %s failed.\n", target);
+        mmk_abort();
+    }
+
     mmk_strncpy(name, target, name_sz);
     name[name_sz] = '\0';
 
@@ -75,6 +91,11 @@ mmk_fn mmk_mock_create_internal(const char *target, mmk_fn fn)
 
     ctx->stubs = mmk_stub_create(target, fn, ctx);
     if (ctx->stubs == MMK_STUB_INVALID) {
+        if (opts.noabort) {
+            mmk_free(ctx);
+            mmk_free(name);
+            return MMK_MOCK_INVALID;
+        }
         mmk_fprintf(stderr, "mimick: Could not find GOT "
                 "entry for function %s.\n", target);
         mmk_abort();

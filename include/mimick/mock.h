@@ -41,10 +41,16 @@ struct mmk_params {
     struct mmk_params *next;
 };
 
+struct mmk_mock_options {
+    unsigned sentinel_  : 1;
+    unsigned noabort    : 1;
+};
+
 struct mmk_params *mmk_mock_get_params(void);
 void *mmk_mock_params_begin(struct mmk_mock_ctx *mock);
 void *mmk_mock_params_next(struct mmk_mock_ctx *mock, void *prev);
-mmk_fn mmk_mock_create_internal(const char *target, mmk_fn fn);
+mmk_fn mmk_mock_create_internal(const char *target, mmk_fn fn,
+        struct mmk_mock_options opts);
 
 void mmk_mock_report_call(void);
 void mmk_mock_reset_call(const char *file, int line);
@@ -54,7 +60,13 @@ void mmk_reset(mmk_fn fn);
 # define mmk_reset(Fn) mmk_reset((mmk_fn) Fn);
 
 # undef mmk_mock
-# define mmk_mock(Target, Id) (MMK_MANGLE(Id, create)((Target)))
+# define mmk_mock(Target, ...)                      \
+    (MMK_MANGLE(MMK_VA_HEAD(__VA_ARGS__), create)(  \
+        (Target),                                   \
+        (struct mmk_mock_options) {                 \
+            .sentinel_ = 1,                         \
+            MMK_VA_TAIL(__VA_ARGS__)                \
+        }))
 
 # define MMK_MK_ARG_STR(_, X) #X,
 
@@ -357,9 +369,11 @@ void mmk_reset(mmk_fn fn);
         VaMacro(END)(_);                                                       \
         Return(zero__);                                                        \
     }                                                                          \
-    static inline Id MMK_MANGLE(Id, create)(const char *tgt) {                 \
+    static inline Id MMK_MANGLE(Id, create)(const char *tgt,                   \
+            struct mmk_mock_options opts)                                      \
+    {                                                                          \
         return (Id) mmk_mock_create_internal(tgt,                              \
-                (mmk_fn) MMK_MANGLE(Id, stub));                                \
+                (mmk_fn) MMK_MANGLE(Id, stub), opts);                          \
     }                                                                          \
     typedef int MMK_MANGLE(Id, dummy)
 

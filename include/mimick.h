@@ -147,17 +147,26 @@ void mmk_stub_destroy(mmk_stub stub);
  * representing the newly created mock object. This function pointer can
  * be used identically as the targeted function.
  *
- * If the instanciation fails, the macro returns MMK_MOCK_INVALID.
+ * If the instanciation fails, the macro either aborts the process or,
+ * if the noabort option is set, returns MMK_MOCK_INVALID.
+ *
+ * The macro optionally takes a designated initializer list for setting options
+ * during the mock creation. Valid options are:
+ *
+ *  * .noabort = 1: Return MMK_MOCK_INVALID if the mock creation fails
+ *                  instead of aborting the process.
  *
  * @see mmk_stub_create
  * @see symbol_target_string
  *
  * @param[in] Target    The symbol target string.
  * @param[in] Id        The Id of a matching mock blueprint.
+ * @param[in] ...       Optional mock options as a designated initializer list.
+ *                      e.g: `.noabort = 1`.
  *
  * @returns The mock object or MMK_MOCK_INVALID.
  */
-# define mmk_mock(Target, Id) <internal>
+# define mmk_mock(Target, Id, ...) <internal>
 
 /**
  * Defines a contract for a defined set of parameters.
