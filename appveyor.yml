@@ -23,6 +23,9 @@ init:
   - echo CMAKE_OPTS = %CMAKE_OPTS%
   - set "PATH=%PATH%;%APPVEYOR_BUILD_FOLDER%\build;%APPVEYOR_BUILD_FOLDER%\build\%CONFIGURATION%"
 
+cache:
+  - C:\msys64\var\cache -> appveyor.yml
+
 environment:
   COVERALLS_REPO_TOKEN:
     secure: 5nuCg+faxFPeppoNNcSwVobswAVFUf8ut83vw8CX/4W2y0kZkGmwEfCUxSQWiQDU
