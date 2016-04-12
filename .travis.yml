@@ -15,8 +15,6 @@ _packages:
       - libc6-dev-armhf-cross
   - &aarch64-packages
     apt:
-      sources:
-      - debian-sid
       packages:
       - qemu-user
       - gcc-aarch64-linux-gnu
@@ -70,12 +68,18 @@ matrix:
       compiler: gcc
     # AArch64
     - env: [CONFIGURATION=Debug, *aarch64-env]
+      sudo: required
+      dist: trusty
       addons: *aarch64-packages
       compiler: gcc
     - env: [CONFIGURATION=Release, *aarch64-env]
+      sudo: required
+      dist: trusty
       addons: *aarch64-packages
       compiler: gcc
     - env: [CONFIGURATION=RelWithDebInfo, *aarch64-env]
+      sudo: required
+      dist: trusty
       addons: *aarch64-packages
       compiler: gcc
 
