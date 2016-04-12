@@ -35,6 +35,7 @@ _environments:
     - TARGET=linux-gnu
     - TOOLCHAIN=gcc-generic
     - CMAKE_OPTS=-DUSE_QEMU=ON
+    - SUDO_PKG=libc6-dev-arm64-cross
 
 matrix:
   include:
@@ -106,6 +107,7 @@ matrix:
 
 before_install:
   - if [ -z "${TARGET}" ]; then export TARGET=${ARCH}; fi
+  - if [ -n "${SUDO_PKG}" ]; then sudo apt-get install -qq ${SUDO_PKG}; fi
 
 script:
   - mkdir -p build && cd $_
