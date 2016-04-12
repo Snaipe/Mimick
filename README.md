@@ -81,7 +81,7 @@ Legend: **✓**: Supported, **✕**: Unsupported, **?**: Not Tested, **∄**: Do
 | x86     | ✓ | ✓ | ✓ | ✓ |
 | x86\_64 | ✓ | ✓ | ✓ | ✓ |
 | ARM     | ✓ | ? | ✓ | ✕ |
-| ARM64   | ✕ | ✕ | ✕ | ∄ |
+| ARM64   | ✓ | ? | ? | ∄ |
 | PPC     | ✕ | ✕ | ✕ | ∄ |
 
 ## F.A.Q.

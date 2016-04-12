@@ -13,6 +13,14 @@ _packages:
       - qemu-user
       - gcc-arm-linux-gnueabihf
       - libc6-dev-armhf-cross
+  - &aarch64-packages
+    apt:
+      sources:
+      - debian-sid
+      packages:
+      - qemu-user
+      - gcc-aarch64-linux-gnu
+      - libc6-dev-arm64-cross
 
 _environments:
   - &i386-env
@@ -22,6 +30,11 @@ _environments:
   - &arm-env
     - ARCH=arm
     - TARGET=linux-gnueabihf
+    - TOOLCHAIN=gcc-generic
+    - CMAKE_OPTS=-DUSE_QEMU=ON
+  - &aarch64-env
+    - ARCH=aarch64
+    - TARGET=linux-gnu
     - TOOLCHAIN=gcc-generic
     - CMAKE_OPTS=-DUSE_QEMU=ON
 
@@ -54,6 +67,16 @@ matrix:
       compiler: gcc
     - env: [CONFIGURATION=RelWithDebInfo, *arm-env]
       addons: *arm-packages
+      compiler: gcc
+    # AArch64
+    - env: [CONFIGURATION=Debug, *aarch64-env]
+      addons: *aarch64-packages
+      compiler: gcc
+    - env: [CONFIGURATION=Release, *aarch64-env]
+      addons: *aarch64-packages
+      compiler: gcc
+    - env: [CONFIGURATION=RelWithDebInfo, *aarch64-env]
+      addons: *aarch64-packages
       compiler: gcc
 
   # OS X

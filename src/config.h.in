@@ -8,6 +8,7 @@
 #cmakedefine MMK_ARCH_x86 @MMK_ARCH_x86@
 #cmakedefine MMK_ARCH_x86_64 @MMK_ARCH_x86_64@
 #cmakedefine MMK_ARCH_ARM @MMK_ARCH_ARM@
+#cmakedefine MMK_ARCH_ARM64 @MMK_ARCH_ARM64@
 
 #cmakedefine MMK_EXE_FMT_ELF @MMK_EXE_FMT_ELF@
 #cmakedefine MMK_EXE_FMT_PE @MMK_EXE_FMT_PE@
