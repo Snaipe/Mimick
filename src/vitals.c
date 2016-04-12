@@ -140,11 +140,27 @@ void mmk_panic(const char *str, ...)
     mmk_abort();
 }
 
+# define INIT_VITAL_FUNC(Id) do { \
+        mmk_ ## Id ## _ = (void *) plt_get_real_fn(ctx, #Id); \
+        if (!mmk_ ## Id ## _) \
+            mmk_panic("mimick: Initialization error: could not find " \
+                "definition for vital function '" #Id "'.\n"); \
+    } while (0)
+
 void mmk_init_vital_functions(plt_ctx ctx)
 {
-    mmk_assert(mmk_malloc_      = (void *) plt_get_real_fn(ctx, "malloc"));
-    mmk_assert(mmk_realloc_     = (void *) plt_get_real_fn(ctx, "realloc"));
-    mmk_assert(mmk_free_        = (void *) plt_get_real_fn(ctx, "free"));
-    mmk_assert(mmk_vfprintf_    = (void *) plt_get_real_fn(ctx, "vfprintf"));
-    mmk_assert(mmk_abort_       = (void *) plt_get_real_fn(ctx, "abort"));
+    mmk_vfprintf_ = (void *) plt_get_real_fn(ctx, "vfprintf");
+    mmk_abort_    = (void *) plt_get_real_fn(ctx, "abort");
+
+    /* Don't use mmk_panic yet, since it depends on both mmk_abort and
+       mmk_vfprintf. */
+    if (!mmk_abort_ || !mmk_vfprintf_) {
+        fprintf(stderr, "mimick: Initialization error: could not find "
+                "definitions for vital functions 'abort' and/or 'vfprintf'.\n");
+        abort();
+    }
+
+    INIT_VITAL_FUNC(malloc);
+    INIT_VITAL_FUNC(realloc);
+    INIT_VITAL_FUNC(free);
 }
