@@ -2,9 +2,6 @@ language: c
 
 sudo: false
 
-cache:
-  - apt
-
 _packages:
   - &i386-packages
     apt:
