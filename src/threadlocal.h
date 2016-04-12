@@ -54,9 +54,23 @@
             mmk_assert(v__ != NULL); \
             *v__; \
         })
+
+#  define tls_op(Type, Var, Op, Val) __extension__ ({ \
+            __typeof__(Type) *v__ = NULL; \
+            if ((Var) == 0) { \
+                (Var) = TlsAlloc(); \
+                v__ = mmk_malloc(sizeof (*v__)); \
+                TlsSetValue((Var), v__); \
+                *v__ = (__typeof__(Type)) { 0 }; \
+            } else { \
+                v__ = TlsGetValue(Var); \
+            } \
+            *v__ = *v__ Op (Val); \
+        })
 # else
 #  define tls_set(Type, Var, Val) ((Var) = (Val))
 #  define tls_get(Type, Var) (Var)
+#  define tls_op(Type, Var, Op, Val) ((Var) = (Var) Op (Val))
 # endif
 
 #endif /* !THREADLOCAL_H_ */

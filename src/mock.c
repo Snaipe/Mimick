@@ -31,21 +31,26 @@
 
 /* Anti-optimization checks */
 
-static MMK_THREAD_LOCAL(int) mock_called;
+static MMK_THREAD_LOCAL(unsigned) mock_called;
 
 void mmk_mock_report_call(void)
 {
-    tls_set(int, mock_called, 1);
+    tls_op(unsigned, mock_called, +, 1);
 }
 
 void mmk_mock_reset_call(const char *file, int line)
 {
-    int val = tls_get(int, mock_called);
+    unsigned val = tls_get(unsigned, mock_called);
     if (!val) {
         mmk_panic("mimick: %s:%d: mocked function was never called "
                   "-- was it optimized away?\n", file, line);
     }
-    tls_set(int, mock_called, 0);
+    if (val > 1) {
+        mmk_panic("mimick: %s:%d: mocked function was called more than once "
+                  "(exactly %u times) in the call expression.\n",
+                  file, line, val);
+    }
+    tls_set(unsigned, mock_called, 0);
 }
 
 /* Mock creation */
