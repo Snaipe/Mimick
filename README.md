@@ -74,7 +74,12 @@ Other samples may be found in the [samples](./sample/) directory.
 
 Supported Compilers: GCC 4.6+, Clang 3.5+, MSVC 14+
 
-Legend: **✓**: Supported, **✕**: Unsupported, **?**: Not Tested, **∄**: Does not exist, **~**: Works on some conditions.
+#### Legend:  
+**✓**: Supported.  
+**✕**: Unsupported.  
+**?**: Not Tested, but is expected to work.  
+**∄**: Does not exist / not applicable.  
+**~**: Works on some conditions.
 
 | Arch | Linux | OS X/iOS | FreeBSD | Windows |
 | --- |:---:|:---:|:---:|:---:|
