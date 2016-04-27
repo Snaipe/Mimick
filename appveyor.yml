@@ -9,10 +9,10 @@ init:
         $env:PATH = "C:\msys64\usr\bin;" + $env:PATH
         if ($env:PLATFORM -eq "x86") {
           $env:PATH = "C:\msys64\mingw32\bin;" + $env:PATH
-          pacman --noconfirm --needed -S base-devel git zip mingw-w64-i686-toolchain mingw-w64-i686-cmake 2> $NULL
+          pacman --noconfirm --needed -S cmake make mingw-w64-i686-toolchain mingw-w64-i686-cmake 2> $NULL
         } elseif ($env:PLATFORM -eq "x64") {
           $env:PATH = "C:\msys64\mingw64\bin;" + $env:PATH
-          pacman --noconfirm --needed -S base-devel git zip mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake 2> $NULL
+          pacman --noconfirm --needed -S cmake make mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake 2> $NULL
         }
       } else {
         if ($env:PLATFORM -ne "x86") {
