@@ -35,7 +35,6 @@ _environments:
     - TARGET=linux-gnu
     - TOOLCHAIN=gcc-generic
     - CMAKE_OPTS=-DUSE_QEMU=ON
-    - SUDO_PKG=libc6-dev-arm64-cross
 
 matrix:
   include:
