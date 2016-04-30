@@ -110,7 +110,7 @@ matrix:
     - compiler: gcc
       env: [*coverity-key]
 
-  allowed_failures:
+  allow_failures:
     - env: [*coverity-key]
 
 before_install:
