@@ -3,6 +3,7 @@ Mimick
 
 [![Unix Build Status](https://travis-ci.org/Snaipe/Mimick.svg?branch=master)](https://travis-ci.org/Snaipe/Mimick) 
 [![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/Snaipe/Mimick?svg=true&branch=master)](https://ci.appveyor.com/project/Snaipe/Mimick/branch/master)
+[![Coverity](https://scan.coverity.com/projects/8728/badge.svg?flat=1)](https://scan.coverity.com/projects/snaipe-mimick)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://github.com/Snaipe/Mimick/blob/master/LICENSE) 
 [![Version](https://img.shields.io/badge/version-v0.2.0-orange.svg?style=flat)](https://github.com/Snaipe/Mimick/releases) 
 
