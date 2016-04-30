@@ -329,13 +329,12 @@ void mmk_reset(mmk_fn fn);
             VaMacro(END)(_);                                                   \
             Return(zero__);                                                    \
         }                                                                      \
-        struct MMK_MANGLE(Id, params) *reg_params =                            \
-            &(struct MMK_MANGLE(Id, params)) {                                 \
+        struct MMK_MANGLE(Id, params) reg_params = {                           \
                 .mmk_times__ = 0,                                              \
                 MMK_APPLY_N(MMK_DEF_VERIFY_PARAM, Id, __VA_ARGS__)             \
             };                                                                 \
-        MMK_EXPAND(VaMacro(REGISTER_CALL)(reg_params, __VA_ARGS__));           \
-        mmk_verify_register_call(reg_params, sizeof (*reg_params));            \
+        MMK_EXPAND(VaMacro(REGISTER_CALL)(&reg_params, __VA_ARGS__));          \
+        mmk_verify_register_call(&reg_params, sizeof (reg_params));            \
         struct mmk_params *param = mmk_mock_get_params();                      \
         for (; param; param = param->next) {                                   \
             struct MMK_MANGLE(Id, binding) *bind = (void*) param;              \
