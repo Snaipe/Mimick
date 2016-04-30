@@ -35,11 +35,11 @@ _environments:
     - TARGET=linux-gnu
     - TOOLCHAIN=gcc-generic
     - CMAKE_OPTS=-DUSE_QEMU=ON
+  - &coverity-key
+    secure: "L/VOabxezhZm26zaNQN0KjIvNukSzkxdC3bgMZ6ZIA0WUP5WcyqxNTfrlM0SpN04Mu5NReItJDCFGSWcqqkuRVs1Va6xIdsTtmiM0xLeQWOx2s0bwpaxt+2jJ7RlBjVNRrkR5DnJTL5uOztEyxYIYkJc9rswWFDJjBKqcdlXzEE3m6m4hUSoSAoq58EvjAc8CKYMvbLIcN/b77ZGc/IhblrDfI6rxmCA7xq2tDXFSk48snhFQ5NeF3KeQxNH6jxxt4rVU6LLlC85E/YRH9GXu1uxW4O7Vf5bmznpYnGoBwAR7y3IeJp5n2xM8vghD+QPd/94Xy/vYn3gFT0pk/evO8vEgO9Vs3Jj+CyO19m2C+a0hGjukL/97rrtyCNaDtWTzVTjCbWJHqXk1D8W267xywxLggCDN+hu/wnBGqXmwYp4wtXONZaE/aBU6mvHHWonq/8n7q7Sg8OVNMSGyI1MP1zATkX2SzX2fKafRk0G8cj2T98xHk+zNnguvCAFucvaefCr+J9wt+XhI3zjGVO3wdcQztrL3gLefNFEJCiiMAd/aap+siFLpVKfbMEyQmHBe0KiAZobrRcuVz7wroc8EEItszhGcv+Y/Ezre1k30FDVRslUOo420xpZIB0YfwkqE1+sW/9V875Gm4IPhEteY7uPIxlUlWAV3xNvFKnPImM="
 
 env:
   global:
-    # Coverity keys
-    - secure: "L/VOabxezhZm26zaNQN0KjIvNukSzkxdC3bgMZ6ZIA0WUP5WcyqxNTfrlM0SpN04Mu5NReItJDCFGSWcqqkuRVs1Va6xIdsTtmiM0xLeQWOx2s0bwpaxt+2jJ7RlBjVNRrkR5DnJTL5uOztEyxYIYkJc9rswWFDJjBKqcdlXzEE3m6m4hUSoSAoq58EvjAc8CKYMvbLIcN/b77ZGc/IhblrDfI6rxmCA7xq2tDXFSk48snhFQ5NeF3KeQxNH6jxxt4rVU6LLlC85E/YRH9GXu1uxW4O7Vf5bmznpYnGoBwAR7y3IeJp5n2xM8vghD+QPd/94Xy/vYn3gFT0pk/evO8vEgO9Vs3Jj+CyO19m2C+a0hGjukL/97rrtyCNaDtWTzVTjCbWJHqXk1D8W267xywxLggCDN+hu/wnBGqXmwYp4wtXONZaE/aBU6mvHHWonq/8n7q7Sg8OVNMSGyI1MP1zATkX2SzX2fKafRk0G8cj2T98xHk+zNnguvCAFucvaefCr+J9wt+XhI3zjGVO3wdcQztrL3gLefNFEJCiiMAd/aap+siFLpVKfbMEyQmHBe0KiAZobrRcuVz7wroc8EEItszhGcv+Y/Ezre1k30FDVRslUOo420xpZIB0YfwkqE1+sW/9V875Gm4IPhEteY7uPIxlUlWAV3xNvFKnPImM="
 
 matrix:
   include:
@@ -108,6 +108,13 @@ matrix:
     - env: [CONFIGURATION=RelWithDebInfo, *i386-darwin-env]
       os: osx
       compiler: clang
+
+  # Coverity scan, when applicable
+    - compiler: gcc
+      env: [*coverity-key]
+
+  allowed_failures:
+    - env: [*coverity-key]
 
 before_install:
   - if [ -z "${TARGET}" ]; then export TARGET=${ARCH}; fi
