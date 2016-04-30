@@ -85,6 +85,7 @@ static ElfWord lib_dt_lookup_val(plt_lib lib, ElfSWord tag)
     return 0;
 }
 
+#if !defined HAVE__R_DEBUG
 static ElfW(Addr) get_auxval(ElfAux *auxv, ElfW(Off) tag)
 {
     for (; auxv->a_type != AT_NULL; auxv++) {
@@ -111,6 +112,7 @@ static struct r_debug *r_debug_from_dynamic(void *dynamic)
     }
     return NULL;
 }
+#endif
 
 static struct r_debug *get_r_debug(void)
 {
@@ -124,8 +126,11 @@ static struct r_debug *get_r_debug(void)
     dbg = r_debug_from_dynamic(_DYNAMIC);
 #endif
 
+#if !defined HAVE__R_DEBUG
     // If there are no available shortcuts, we manually query our own phdrs
+# if defined HAVE__DYNAMIC
     if (!dbg) {
+# endif
         char **envp = environ;
         while (*envp++ != NULL);
         ElfAux *auxv = (ElfAux*) envp;
@@ -135,7 +140,10 @@ static struct r_debug *get_r_debug(void)
             ElfW(Addr) dynamic = find_dynamic((void*) phdr, phent);
             dbg = r_debug_from_dynamic((void*) dynamic);
         }
+# if defined HAVE__DYNAMIC
     }
+# endif
+#endif
 
     return dbg;
 }
