@@ -131,13 +131,14 @@ void mmk_fprintf(FILE *f, const char *str, ...)
     va_end(vl);
 }
 
-noreturn void mmk_panic(const char *str, ...)
+mmk_noreturn void mmk_panic(const char *str, ...)
 {
     va_list vl;
     va_start(vl, str);
     mmk_vfprintf_(stderr, str, vl);
     va_end(vl);
     mmk_abort();
+    mmk_unreachable();
 }
 
 # define INIT_VITAL_FUNC(Id) do { \

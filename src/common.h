@@ -24,14 +24,27 @@
 #ifndef COMMON_H_
 # define COMMON_H_
 
+# include <stdlib.h>
+
 # if __STDC_VERSION__ >= 201112L
 #  include <stdnoreturn.h>
 # elif defined __GNUC__
-#  define noreturn __attribute__((noreturn))
+#  define mmk_noreturn __attribute__((noreturn))
 # elif defined _MSC_VER
-#  define noreturn __declspec(noreturn)
+#  define mmk_noreturn __declspec(noreturn)
 # else
-#  define noreturn
+#  define mmk_noreturn
+# endif
+
+# if defined __GNUC__
+#  define mmk_unreachable() __builtin_unreachable()
+# elif defined _MSC_VER
+#  define mmk_unreachable() __assume(0)
+# else
+/* Last resort. We *need* to theoritically call a noreturn function after
+ * mmk_abort, so the function itself can be marked noreturn.
+ * In reality, this is never called and is just a bunch of wasted opcodes. */
+#  define mmk_unreachable() abort()
 # endif
 
 #endif /* !COMMON_H_ */
