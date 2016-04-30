@@ -21,28 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef STRING_H_
-# define STRING_H_
+#ifndef COMMON_H_
+# define COMMON_H_
 
-# include <stddef.h>
-# include "mimick/unmocked.h"
-# include "common.h"
-# include "plt.h"
+# if __STDC_VERSION__ >= 201112L
+#  include <stdnoreturn.h>
+# elif defined __GNUC__
+#  define noreturn __attribute__((noreturn))
+# elif defined _MSC_VER
+#  define noreturn __declspec(noreturn)
+# else
+#  define noreturn
+# endif
 
-/* string functions that are notoriously replaced by sse2 variants are
- * reimplemented. */
-int mmk_memcmp(const void *s1, const void *s2, size_t n);
-void *mmk_memcpy(void *dst, const void *src, size_t n);
-char *mmk_strchr(const char *s, int c);
-int mmk_strneq(const char *src, const char *ref, size_t n);
-int mmk_streq(const char *src, const char *ref);
-char *mmk_strcpy(char *dst, const char *src);
-char *mmk_strncpy(char *dst, const char *src, size_t n);
-size_t mmk_strlen(const char *s);
-int mmk_isspace(int c);
-
-noreturn void mmk_panic(const char *, ...);
-
-void mmk_init_vital_functions(plt_ctx ctx);
-
-#endif /* !STRING_H_ */
+#endif /* !COMMON_H_ */

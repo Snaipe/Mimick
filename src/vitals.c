@@ -131,7 +131,7 @@ void mmk_fprintf(FILE *f, const char *str, ...)
     va_end(vl);
 }
 
-void mmk_panic(const char *str, ...)
+noreturn void mmk_panic(const char *str, ...)
 {
     va_list vl;
     va_start(vl, str);
