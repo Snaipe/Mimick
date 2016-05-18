@@ -33,7 +33,7 @@
 #  pragma warning (disable: 4116)
 # endif
 
-# define MMK_MATCHER_BIT_CMP (1 << (8 * sizeof (int) - 1))
+# define MMK_MATCHER_BIT_CMP (1 << (8 * sizeof (int) - 2))
 # define MMK_MATCHER_BIT_EQ (1 << 1)
 # define MMK_MATCHER_BIT_LT (1 << 2)
 # define MMK_MATCHER_BIT_GT (1 << 3)
