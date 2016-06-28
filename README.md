@@ -11,7 +11,7 @@ A KISS, cross-platform C Mocking library
 
 ## Philosophy
 
-**Warning**: this library is still experimental. Use at your own risk.
+**Warning**: this library is still experimental. APIs *will* change before the beta phase and things *will* break. Use at your own risk.
 
 Mimick aims to be a simple of use and powerful mocking and stubbing library for C.
 
