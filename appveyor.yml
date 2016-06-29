@@ -78,7 +78,7 @@ before_deploy:
 
 test_script:
   - ps: |
-        ctest
+        ctest --output-on-failure --timeout 10
         if (-not $lastexitcode -eq 0) {
             type Testing/Temporary/LastTest.log
             $host.setshouldexit(1)
