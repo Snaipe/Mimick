@@ -32,9 +32,24 @@ set (SOURCE_FILES ${ASM_FILES}
     src/when.c
 )
 
+set (INTERFACE_FILES
+    include/mimick/alloc.h
+    include/mimick/assert.h
+    include/mimick/matcher.h
+    include/mimick/mock.h
+    include/mimick/preprocess.h
+    include/mimick/string.h
+    include/mimick/unmocked.h
+    include/mimick/va.h
+    include/mimick/verify.h
+    include/mimick/when.h
+    include/mimick.h
+)
+
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/config.h.in"
   "${CMAKE_CURRENT_SOURCE_DIR}/config.h"
 )
 
 set (SOURCE_FILES ${SOURCE_FILES} PARENT_SCOPE)
+set (INTERFACE_FILES ${INTERFACE_FILES} PARENT_SCOPE)

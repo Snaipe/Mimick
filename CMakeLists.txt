@@ -7,6 +7,7 @@ cmake_minimum_required (VERSION 2.8)
 project (Mimick C)
 
 include (CheckSymbolExists)
+include (GNUInstallDirs)
 
 set (MODULE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/.cmake/Modules")
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${MODULE_DIR})
@@ -154,6 +155,17 @@ include_directories(include src)
 add_subdirectory (src)
 
 add_library (mimick STATIC ${SOURCE_FILES})
+
+foreach (F ${INTERFACE_FILES})
+  get_filename_component(DEST "${F}" PATH)
+  install(FILES "${F}" DESTINATION "${DEST}")
+endforeach ()
+
+install(TARGETS mimick
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
 
 add_custom_target(mimick_tests ALL)
 
