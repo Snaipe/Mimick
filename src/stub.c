@@ -59,6 +59,8 @@ int mmk_stub_create_static(struct mmk_stub *stub,
         *delim = 0;
         path = delim + 1;
     }
+    if (path && mmk_streq(path, "self"))
+        path = NULL;
 
     plt_lib lib = plt_get_lib(mmk_plt_ctx(), path);
     if (!lib)
