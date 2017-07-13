@@ -58,7 +58,7 @@ typedef ElfW(Auxinfo) ElfAux;
 
 extern char **environ;
 
-static plt_fn **plt_get_offset(plt_lib lib, const char *name);
+static plt_fn **plt_get_offset(plt_ctx ctx, plt_lib lib, const char *name);
 
 static void *lib_dt_lookup(plt_lib lib, ElfSWord tag)
 {
@@ -193,7 +193,7 @@ plt_lib plt_get_lib(plt_ctx ctx, const char *name)
             if (!strcmp(name, libname))
                 return lm;
         } else if (sel == PLT_SEL_SYM) {
-            plt_fn **sym = plt_get_offset(lm, val);
+            plt_fn **sym = plt_get_offset(ctx, lm, val);
             if (sym)
                 return lm;
         }
@@ -222,7 +222,7 @@ static uintptr_t get_offset(struct rel_info *info, ElfW(Sym) *symtab,
     return 0;
 }
 
-static plt_fn **plt_get_offset(plt_lib lib, const char *name)
+static plt_fn **plt_get_offset(plt_ctx ctx, plt_lib lib, const char *name)
 {
     ElfW(Sym) *symtab   = (ElfW(Sym)*)  lib_dt_lookup(lib, DT_SYMTAB);
     const char *strtab  = (const char*) lib_dt_lookup(lib, DT_STRTAB);
@@ -243,7 +243,7 @@ static plt_fn **plt_get_offset(plt_lib lib, const char *name)
 
     ElfW(Addr) base = (ElfW(Addr)) lib->l_addr;
 #ifdef __FreeBSD__
-    if (base == 0x400000)
+    if (lib == ctx->r_map)
         base = 0;
 #endif
 
@@ -253,9 +253,9 @@ static plt_fn **plt_get_offset(plt_lib lib, const char *name)
     return NULL;
 }
 
-plt_offset *plt_get_offsets(plt_lib lib, const char *name, size_t *n)
+plt_offset *plt_get_offsets(plt_ctx ctx, plt_lib lib, const char *name, size_t *n)
 {
-    plt_fn **off = plt_get_offset(lib, name);
+    plt_fn **off = plt_get_offset(ctx, lib, name);
     if (off) {
         plt_offset *ot = mmk_malloc(sizeof (plt_offset));
         *n = 1;

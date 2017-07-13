@@ -83,7 +83,7 @@ plt_lib plt_get_lib(plt_ctx ctx, const char *name)
             if (img_name && !strcmp(img_name, name))
                 return i;
         } else if (sel == PLT_SEL_SYM) {
-            plt_offset *off = plt_get_offsets(i, val, NULL);
+            plt_offset *off = plt_get_offsets(ctx, i, val, NULL);
             mmk_free(off);
             if (off)
                 return i;
@@ -173,7 +173,7 @@ static inline plt_fn **find_offset_in(const struct mach_header *hdr,
     return NULL;
 }
 
-plt_offset *plt_get_offsets(plt_lib lib, const char *name, size_t *count)
+plt_offset *plt_get_offsets(plt_ctx ctx, plt_lib lib, const char *name, size_t *count)
 {
     mmk_assert(lib);
     if (lib == -1)

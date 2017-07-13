@@ -128,7 +128,7 @@ static plt_fn **plt_get_offset(plt_lib lib, const char *name)
     return NULL;
 }
 
-plt_offset *plt_get_offsets(plt_lib lib, const char *name, size_t *n)
+plt_offset *plt_get_offsets(plt_ctx ctx, plt_lib lib, const char *name, size_t *n)
 {
     plt_fn **off = plt_get_offset(lib, name);
     if (off) {

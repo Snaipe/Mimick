@@ -62,12 +62,13 @@ int mmk_stub_create_static(struct mmk_stub *stub,
     if (path && mmk_streq(path, "self"))
         path = NULL;
 
-    plt_lib lib = plt_get_lib(mmk_plt_ctx(), path);
+    plt_ctx pctx = mmk_plt_ctx();
+    plt_lib lib = plt_get_lib(pctx, path);
     if (!lib)
         return -ENOENT;
 
     size_t nb_off = 0;
-    plt_offset *off = plt_get_offsets(lib, name, &nb_off);
+    plt_offset *off = plt_get_offsets(pctx, lib, name, &nb_off);
     if (!off || !nb_off)
         return -ENOENT;
 
