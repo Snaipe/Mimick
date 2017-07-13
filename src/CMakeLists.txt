@@ -11,7 +11,6 @@ endif ()
 set (ASM_FILES src/asm/trampoline-${ASM_ID}${ASM_EXTENSION})
 
 set (SOURCE_FILES ${ASM_FILES}
-    src/config.h
     src/core.c
     src/core.h
     src/matcher.c
@@ -48,7 +47,7 @@ set (INTERFACE_FILES
 
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/config.h.in"
-  "${CMAKE_CURRENT_SOURCE_DIR}/config.h"
+  "${CMAKE_CURRENT_BINARY_DIR}/config.h"
 )
 
 set (SOURCE_FILES ${SOURCE_FILES} PARENT_SCOPE)

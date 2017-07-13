@@ -151,7 +151,7 @@ endif ()
 
 list(REMOVE_ITEM CMAKE_REQUIRED_DEFINITIONS -D_GNU_SOURCE)
 
-include_directories(include src)
+include_directories(include src "${PROJECT_BINARY_DIR}/src")
 add_subdirectory (src)
 
 add_library (mimick STATIC ${SOURCE_FILES})

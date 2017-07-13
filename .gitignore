@@ -19,7 +19,6 @@
 CMakeFiles/
 !CMakeLists.txt
 
-src/config.h
 build
 
 *~
