@@ -109,7 +109,8 @@ void mmk_reset(mmk_fn fn);
         if (m->kind == MMK_MATCHER_ANY) {                                      \
             /* Ugly but keeps the indentation level as it is */                \
         } else if (m->kind & MMK_MATCHER_BIT_CMP) {                            \
-            int res = mmk_memcmp(&param ## N, &param ## N, sizeof (Type));     \
+            int res = mmk_memcmp(&param ## N,                                  \
+                    &bind->params.param ## N, sizeof (Type));                  \
             if (res == 0 && !(m->kind & MMK_MATCHER_BIT_EQ))                   \
                 continue;                                                      \
             if (res < 0 && !(m->kind & MMK_MATCHER_BIT_LT))                    \
