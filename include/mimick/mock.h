@@ -109,13 +109,14 @@ void mmk_reset(mmk_fn fn);
         if (m->kind == MMK_MATCHER_ANY) {                                      \
             /* Ugly but keeps the indentation level as it is */                \
         } else if (m->kind & MMK_MATCHER_BIT_CMP) {                            \
-            int res = mmk_memcmp(&param ## N,                                  \
-                    &bind->params.param ## N, sizeof (Type));                  \
-            if (res == 0 && !(m->kind & MMK_MATCHER_BIT_EQ))                   \
+            if (param ## N == bind->params.param ## N                          \
+                    && !(m->kind & MMK_MATCHER_BIT_EQ))                        \
                 continue;                                                      \
-            if (res < 0 && !(m->kind & MMK_MATCHER_BIT_LT))                    \
+            if (param ## N < bind->params.param ## N                           \
+                    && !(m->kind & MMK_MATCHER_BIT_LT))                        \
                 continue;                                                      \
-            if (res > 0 && !(m->kind & MMK_MATCHER_BIT_GT))                    \
+            if (param ## N > bind->params.param ## N                           \
+                    && !(m->kind & MMK_MATCHER_BIT_GT))                        \
                 continue;                                                      \
         } else if (m->kind == MMK_MATCHER_THAT) {                              \
             int (*predicate)(Type) = (int (*)(Type))                           \
@@ -123,9 +124,8 @@ void mmk_reset(mmk_fn fn);
             if (!predicate(param ## N))                                        \
                 continue;                                                      \
         }                                                                      \
-    } else {                                                                   \
-        if (mmk_memcmp(&param ## N, &bind->params.param ## N, sizeof (Type)))  \
-            continue;                                                          \
+    } else if (param ## N != bind->params.param ## N) {                        \
+        continue;                                                              \
     }
 
 # define MMK_TRYVERIFY_VA(Id, ...) \
@@ -144,12 +144,14 @@ void mmk_reset(mmk_fn fn);
         if (m->kind == MMK_MATCHER_ANY) {                                      \
             /* Ugly but keeps the indentation level as it is */                \
         } else if (m->kind & MMK_MATCHER_BIT_CMP) {                            \
-            int res = mmk_memcmp(&p->param ## N, &param ## N, sizeof (Type));  \
-            if (res == 0 && !(m->kind & MMK_MATCHER_BIT_EQ))                   \
+            if (p->param ## N == param ## N                                    \
+                    && !(m->kind & MMK_MATCHER_BIT_EQ))                        \
                 goto fail;                                                     \
-            if (res < 0 && !(m->kind & MMK_MATCHER_BIT_LT))                    \
+            if (p->param ## N < param ## N                                     \
+                    && !(m->kind & MMK_MATCHER_BIT_LT))                        \
                 goto fail;                                                     \
-            if (res > 0 && !(m->kind & MMK_MATCHER_BIT_GT))                    \
+            if (p->param ## N > param ## N                                     \
+                    && !(m->kind & MMK_MATCHER_BIT_GT))                        \
                 goto fail;                                                     \
         } else if (m->kind == MMK_MATCHER_THAT) {                              \
             int (*predicate)(Type) = (int (*)(Type))                           \
@@ -157,9 +159,8 @@ void mmk_reset(mmk_fn fn);
             if (!predicate(p->param ## N))                                     \
                 goto fail;                                                     \
         }                                                                      \
-    } else {                                                                   \
-        if (mmk_memcmp(&p->param ## N, &param ## N, sizeof (Type)))            \
-            goto fail;                                                         \
+    } else if (p->param ## N != param ## N) {                                  \
+        goto fail;                                                             \
     }
 
 # define MMK_SET_PARAMS_VA(Id, ...) \
