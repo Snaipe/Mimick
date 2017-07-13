@@ -47,7 +47,9 @@ int mmk_verify_times(struct mmk_verify_params *params)
     }
     if (params->matching)
         return params->matching(t);
-    return params->times == t;
+    if (params->times > 0)
+        return params->times == t;
+    return 1;
 }
 
 static int find_and_inc_call_matching(struct mmk_mock_ctx *mock,
