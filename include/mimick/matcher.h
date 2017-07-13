@@ -64,16 +64,16 @@ struct mmk_matcher {
 # define mmk_any(Type)      mmk_matcher_val_(MMK_MATCHER_ANY, Type, { 0 })
 # undef mmk_eq
 # define mmk_eq(Type, Val)  mmk_matcher_val_(MMK_MATCHER_EQ, Type, Val)
-# undef mmk_neq
-# define mmk_neq(Type, Val) mmk_matcher_val_(MMK_MATCHER_NEQ, Type, Val)
+# undef mmk_ne
+# define mmk_ne(Type, Val) mmk_matcher_val_(MMK_MATCHER_NEQ, Type, Val)
 # undef mmk_lt
 # define mmk_lt(Type, Val)  mmk_matcher_val_(MMK_MATCHER_LT, Type, Val)
-# undef mmk_leq
-# define mmk_leq(Type, Val) mmk_matcher_val_(MMK_MATCHER_LEQ, Type, Val)
+# undef mmk_le
+# define mmk_le(Type, Val) mmk_matcher_val_(MMK_MATCHER_LEQ, Type, Val)
 # undef mmk_gt
 # define mmk_gt(Type, Val)  mmk_matcher_val_(MMK_MATCHER_GT, Type, Val)
-# undef mmk_geq
-# define mmk_geq(Type, Val) mmk_matcher_val_(MMK_MATCHER_GEQ, Type, Val)
+# undef mmk_ge
+# define mmk_ge(Type, Val) mmk_matcher_val_(MMK_MATCHER_GEQ, Type, Val)
 # undef mmk_that
 # define mmk_that(Predicate) ((struct mmk_matcher *) &(struct { struct mmk_matcher matcher; void (*val)(void); }) { .val = (void (*)(void)) Predicate })
 

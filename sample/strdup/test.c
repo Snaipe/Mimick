@@ -20,7 +20,7 @@ void test_simple_case(void)
 
     /* mmk_verify is overkill in this case, mmk_verify should be used when you
      * care about testing interactions rather than external behaviour */
-    int pass = mmk_verify(malloc(mmk_geq(size_t, sizeof (ref))), .times = 1);
+    int pass = mmk_verify(malloc(mmk_ge(size_t, sizeof (ref))), .times = 1);
 
     mmk_assert(pass);
     mmk_assert(dup == buf && !strcmp(ref, buf));

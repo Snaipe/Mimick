@@ -279,7 +279,7 @@ void mmk_stub_destroy(mmk_stub stub);
  * @param[in] Type  The type of the value to match.
  * @param[in] Val   The reference to compare values with.
  */
-# define mmk_neq(Type, Val) <internal>
+# define mmk_ne(Type, Val) <internal>
 
 /**
  * Match any value strictly lower than `Val`.
@@ -295,7 +295,7 @@ void mmk_stub_destroy(mmk_stub stub);
  * @param[in] Type  The type of the value to match.
  * @param[in] Val   The reference to compare values with.
  */
-# define mmk_leq(Type, Val) <internal>
+# define mmk_le(Type, Val) <internal>
 
 /**
  * Match any value strictly greater than `Val`.
@@ -311,7 +311,7 @@ void mmk_stub_destroy(mmk_stub stub);
  * @param[in] Type  The type of the value to match.
  * @param[in] Val   The reference to compare values with.
  */
-# define mmk_geq(Type, Val) <internal>
+# define mmk_ge(Type, Val) <internal>
 
 /**
  * Match any value accepted by a predicate.
