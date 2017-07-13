@@ -145,6 +145,25 @@ plt_ctx plt_init_ctx(void)
     return dbg;
 }
 
+static const char *get_lib_name(plt_ctx ctx, plt_lib lib)
+{
+    /* The name of the main shared object is the empty string,
+       we return something to be consistent with the eglibc weirdity */
+    if (lib == ctx->r_map)
+        return "self";
+
+    /* Somewhy, eglibc always set l_name to the empty string. */
+    if (lib->l_name[0])
+        return lib->l_name;
+
+    const char *strtab = lib_dt_lookup(lib, DT_STRTAB);
+    ElfWord soname_off = lib_dt_lookup_val(lib, DT_SONAME);
+    if (!strtab || soname_off == (ElfWord) - 1)
+        return NULL;
+
+    return &strtab[soname_off];
+}
+
 plt_lib plt_get_lib(plt_ctx ctx, const char *name)
 {
     if (!name)
@@ -157,19 +176,21 @@ plt_lib plt_get_lib(plt_ctx ctx, const char *name)
 
     for (struct link_map *lm = ctx->r_map; lm != NULL; lm = lm->l_next) {
         if (sel == PLT_SEL_LIB) {
+            const char *libname = get_lib_name(ctx, lm);
             if (libc) {
-                if (strstr(lm->l_name, "/libc.so")
-                 || strstr(lm->l_name, "/musl.so"))
+                if (strstr(libname, "/libc.so")
+                 || strstr(libname, "/musl.so"))
                     return lm;
             } else {
                 size_t len = val_len + 8;
                 char pattern[len];
                 snprintf(pattern, len, "/lib%s.so", val);
-                if (strstr(lm->l_name, pattern))
+                if (strstr(libname, pattern))
                     return lm;
             }
         } else if (sel == PLT_SEL_NONE || sel == PLT_SEL_FILE) {
-            if (!strcmp(name, lm->l_name))
+            const char *libname = get_lib_name(ctx, lm);
+            if (!strcmp(name, libname))
                 return lm;
         } else if (sel == PLT_SEL_SYM) {
             plt_fn **sym = plt_get_offset(lm, val);
