@@ -56,6 +56,7 @@ enum mmk_matcher_kind {
 struct mmk_matcher {
     enum mmk_matcher_kind kind;
     size_t prio;
+    void *data;
     struct mmk_matcher *next;
 };
 
@@ -75,10 +76,12 @@ struct mmk_matcher {
 # undef mmk_ge
 # define mmk_ge(Type, Val) mmk_matcher_val_(MMK_MATCHER_GEQ, Type, Val)
 # undef mmk_that
-# define mmk_that(Predicate) ((struct mmk_matcher *) &(struct { struct mmk_matcher matcher; void (*val)(void); }) { .val = (void (*)(void)) Predicate })
+# define mmk_that(Type, Predicate) (mmk_matcher_add_fn(MMK_MATCHER_THAT, __COUNTER__, (void(*)(void))*(int(*[1])(Type)) {(Predicate)}), ((Type) { 0 }))
 
 void mmk_matcher_init(int kind);
 void mmk_matcher_add(enum mmk_matcher_kind kind, int counter);
+void mmk_matcher_add_fn(enum mmk_matcher_kind kind, int counter, void (*fn)(void));
+void mmk_matcher_add_data(enum mmk_matcher_kind kind, int counter, void *data);
 void mmk_matcher_term(void);
 struct mmk_matcher *mmk_matcher_ctx(void);
 void (*mmk_matcher_get_predicate(struct mmk_matcher *m))(void);

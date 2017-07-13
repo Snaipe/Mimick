@@ -51,7 +51,7 @@ struct mmk_matcher *mmk_matcher_ctx(void)
     return tls_get(struct mmk_matcher *, matcher_ctx);
 }
 
-void mmk_matcher_add(enum mmk_matcher_kind kind, int counter)
+void mmk_matcher_add_data(enum mmk_matcher_kind kind, int counter, void *data)
 {
     struct mmk_matcher *out = mmk_malloc(sizeof (struct mmk_matcher));
     struct mmk_matcher *prev = tls_get(struct mmk_matcher *, matcher_ctx);
@@ -59,6 +59,7 @@ void mmk_matcher_add(enum mmk_matcher_kind kind, int counter)
     *out = (struct mmk_matcher) {
         .kind = kind,
         .prio = counter,
+        .data = data,
     };
 
     for (struct mmk_matcher *m = tls_get(struct mmk_matcher *, matcher_ctx)->next;
@@ -69,7 +70,17 @@ void mmk_matcher_add(enum mmk_matcher_kind kind, int counter)
     prev->next = out;
 }
 
+void mmk_matcher_add_fn(enum mmk_matcher_kind kind, int counter, void (*fn)(void))
+{
+    mmk_matcher_add_data(kind, counter, (void *)fn);
+}
+
+void mmk_matcher_add(enum mmk_matcher_kind kind, int counter)
+{
+    mmk_matcher_add_data(kind, counter, NULL);
+}
+
 void (*mmk_matcher_get_predicate(struct mmk_matcher *m))(void)
 {
-    return (void (*)(void)) (m + 1);
+    return (void (*)(void)) m->data;
 }
