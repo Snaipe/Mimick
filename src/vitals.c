@@ -141,6 +141,17 @@ mmk_noreturn void mmk_panic(const char *str, ...)
     mmk_unreachable();
 }
 
+#ifdef HAVE___STDIO_COMMON_VFPRINTF
+static int (__cdecl *mmk___stdio_common_vfprintf_)(
+    unsigned __int64, FILE *, char const *, _locale_t, va_list);
+
+static int win32_vfprintf_fallback(FILE *f, const char *fmt, va_list vl)
+{
+    return mmk___stdio_common_vfprintf_(_CRT_INTERNAL_LOCAL_PRINTF_OPTIONS,
+        f, fmt, NULL, vl);
+}
+#endif
+
 # define INIT_VITAL_FUNC(Id) do { \
         mmk_ ## Id ## _ = (void *) plt_get_real_fn(ctx, #Id); \
         if (!mmk_ ## Id ## _) \
@@ -153,11 +164,26 @@ void mmk_init_vital_functions(plt_ctx ctx)
     mmk_vfprintf_ = (void *) plt_get_real_fn(ctx, "vfprintf");
     mmk_abort_    = (void *) plt_get_real_fn(ctx, "abort");
 
+#ifdef HAVE___STDIO_COMMON_VFPRINTF
+    /* Windows doesn't always dynlink to msvcstr.dll (when the universal CRT
+       is used), so we don't have the definition for vfprintf since ucrt
+       may define it as an inline function that calls
+       __stdio_common_vfprintf. */
+    if (!mmk_vfprintf_) {
+        mmk___stdio_common_vfprintf_ = (void *)
+                plt_get_real_fn(ctx, "__stdio_common_vfprintf");
+        if (mmk___stdio_common_vfprintf_)
+            mmk_vfprintf_ = win32_vfprintf_fallback;
+    }
+#endif
+
     /* Don't use mmk_panic yet, since it depends on both mmk_abort and
        mmk_vfprintf. */
     if (!mmk_abort_ || !mmk_vfprintf_) {
         fprintf(stderr, "mimick: Initialization error: could not find "
-                "definitions for vital functions 'abort' and/or 'vfprintf'.\n");
+                "definitions for vital function(s): %s %s\n",
+                mmk_abort_ ? "" : "'abort'",
+                mmk_vfprintf_ ? "" : "'vfprintf'");
         abort();
     }
 

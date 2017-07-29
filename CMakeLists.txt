@@ -132,6 +132,8 @@ endfunction ()
 
 list(APPEND CMAKE_REQUIRED_DEFINITIONS -D_GNU_SOURCE)
 
+check_symbol_exists(__stdio_common_vfprintf stdio.h HAVE___STDIO_COMMON_VFPRINTF)
+
 if (MMK_EXE_FMT_ELF)
   check_symbol_exists(_r_debug link.h HAVE__R_DEBUG)
   check_symbol_exists(_DYNAMIC link.h HAVE__DYNAMIC)
