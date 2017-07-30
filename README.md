@@ -5,7 +5,7 @@ Mimick
 [![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/diacritic/Mimick?svg=true&branch=master)](https://ci.appveyor.com/project/diacritic/Mimick/branch/master)
 [![Coverity](https://scan.coverity.com/projects/8728/badge.svg?flat=1)](https://scan.coverity.com/projects/snaipe-mimick)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://github.com/diacritic/Mimick/blob/master/LICENSE) 
-[![Version](https://img.shields.io/badge/version-v0.2.0-orange.svg?style=flat)](https://github.com/diacritic/Mimick/releases) 
+[![Version](https://img.shields.io/badge/version-v0.3.0-orange.svg?style=flat)](https://github.com/diacritic/Mimick/releases) 
 [![Gitter Room](https://img.shields.io/gitter/room/diacritic/Mimick.svg?style=flat)](https://gitter.im/diacritic/Mimick) 
 
 A KISS, cross-platform C Mocking library

@@ -1,3 +1,25 @@
+2017-07-31  Franklin "Snaipe" Mathieu  <franklinmathieu@gmail.com>
+
+    * mimick: Version 0.3.0.
+    * api: **Breaking**: Fixed MMK_MATCHER_BIT_CMP being an invalid enum value.
+    * api: **Breaking**: Renamed neq,leq,geq to ne,le,ge.
+    * api: **Breaking**: Use comparisons operators when comparing parameters
+      rather than using memcmp. This is more correct as memcmp doesn't
+      account for endianness, but non-comparable types are no longer supported
+      as parameters.
+    * api: Added .noabort option to mmk_mock, to return MMK_MOCK_INVALID
+      instead of aborting if the mock initialization fails.
+    * api: Fixed comparison matchers always matching for equality.
+    * api: Fixed mmk_that not working.
+    * arch: (x86_64,system-v) Fixed rax not being preserved when calling stubs.
+    * arch: Added AArch64 support.
+    * core: **Breaking**: Ignore zero .times values in mmk_verify.
+    * core: Better symbol lookup code, causing less crashes overall.
+    * core: Fixed "self" selector not working.
+    * core: Fixed crashes with PIEs.
+    * core: Fixed linux crash when a symbol isn't found.
+    * core: Fixed vfprintf and abort mocks breaking mimick's panic handling.
+
 2016-04-09  Franklin "Snaipe" Mathieu  <franklinmathieu@gmail.com>
 
     * mimick: version 0.2.0.

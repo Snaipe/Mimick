@@ -1,4 +1,4 @@
-version: 0.2.0_b{build}-{branch}
+version: 0.3.0_b{build}-{branch}
 
 init:
   - git config --global core.autocrlf input
