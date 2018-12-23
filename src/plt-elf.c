@@ -228,11 +228,12 @@ static plt_fn **plt_get_offset(plt_ctx ctx, plt_lib lib, const char *name)
     const char *strtab  = (const char*) lib_dt_lookup(lib, DT_STRTAB);
     ElfSWord type = (ElfSWord) lib_dt_lookup_val(lib, DT_PLTREL);
 
-    ElfW(Rel)   *rel = lib_dt_lookup(lib, DT_JMPREL);
+    ElfW(Rel)   *jmprel = lib_dt_lookup(lib, DT_JMPREL);
+    ElfW(Rel)   *rel    = lib_dt_lookup(lib, type);
     ElfWord rel_sz = lib_dt_lookup_val(lib, DT_PLTRELSZ);
     ElfWord relent_sz = lib_dt_lookup_val(lib, type + 2);
 
-    if (!symtab || !strtab || !type || !rel || !rel_sz || !relent_sz)
+    if (!symtab || !strtab || !type || !(rel || jmprel) || !rel_sz || !relent_sz)
         return NULL;
 
     struct rel_info info = {
@@ -241,13 +242,19 @@ static plt_fn **plt_get_offset(plt_ctx ctx, plt_lib lib, const char *name)
         .entry_sz = relent_sz,
     };
 
+    uintptr_t off = get_offset(&info, symtab, strtab, name);
+    if (!off) {
+        /* relocation might be in JMPREL (e.g. .rela.plt) instead */
+        info.tab = jmprel;
+        off = get_offset(&info, symtab, strtab, name);
+    }
+
     ElfW(Addr) base = (ElfW(Addr)) lib->l_addr;
 #ifdef __FreeBSD__
     if (lib == ctx->r_map)
         base = 0;
 #endif
 
-    uintptr_t off = get_offset(&info, symtab, strtab, name);
     if (off)
         return (plt_fn **) (off + base);
     return NULL;
