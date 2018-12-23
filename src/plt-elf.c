@@ -32,6 +32,8 @@
 #include "trampoline.h"
 #include "vitals.h"
 
+#include <sys/mman.h>
+
 #if MMK_BITS == 32
 typedef Elf32_Word ElfWord;
 typedef Elf32_Sword ElfSWord;
@@ -272,11 +274,21 @@ plt_offset *plt_get_offsets(plt_ctx ctx, plt_lib lib, const char *name, size_t *
     return NULL;
 }
 
+#define align2_down(v, d) ((v) & ~((d) - 1))
+
 void plt_set_offsets(plt_offset *offset, size_t nb_off, plt_fn *newval)
 {
     for (size_t i = 0; i < nb_off; ++i) {
         if (!offset[i].oldval)
             offset[i].oldval = *offset[i].offset;
+        void *page_start = (void *)align2_down((uintptr_t)offset[i].offset, 4096);
+
+        /* making a page in a rx segment rwx is usually very bad practice,
+           but this is a test context, we don't have to care as much.
+           Implementing this right assumes that we have a way to know
+           the protection of an existing page, which is not necessarily
+           available on all unices. */
+        mmk_mprotect(page_start, 4096, PROT_READ|PROT_WRITE|PROT_EXEC);
         *offset[i].offset = newval;
     }
 }

@@ -98,6 +98,12 @@ int mmk_isspace(int c)
     return c == ' ' || c == '\t' || c == '\r' || c == '\n';
 }
 
+int (*mmk_mprotect_)(void *, size_t, int);
+int mmk_mprotect(void *addr, size_t len, int prot)
+{
+    return mmk_mprotect_(addr, len, prot);
+}
+
 void *(*mmk_malloc_)(size_t);
 void *mmk_malloc(size_t size)
 {
@@ -190,4 +196,7 @@ void mmk_init_vital_functions(plt_ctx ctx)
     INIT_VITAL_FUNC(malloc);
     INIT_VITAL_FUNC(realloc);
     INIT_VITAL_FUNC(free);
+#ifdef MMK_EXE_FMT_ELF
+    INIT_VITAL_FUNC(mprotect);
+#endif
 }
