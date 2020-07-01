@@ -60,7 +60,7 @@ typedef ElfW(Auxinfo) ElfAux;
 
 extern char **environ;
 
-static plt_fn **plt_get_offset(plt_ctx ctx, plt_lib lib, const char *name);
+static size_t get_offsets(plt_ctx ctx, plt_lib lib, const char *name, plt_offset ** offsets);
 
 static void *lib_dt_lookup(plt_lib lib, ElfSWord tag)
 {
@@ -195,8 +195,7 @@ plt_lib plt_get_lib(plt_ctx ctx, const char *name)
             if (!strcmp(name, libname))
                 return lm;
         } else if (sel == PLT_SEL_SYM) {
-            plt_fn **sym = plt_get_offset(ctx, lm, val);
-            if (sym)
+            if (get_offsets(ctx, lm, val, NULL) > 0)
                 return lm;
         }
     }
@@ -224,32 +223,19 @@ static uintptr_t get_offset(struct rel_info *info, ElfW(Sym) *symtab,
     return 0;
 }
 
-static plt_fn **plt_get_offset(plt_ctx ctx, plt_lib lib, const char *name)
+static size_t get_offsets(plt_ctx ctx, plt_lib lib, const char *name, plt_offset ** offsets)
 {
     ElfW(Sym) *symtab   = (ElfW(Sym)*)  lib_dt_lookup(lib, DT_SYMTAB);
     const char *strtab  = (const char*) lib_dt_lookup(lib, DT_STRTAB);
-    ElfSWord type = (ElfSWord) lib_dt_lookup_val(lib, DT_PLTREL);
 
     ElfW(Rel)   *jmprel = lib_dt_lookup(lib, DT_JMPREL);
-    ElfW(Rel)   *rel    = lib_dt_lookup(lib, type);
-    ElfWord rel_sz = lib_dt_lookup_val(lib, DT_PLTRELSZ);
-    ElfWord relent_sz = lib_dt_lookup_val(lib, type + 2);
+    ElfW(Rel)   *rel    = lib_dt_lookup(lib, DT_RELA);
+    ElfWord rel_sz = lib_dt_lookup_val(lib, DT_RELASZ);
+    ElfWord jmprel_sz = lib_dt_lookup_val(lib, DT_PLTRELSZ);
+    ElfWord relent_sz = lib_dt_lookup_val(lib, DT_RELAENT);
 
-    if (!symtab || !strtab || !type || !(rel || jmprel) || !rel_sz || !relent_sz)
-        return NULL;
-
-    struct rel_info info = {
-        .tab = rel,
-        .size = rel_sz,
-        .entry_sz = relent_sz,
-    };
-
-    uintptr_t off = get_offset(&info, symtab, strtab, name);
-    if (!off) {
-        /* relocation might be in JMPREL (e.g. .rela.plt) instead */
-        info.tab = jmprel;
-        off = get_offset(&info, symtab, strtab, name);
-    }
+    if (!symtab || !strtab || !(rel || jmprel) || !(rel_sz || jmprel_sz) || !relent_sz)
+        return 0;
 
     ElfW(Addr) base = (ElfW(Addr)) lib->l_addr;
 #ifdef __FreeBSD__
@@ -257,21 +243,43 @@ static plt_fn **plt_get_offset(plt_ctx ctx, plt_lib lib, const char *name)
         base = 0;
 #endif
 
-    if (off)
-        return (plt_fn **) (off + base);
-    return NULL;
+    size_t n = 0;
+    if (offsets) {
+        *offsets = NULL;
+    }
+
+    struct rel_info info[] = {
+        {
+          .tab = rel,
+          .size = rel_sz,
+          .entry_sz = relent_sz,
+        },
+        {
+          .tab = jmprel,
+          .size = jmprel_sz,
+          .entry_sz = relent_sz,
+        }
+    };
+
+    for (size_t i = 0; i < sizeof(info) / sizeof(struct rel_info); ++i) {
+        uintptr_t off = get_offset(&info[i], symtab, strtab, name);
+        if (off) {
+            if (offsets) {
+                *offsets = mmk_realloc(*offsets, (n + 1) * sizeof(plt_offset));
+                (*offsets)[n] = (plt_offset) { .offset = (plt_fn **)(base + off) };
+            }
+            ++n;
+        }
+    }
+
+    return n;
 }
 
 plt_offset *plt_get_offsets(plt_ctx ctx, plt_lib lib, const char *name, size_t *n)
 {
-    plt_fn **off = plt_get_offset(ctx, lib, name);
-    if (off) {
-        plt_offset *ot = mmk_malloc(sizeof (plt_offset));
-        *n = 1;
-        *ot = (plt_offset) { .offset = off };
-        return ot;
-    }
-    return NULL;
+    plt_offset *ot = NULL;
+    *n = get_offsets(ctx, lib, name, &ot);
+    return ot;
 }
 
 #define align2_down(v, d) ((v) & ~((d) - 1))
