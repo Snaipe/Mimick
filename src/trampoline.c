@@ -39,6 +39,10 @@ extern void mmk_trampoline_end();
 #  include <fcntl.h>
 # endif
 
+# if defined __clang__
+void __clear_cache(void *, void *);
+# endif
+
 plt_fn *create_trampoline(void *ctx, plt_fn *routine)
 {
     uintptr_t trampoline_sz = (uintptr_t) mmk_trampoline_end
@@ -73,7 +77,12 @@ plt_fn *create_trampoline(void *ctx, plt_fn *routine)
     *map = ctx;
     *(map + 1) = (void *) routine;
     memcpy(map + 2, mmk_trampoline, trampoline_sz);
-    mprotect(map, PAGE_SIZE, PROT_READ | PROT_EXEC);
+    mmk_assert(!mmk_mprotect(map, PAGE_SIZE, PROT_READ | PROT_EXEC));
+# if defined __clang__  // Check for Clang first, it may set __GNUC__ too.
+    __clear_cache(map, map + PAGE_SIZE);
+# elif defined __GNUC__
+    __builtin___clear_cache((char *)map, (char *)(map + PAGE_SIZE));
+# endif
     return (plt_fn *) (map + 2);
 }
 

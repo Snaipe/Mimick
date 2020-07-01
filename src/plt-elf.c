@@ -58,6 +58,10 @@ typedef ElfW(Auxinfo) ElfAux;
 # error Unsupported platform
 #endif
 
+# if defined __clang__
+void __clear_cache(void *, void *);
+# endif
+
 extern char **environ;
 
 static size_t get_offsets(plt_ctx ctx, plt_lib lib, const char *name, plt_offset ** offsets);
@@ -297,6 +301,11 @@ void plt_set_offsets(plt_offset *offset, size_t nb_off, plt_fn *newval)
            the protection of an existing page, which is not necessarily
            available on all unices. */
         mmk_mprotect(page_start, 4096, PROT_READ|PROT_WRITE|PROT_EXEC);
+# if defined __clang__  // Check for Clang first, it may set __GNUC__ too.
+        __clear_cache(page_start, map + 4096);
+# elif defined __GNUC__
+        __builtin___clear_cache((char *)page_start, (char *)(page_start + 4096));
+# endif
         *offset[i].offset = newval;
     }
 }
