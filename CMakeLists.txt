@@ -212,6 +212,6 @@ configure_package_config_file(
 	INSTALL_DESTINATION "lib/cmake/mimick"
 )
       
-# install(FILES "${CMAKE_CURRENT_BINARY_DIR}/mimick.cmake" DESTINATION "lib/cmake/mimick")
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/mimickConfig.cmake" DESTINATION "lib/cmake/mimick")
 # install(EXPORT mimick-Targets DESTINATION "share/mimick/cmake"
 #   FILE mimick-config.cmake)
