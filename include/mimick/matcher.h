@@ -33,6 +33,10 @@
 #  pragma warning (disable: 4116)
 # endif
 
+# ifdef __cplusplus
+extern "C" {
+# endif
+
 # define MMK_MATCHER_BIT_CMP (1 << (8 * sizeof (int) - 2))
 # define MMK_MATCHER_BIT_EQ (1 << 1)
 # define MMK_MATCHER_BIT_LT (1 << 2)
@@ -85,5 +89,9 @@ void mmk_matcher_add_data(enum mmk_matcher_kind kind, int counter, void *data);
 void mmk_matcher_term(void);
 struct mmk_matcher *mmk_matcher_ctx(void);
 void (*mmk_matcher_get_predicate(struct mmk_matcher *m))(void);
+
+# ifdef __cplusplus
+}
+# endif
 
 #endif /* !MIMICK_MATCHER_H_ */

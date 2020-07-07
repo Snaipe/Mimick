@@ -24,7 +24,15 @@
 #ifndef MMK_STRING_H_
 # define MMK_STRING_H_
 
+# ifdef __cplusplus
+extern "C" {
+# endif
+
 int mmk_memcmp(const void *s1, const void *s2, size_t n);
 void *mmk_memcpy(void *dst, const void *src, size_t n);
+
+# ifdef __cplusplus
+}
+# endif
 
 #endif /* !MMK_STRING_H_ */

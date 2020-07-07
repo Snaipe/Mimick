@@ -26,6 +26,12 @@
 
 # include "va.h"
 
+# ifdef __cplusplus
+extern "C" {
+# endif
+
+struct mmk_mock_ctx;
+
 struct mmk_result {
     int sentinel_;
     int then_errno;
@@ -37,6 +43,10 @@ struct mmk_result {
 void mmk_when_init(struct mmk_result *res);
 void mmk_when_impl(struct mmk_mock_ctx *mock, void *data);
 struct mmk_result *mmk_when_get_result(void);
+
+# ifdef __cplusplus
+}
+# endif
 
 # undef mmk_when
 # define mmk_when(CallExpr, ...) \

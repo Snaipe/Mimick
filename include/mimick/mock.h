@@ -27,14 +27,18 @@
 # include <errno.h>
 # include <stdarg.h>
 
-struct mmk_mock_ctx;
-
 # include "matcher.h"
 # include "alloc.h"
 # include "string.h"
 # include "when.h"
 # include "verify.h"
 # include "va.h"
+
+# ifdef __cplusplus
+extern "C" {
+# endif
+
+struct mmk_mock_ctx;
 
 struct mmk_params {
     struct mmk_matcher *matcher_ctx;
@@ -58,6 +62,10 @@ void mmk_mock_reset_call(const char *file, int line);
 # undef mmk_reset
 void mmk_reset(mmk_fn fn);
 # define mmk_reset(Fn) mmk_reset((mmk_fn) Fn);
+
+# ifdef __cplusplus
+}
+# endif
 
 # undef mmk_mock
 # define mmk_mock(Target, ...)                      \

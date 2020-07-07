@@ -28,7 +28,15 @@
 
 # include "alloc.h"
 
+# ifdef __cplusplus
+extern "C" {
+# endif
+
 void mmk_fprintf(FILE *f, const char *str, ...);
 void mmk_abort(void);
+
+# ifdef __cplusplus
+}
+# endif
 
 #endif /* !MMK_UNMOCKED_H_ */

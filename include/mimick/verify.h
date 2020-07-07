@@ -26,6 +26,10 @@
 
 # include <stddef.h>
 
+# ifdef __cplusplus
+extern "C" {
+# endif
+
 struct mmk_verify_params {
     int sentinel_;
     int never;
@@ -38,6 +42,10 @@ struct mmk_verify_params {
 void mmk_verify_set_times(size_t times);
 int mmk_verify_times(struct mmk_verify_params *params);
 void mmk_verify_register_call(void *params, size_t size);
+
+# ifdef __cplusplus
+}
+# endif
 
 # undef mmk_verify
 # define mmk_verify(CallExpr, ...) \

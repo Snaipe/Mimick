@@ -27,6 +27,10 @@
 # include <stddef.h>
 # include "mimick/preprocess.h"
 
+# ifdef __cplusplus
+extern "C" {
+# endif
+
 struct mmk_va_param {
     size_t size;
     char data[];
@@ -111,6 +115,10 @@ struct mmk_stub *mmk_stub_create(const char *target, mmk_fn fn, void *ctx);
 void mmk_stub_destroy(struct mmk_stub *stub);
 
 /** @} */
+
+#ifdef __cplusplus
+}
+#endif
 
 /* Mock API */
 
