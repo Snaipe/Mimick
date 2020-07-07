@@ -24,10 +24,10 @@
 #ifndef MIMICK_MOCK_H_
 # define MIMICK_MOCK_H_
 
-typedef struct mmk_mock_ctx *mmk_mock_ctx;
-
 # include <errno.h>
 # include <stdarg.h>
+
+struct mmk_mock_ctx;
 
 # include "matcher.h"
 # include "alloc.h"

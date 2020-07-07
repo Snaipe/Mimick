@@ -41,6 +41,6 @@ struct mmk_stub {
 
 struct mmk_stub *mmk_ask_ctx(mmk_fn fn);
 int mmk_ctx_asked(void);
-void mmk_set_ctx(mmk_stub stub);
+void mmk_set_ctx(struct mmk_stub *stub);
 
 #endif /* !STUB_H_ */
