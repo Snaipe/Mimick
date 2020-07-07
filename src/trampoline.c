@@ -24,8 +24,9 @@
 #include <string.h>
 
 #include "mimick/assert.h"
-
 #include "trampoline.h"
+#include "vitals.h"
+
 #define PAGE_SIZE 0x1000
 
 extern void mmk_trampoline();
