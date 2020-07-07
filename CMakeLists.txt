@@ -170,11 +170,6 @@ install(TARGETS mimick
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-#install(EXPORT mimick-targets
-#  FILE mimickTargets.cmake
-#  DESTINATION lib/cmake/mimick
-#)
-
 add_custom_target(mimick_tests ALL)
 
 function (add_mimick_sample _NAME)
@@ -204,14 +199,10 @@ enable_testing ()
 add_subdirectory (test)
 add_subdirectory (sample)
 
-# Export targets of Mimick library
 install(EXPORT mimick-targets DESTINATION lib/cmake/mimick)
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
 	"mimickConfig.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/mimickConfig.cmake"
 	INSTALL_DESTINATION "lib/cmake/mimick"
 )
-      
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/mimickConfig.cmake" DESTINATION "lib/cmake/mimick")
-# install(EXPORT mimick-Targets DESTINATION "share/mimick/cmake"
-#   FILE mimick-config.cmake)
