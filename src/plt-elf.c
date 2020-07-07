@@ -302,7 +302,7 @@ void plt_set_offsets(plt_offset *offset, size_t nb_off, plt_fn *newval)
            available on all unices. */
         mmk_mprotect(page_start, 4096, PROT_READ|PROT_WRITE|PROT_EXEC);
 # if defined __clang__  // Check for Clang first, it may set __GNUC__ too.
-        __clear_cache(page_start, map + 4096);
+        __clear_cache(page_start, page_start + 4096);
 # elif defined __GNUC__
         __builtin___clear_cache((char *)page_start, (char *)(page_start + 4096));
 # endif
