@@ -21,22 +21,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef MMK_VA_H_
-# define MMK_VA_H_
+#ifndef MMK_LITERAL_H_
+# define MMK_LITERAL_H_
 
-# include "string.h"
-# include "../mimick.h"
+# undef mmk_struct_literal
 
-/* mmk_va_args is actually just a preprocessed token without any real
-   definition -- we just reserve it anyway in mimick.h. */
-# undef mmk_va_args
+# ifdef __cplusplus
 
-# define mmk_make_va_param(vd, vl, type) do {                               \
-        (vd) = (struct mmk_va_param *)mmk_malloc(                           \
-            sizeof (struct mmk_va_param) + sizeof (type));                  \
-        (vd)->size = sizeof (type);                                         \
-        type val = va_arg(vl, type);                                        \
-        mmk_memcpy((vd)->data, &val, sizeof (type));                        \
-    } while (0)
+#  include "preprocess.h"
 
-#endif /* !MMK_VA_H_ */
+template<typename T, int ID>
+struct mmk_literal {
+  static constexpr int id = ID;
+  static T value;
+};
+
+template<typename T, int ID>
+T mmk_literal<T, ID>::value{0};
+
+#  define MMK_COMMA_APPEND(_, prefix, content) (void) (prefix content),
+
+#  define mmk_struct_initialize(variable, ...) \
+  (MMK_EXPAND(MMK_APPLY_N_(MMK_COMMA_APPEND, MMK_VA_NARGS(__VA_ARGS__), variable, __VA_ARGS__)) \
+   variable)
+
+#  define mmk_struct_literal(type, ...) \
+  mmk_struct_initialize((mmk_literal<type, __COUNTER__>::value), __VA_ARGS__)
+
+#  define mmk_literal(type, ...) \
+  (mmk_literal<type, __COUNTER__>::value = type{__VA_ARGS__})
+
+# else /* !defined __cplusplus */
+
+#  define mmk_literal(type, ...) ((type) {__VA_ARGS__})
+
+#  define mmk_struct_literal(type, ...) mmk_literal(type, __VA_ARGS__)
+
+# endif
+
+#endif /* !MMK_LITERAL_H_ */

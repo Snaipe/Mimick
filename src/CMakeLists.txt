@@ -34,6 +34,7 @@ set (SOURCE_FILES ${ASM_FILES}
 set (INTERFACE_FILES
     include/mimick/alloc.h
     include/mimick/assert.h
+    include/mimick/literal.h
     include/mimick/matcher.h
     include/mimick/mock.h
     include/mimick/preprocess.h

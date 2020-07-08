@@ -29,6 +29,7 @@
 
 # include "matcher.h"
 # include "alloc.h"
+# include "literal.h"
 # include "string.h"
 # include "when.h"
 # include "verify.h"
@@ -71,10 +72,10 @@ void mmk_reset(mmk_fn fn);
 # define mmk_mock(Target, ...)                      \
     (MMK_MANGLE(MMK_VA_HEAD(__VA_ARGS__), create)(  \
         (Target),                                   \
-        (struct mmk_mock_options) {                 \
+        mmk_struct_literal(struct mmk_mock_options, \
             .sentinel_ = 1,                         \
             MMK_VA_TAIL(__VA_ARGS__)                \
-        }))
+        )))
 
 # define MMK_MK_ARG_STR(_, X) #X,
 
@@ -85,7 +86,7 @@ void mmk_reset(mmk_fn fn);
     MMK_EXPAND(MMK_DEF_VERIFY_PARAM_VA_ ## Id (__VA_ARGS__))
 # define MMK_DEF_VERIFY_PARAM_VA_WITH(...)
 
-# define MMK_DEF_VERIFY_PARAM__(X) .X = X,
+# define MMK_DEF_VERIFY_PARAM__(X) reg_params.X = X;
 # define MMK_DEF_VERIFY_PARAM_VA_WITHOUT(N, Id, T, ...) \
     MMK_DEF_VERIFY_PARAM__(param ## N)
 
@@ -306,11 +307,13 @@ void mmk_reset(mmk_fn fn);
         PreDecl(Id);                                                           \
         struct mmk_matcher *matcher_ctx = mmk_matcher_ctx();                   \
         if (matcher_ctx) {                                                     \
-            struct mmk_mock_ctx *mock = mmk_stub_context(mmk_ctx ());          \
+            struct mmk_mock_ctx *mock =                                        \
+              (struct mmk_mock_ctx *)mmk_stub_context(mmk_ctx ());             \
             mmk_mock_report_call();                                            \
             if (matcher_ctx->kind == 0) {                                      \
                 struct MMK_MANGLE(Id, binding) *bind =                         \
-                    mmk_malloc(sizeof (struct MMK_MANGLE(Id, binding)));       \
+                    (struct MMK_MANGLE(Id, binding) *)mmk_malloc(              \
+                        sizeof (struct MMK_MANGLE(Id, binding)));              \
                 bind->result = *mmk_when_get_result();                         \
                 MMK_APPLY_N(MMK_SET_PARAMS, Id, __VA_ARGS__)                   \
                 MMK_EXPAND(VaMacro(BIND)(&bind->params, __VA_ARGS__));         \
@@ -318,8 +321,10 @@ void mmk_reset(mmk_fn fn);
             } else if (matcher_ctx->kind == 1) {                               \
                 size_t times = 0;                                              \
                 for (struct MMK_MANGLE(Id, params) *p =                        \
-                            mmk_mock_params_begin(mock);                       \
-                        p; p = mmk_mock_params_next(mock, p))                  \
+                       (struct MMK_MANGLE(Id, params) *)                       \
+                           mmk_mock_params_begin(mock); p;                     \
+                       p = (struct MMK_MANGLE(Id, params) *)                   \
+                               mmk_mock_params_next(mock, p))                  \
                 {                                                              \
                     struct mmk_matcher *m = matcher_ctx;                       \
                     (void) m;                                                  \
@@ -339,15 +344,15 @@ void mmk_reset(mmk_fn fn);
             VaMacro(END)(_);                                                   \
             Return(zero__);                                                    \
         }                                                                      \
-        struct MMK_MANGLE(Id, params) reg_params = {                           \
-                .mmk_times__ = 0,                                              \
-                MMK_APPLY_N(MMK_DEF_VERIFY_PARAM, Id, __VA_ARGS__)             \
-            };                                                                 \
+        struct MMK_MANGLE(Id, params) reg_params = {0};                        \
+        reg_params.mmk_times__ = 0;                                            \
+        MMK_APPLY_N(MMK_DEF_VERIFY_PARAM, Id, __VA_ARGS__);                    \
         MMK_EXPAND(VaMacro(REGISTER_CALL)(&reg_params, __VA_ARGS__));          \
         mmk_verify_register_call(&reg_params, sizeof (reg_params));            \
         struct mmk_params *param = mmk_mock_get_params();                      \
         for (; param; param = param->next) {                                   \
-            struct MMK_MANGLE(Id, binding) *bind = (void*) param;              \
+            struct MMK_MANGLE(Id, binding) *bind =                             \
+              (struct MMK_MANGLE(Id, binding) *) param;                        \
             struct mmk_matcher *m = param->matcher_ctx;                        \
             (void) m;                                                          \
             MMK_EXPAND(MMK_APPLY_N(MMK_TRYMATCH, Id, __VA_ARGS__))             \

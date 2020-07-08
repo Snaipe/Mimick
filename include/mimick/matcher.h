@@ -26,6 +26,8 @@
 
 # include <stddef.h>
 
+# include "literal.h"
+
 /* Using anonymous structs in compound literals is perfectly valid C,
    and we use this behaviour in Mimick. This MSVC warning does nothing
    useful in that regard, so we simply disable it. */
@@ -80,7 +82,7 @@ struct mmk_matcher {
 # undef mmk_ge
 # define mmk_ge(Type, Val) mmk_matcher_val_(MMK_MATCHER_GEQ, Type, Val)
 # undef mmk_that
-# define mmk_that(Type, Predicate) (mmk_matcher_add_fn(MMK_MATCHER_THAT, __COUNTER__, (void(*)(void))*(int(*[1])(Type)) {(Predicate)}), ((Type) { 0 }))
+# define mmk_that(Type, Predicate) (mmk_matcher_add_fn(MMK_MATCHER_THAT, __COUNTER__, (void(*)(void))(Predicate)), ((Type) { 0 }))
 
 void mmk_matcher_init(int kind);
 void mmk_matcher_add(enum mmk_matcher_kind kind, int counter);

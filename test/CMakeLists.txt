@@ -4,4 +4,6 @@ endif ()
 
 add_library (foo SHARED libfoo.c)
 
-add_mimick_test (mmk_test test.c)
+add_mimick_test (mmk_test_c test.c)
+
+add_mimick_test (mmk_test_cxx test.cpp)

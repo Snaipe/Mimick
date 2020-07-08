@@ -26,6 +26,10 @@
 #  endif
 # endif
 
+# ifdef __cplusplus
+extern "C" {
+# endif
+
 FOO_API void fn_vv(void);
 FOO_API void fn_vi(int i);
 FOO_API int fn_iv(void);
@@ -34,5 +38,9 @@ FOO_API void fn_vli(long l, int i);
 FOO_API int fn_ili(long l, int i);
 FOO_API void fn_vi_va(int i, ...);
 FOO_API int fn_ii_va(int i, ...);
+
+# ifdef __cplusplus
+}
+# endif
 
 #endif /* !LIBFOO_H_ */

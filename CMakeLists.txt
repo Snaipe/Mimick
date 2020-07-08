@@ -4,7 +4,7 @@
 
 cmake_minimum_required (VERSION 2.8)
 
-project (Mimick C)
+project (Mimick C CXX)
 
 include (CheckSymbolExists)
 include (GNUInstallDirs)

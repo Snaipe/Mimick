@@ -24,6 +24,7 @@
 #ifndef MMK_WHEN_H_
 # define MMK_WHEN_H_
 
+# include "literal.h"
 # include "va.h"
 
 # ifdef __cplusplus
@@ -51,9 +52,12 @@ struct mmk_result *mmk_when_get_result(void);
 # undef mmk_when
 # define mmk_when(CallExpr, ...) \
         (mmk_matcher_init(0), \
-        mmk_when_init(&(struct mmk_result) { __VA_ARGS__, .sentinel_ = 0, }), \
-        (void) (CallExpr), \
-        mmk_mock_reset_call(__FILE__, __LINE__), \
-        mmk_matcher_term())
+         mmk_when_init(&mmk_struct_literal( \
+             struct mmk_result, \
+             __VA_ARGS__, \
+             .sentinel_ = 0)), \
+         (void) (CallExpr), \
+         mmk_mock_reset_call(__FILE__, __LINE__), \
+         mmk_matcher_term())
 
 #endif /* !MMK_WHEN_H_ */

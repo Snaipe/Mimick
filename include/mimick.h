@@ -26,6 +26,7 @@
 
 # include <stddef.h>
 # include "mimick/preprocess.h"
+# include "mimick/literal.h"
 
 # ifdef __cplusplus
 extern "C" {
@@ -130,7 +131,7 @@ void mmk_stub_destroy(struct mmk_stub *stub);
 /**
  * Convenience wrapper to get an addressable temporary object from a lvalue.
  */
-# define mmk_val(Type, ...) (&(Type) { __VA_ARGS__ })
+# define mmk_val(Type, ...) &(mmk_literal(Type, __VA_ARGS__))
 
 /**
  * Defines a mock blueprint and typedef the Id to a function pointer type
