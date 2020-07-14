@@ -34,7 +34,7 @@ extern "C" {
 
 struct mmk_va_param {
     size_t size;
-    char data[];
+    char data[1];
 };
 
 typedef void(*mmk_fn)(void);
