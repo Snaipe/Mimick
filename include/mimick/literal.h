@@ -33,11 +33,11 @@
 template<typename T, int ID>
 struct mmk_literal {
   static constexpr int id = ID;
-  static T value;
+  static T storage;
 };
 
 template<typename T, int ID>
-T mmk_literal<T, ID>::value{0};
+T mmk_literal<T, ID>::storage{0};
 
 #  define MMK_COMMA_APPEND(_, prefix, content) (void) (prefix content),
 
@@ -46,16 +46,16 @@ T mmk_literal<T, ID>::value{0};
    variable)
 
 #  define mmk_struct_literal(type, ...) \
-  mmk_struct_initialize((mmk_literal<type, __COUNTER__>::value), __VA_ARGS__)
+  mmk_struct_initialize((mmk_literal<type, __COUNTER__>::storage), __VA_ARGS__)
 
-#  define mmk_literal(type, ...) \
-  (mmk_literal<type, __COUNTER__>::value = type{__VA_ARGS__})
+#  define mmk_literal(type, value) \
+  (mmk_literal<type, __COUNTER__>::storage = value)
 
 # else /* !defined __cplusplus */
 
-#  define mmk_literal(type, ...) ((type) {__VA_ARGS__})
+#  define mmk_literal(type, value) ((type) value)
 
-#  define mmk_struct_literal(type, ...) mmk_literal(type, __VA_ARGS__)
+#  define mmk_struct_literal(type, ...) mmk_literal(type, { __VA_ARGS__ })
 
 # endif
 

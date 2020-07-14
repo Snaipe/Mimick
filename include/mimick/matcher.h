@@ -66,7 +66,7 @@ struct mmk_matcher {
     struct mmk_matcher *next;
 };
 
-# define mmk_matcher_val_(Kind, Type, Val) (mmk_matcher_add(Kind, __COUNTER__), ((Type) Val))
+# define mmk_matcher_val_(Kind, Type, Val) (mmk_matcher_add(Kind, __COUNTER__), mmk_literal(Type, Val))
 # undef mmk_any
 # define mmk_any(Type)      mmk_matcher_val_(MMK_MATCHER_ANY, Type, { 0 })
 # undef mmk_eq
@@ -82,7 +82,7 @@ struct mmk_matcher {
 # undef mmk_ge
 # define mmk_ge(Type, Val) mmk_matcher_val_(MMK_MATCHER_GEQ, Type, Val)
 # undef mmk_that
-# define mmk_that(Type, Predicate) (mmk_matcher_add_fn(MMK_MATCHER_THAT, __COUNTER__, (void(*)(void))(Predicate)), ((Type) { 0 }))
+# define mmk_that(Type, Predicate) (mmk_matcher_add_fn(MMK_MATCHER_THAT, __COUNTER__, (void(*)(void))(Predicate)), mmk_literal(Type, { 0 }))
 
 void mmk_matcher_init(int kind);
 void mmk_matcher_add(enum mmk_matcher_kind kind, int counter);
