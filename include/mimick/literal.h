@@ -55,7 +55,7 @@ T mmk_literal<T, ID>::storage{0};
 
 #  define mmk_literal(type, value) ((type) value)
 
-#  define mmk_struct_literal(type, ...) mmk_literal(type, { __VA_ARGS__ })
+#  define mmk_struct_literal(type, ...) ((type) { __VA_ARGS__ })
 
 # endif
 
