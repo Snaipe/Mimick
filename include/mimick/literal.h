@@ -37,7 +37,7 @@ struct mmk_literal {
 };
 
 template<typename T, int ID>
-T mmk_literal<T, ID>::storage{0};
+T mmk_literal<T, ID>::storage;
 
 #  define MMK_COMMA_APPEND(_, prefix, content) (void) (prefix content),
 
