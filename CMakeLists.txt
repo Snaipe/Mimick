@@ -5,6 +5,12 @@
 cmake_minimum_required (VERSION 2.8)
 
 project (Mimick C CXX)
+
+if(POLICY CMP0042)
+  # Allow @rpath in target's install name
+  cmake_policy(SET CMP0042 NEW)
+endif()
+
 # Default to C++11
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 11)
