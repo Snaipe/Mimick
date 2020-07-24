@@ -98,15 +98,14 @@ static size_t get_offsets(size_t *off, size_t n,
 {
     size_t j = 0;
     for (size_t i = 0; j < n && i < nsyms; ++i) {
-        if (isymtab[i] == INDIRECT_SYMBOL_LOCAL ||
-            isymtab[i] == INDIRECT_SYMBOL_ABS)
+        if (isymtab[i] & (INDIRECT_SYMBOL_LOCAL | INDIRECT_SYMBOL_ABS))
             continue;
 
         const sym *s = &symtab[isymtab[i]];
-        const char *symname = strtab + s->n_un.n_strx;
-
-        if (!strcmp(symname + 1, name))
-            off[j++] = i;
+        if ((s->n_type & N_EXT) && ((s->n_type & N_TYPE) == N_UNDF)) {
+            const char *symname = strtab + s->n_un.n_strx;
+            if (!strcmp(symname + 1, name)) off[j++] = i;
+        }
     }
     return j;
 }
@@ -120,16 +119,28 @@ static void find_tables(const struct mach_header *hdr,
         const sym **symtab, const char **strtab, const uint32_t **isymtab, size_t *nisyms)
 {
     int symtab_found = 0, dysymtab_found = 0;
+    const segment_cmd * text = NULL;
+    const segment_cmd * linkedit = NULL;
     const struct load_command *lc = ptr_add(hdr, sizeof (mach_hdr));
     for (size_t i = 0; i < hdr->ncmds; ++i, lc = ptr_add(lc, lc->cmdsize)) {
+        if (lc->cmd == MMK_LC_SEGMENT) {
+          const segment_cmd * sc = (void *) lc;
+          if (strstr(sc->segname, "TEXT") != NULL) {
+            text = sc;
+          } else if (strstr(sc->segname, "LINKEDIT") != NULL) {
+            linkedit = sc;
+          }
+        }
         if (lc->cmd == LC_SYMTAB) {
             const struct symtab_command *sc = (void *) lc;
-            *symtab = ptr_add(hdr, sc->symoff);
-            *strtab = ptr_add(hdr, sc->stroff);
+            size_t slide = linkedit->vmaddr - text->vmaddr - linkedit->fileoff;
+            *symtab = ptr_add(hdr, slide + sc->symoff);
+            *strtab = ptr_add(hdr, slide + sc->stroff);
             symtab_found = 1;
         } else if (lc->cmd == LC_DYSYMTAB) {
             const struct dysymtab_command *dsc = (void *) lc;
-            *isymtab = ptr_add(hdr, dsc->indirectsymoff);
+            size_t slide = linkedit->vmaddr - text->vmaddr - linkedit->fileoff;
+            *isymtab = ptr_add(hdr, slide + dsc->indirectsymoff);
             *nisyms = dsc->nindirectsyms;
             dysymtab_found = 1;
         }
