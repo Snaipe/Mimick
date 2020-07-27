@@ -44,6 +44,14 @@ void *mmk_memcpy(void *dst, const void *src, size_t n)
     return dst;
 }
 
+void *mmk_memset(void *dst, int value, size_t n)
+{
+    for (char *dst_ = dst; n > 0; --n, ++dst_) {
+      *dst_ = (char)value;
+    }
+    return dst;
+}
+
 int mmk_strneq(const char *src, const char *ref, size_t n)
 {
     for (; *src && *ref && n; ++src, ++ref, --n) {

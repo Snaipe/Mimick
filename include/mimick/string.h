@@ -30,6 +30,7 @@ extern "C" {
 
 int mmk_memcmp(const void *s1, const void *s2, size_t n);
 void *mmk_memcpy(void *dst, const void *src, size_t n);
+void *mmk_memset(void *dst, int value, size_t n);
 
 # ifdef __cplusplus
 }

@@ -344,7 +344,8 @@ void mmk_reset(mmk_fn fn);
             VaMacro(END)(_);                                                   \
             Return(zero__);                                                    \
         }                                                                      \
-        struct MMK_MANGLE(Id, params) reg_params = {0};                        \
+        struct MMK_MANGLE(Id, params) reg_params;                              \
+        mmk_memset(&reg_params, 0, sizeof(struct MMK_MANGLE(Id, params)));     \
         reg_params.mmk_times__ = 0;                                            \
         MMK_APPLY_N(MMK_DEF_VERIFY_PARAM, Id, __VA_ARGS__);                    \
         MMK_EXPAND(VaMacro(REGISTER_CALL)(&reg_params, __VA_ARGS__));          \
