@@ -86,7 +86,7 @@ void mmk_reset(mmk_fn fn);
     MMK_EXPAND(MMK_DEF_VERIFY_PARAM_VA_ ## Id (__VA_ARGS__))
 # define MMK_DEF_VERIFY_PARAM_VA_WITH(...)
 
-# define MMK_DEF_VERIFY_PARAM__(X) reg_params.X = X;
+# define MMK_DEF_VERIFY_PARAM__(X) mmk_assign(reg_params.X, X);
 # define MMK_DEF_VERIFY_PARAM_VA_WITHOUT(N, Id, T, ...) \
     MMK_DEF_VERIFY_PARAM__(param ## N)
 
@@ -176,8 +176,9 @@ void mmk_reset(mmk_fn fn);
     MMK_EXPAND(MMK_SET_PARAMS_VA_ ## Id (__VA_ARGS__))
 
 # define MMK_SET_PARAMS_VA_WITH(...)
+
 # define MMK_SET_PARAMS_VA_WITHOUT(N, Id, T, ...) \
-    bind->params.param ## N = param ## N;
+    mmk_assign(bind->params.param ## N, param ## N);
 
 # define MMK_SET_PARAMS_(N, Id, T) \
     MMK_COND_VA(MMK_SET_PARAMS_VA, (WITHOUT, N, Id, T,), (WITH,), T)

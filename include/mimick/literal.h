@@ -28,6 +28,9 @@
 
 # ifdef __cplusplus
 
+#  include <cstdarg>
+#  include <utility>
+
 #  include "preprocess.h"
 
 template<typename T, int ID>
@@ -39,6 +42,28 @@ struct mmk_literal {
 template<typename T, int ID>
 T mmk_literal<T, ID>::storage;
 
+template <typename T>
+T & mmk_assign(T & dst, T src) {
+  return dst = std::move(dst);
+}
+
+template <typename T, size_t N>
+T (& mmk_assign(T (&dst)[N], T * src))[N] {
+  if (src) {
+    mmk_memcpy(dst, src, sizeof(T) * N);
+  } else {
+    mmk_memset(dst, 0, sizeof(T) * N);
+  }
+  return dst;
+}
+
+va_list & mmk_assign(va_list & dst, va_list src) {
+  if (src) {
+    va_copy(dst, src);
+  }
+  return dst;
+}
+
 #  define MMK_COMMA_APPEND(_, prefix, content) (void) (prefix content),
 
 #  define mmk_struct_initialize(variable, ...) \
@@ -49,9 +74,11 @@ T mmk_literal<T, ID>::storage;
   mmk_struct_initialize((mmk_literal<type, __COUNTER__>::storage), __VA_ARGS__)
 
 #  define mmk_literal(type, value) \
-  (mmk_literal<type, __COUNTER__>::storage = value)
+  (mmk_assign(mmk_literal<type, __COUNTER__>::storage, value))
 
 # else /* !defined __cplusplus */
+
+#  define mmk_assign(dst, src) (dst) = (src)
 
 #  define mmk_literal(type, value) ((type) value)
 
