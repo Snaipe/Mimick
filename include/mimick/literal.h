@@ -58,9 +58,7 @@ T (& mmk_assign(T (&dst)[N], T * src))[N] {
 }
 
 va_list & mmk_assign(va_list & dst, va_list src) {
-  if (src) {
-    va_copy(dst, src);
-  }
+  // no-op
   return dst;
 }
 
