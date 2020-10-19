@@ -14,7 +14,7 @@ set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${MODULE_DIR})
 
 set (I386 "^(i[3-7]|x)86$")
 set (AMD64 "^(x86_|x86-|AMD|amd|x)64$")
-set (ARM32 "^(arm|ARM|A)(32)?$")
+set (ARM32 "^(arm|armv7l|ARM|A)(32)?$")
 set (ARM64 "^(arm|ARM|A|aarch|AARCH)64$")
 
 if (CMAKE_GENERATOR_PLATFORM)
