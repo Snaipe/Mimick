@@ -80,7 +80,7 @@ plt_lib plt_get_lib(plt_ctx ctx, const char *name)
                 return i;
         } else if (sel == PLT_SEL_NONE || sel == PLT_SEL_FILE) {
             const char *img_name = _dyld_get_image_name(i);
-            if (img_name && !strcmp(img_name, name))
+            if (img_name && !strcmp(img_name, val))
                 return i;
         } else if (sel == PLT_SEL_SYM) {
             plt_offset *off = plt_get_offsets(ctx, i, val, NULL);
