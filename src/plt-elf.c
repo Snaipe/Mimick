@@ -196,7 +196,7 @@ plt_lib plt_get_lib(plt_ctx ctx, const char *name)
             }
         } else if (sel == PLT_SEL_NONE || sel == PLT_SEL_FILE) {
             const char *libname = get_lib_name(ctx, lm);
-            if (!strcmp(name, libname))
+            if (!strcmp(val, libname))
                 return lm;
         } else if (sel == PLT_SEL_SYM) {
             if (get_offsets(ctx, lm, val, NULL) > 0)
