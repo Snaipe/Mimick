@@ -21,9 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include "mangling.h"
 
-.globl mmk_trampoline
-mmk_trampoline:
+.align 8
+.globl MANGLE(mmk_trampoline)
+MANGLE(mmk_trampoline):
     adr     x16, .
 
     stp     x7, x6, [sp, #-16]!
@@ -70,6 +72,7 @@ ret_ctx:
     ldp     x16, x30, [sp], #16
     ret
 
-.globl mmk_trampoline_end
-mmk_trampoline_end:
+.align 8
+.globl MANGLE(mmk_trampoline_end)
+MANGLE(mmk_trampoline_end):
     nop
