@@ -22,8 +22,14 @@
  * THE SOFTWARE.
  */
 
+#if !defined(__APPLE__)
 .globl mmk_trampoline
 mmk_trampoline:
+#else
+.align 4
+.globl _mmk_trampoline
+_mmk_trampoline:
+#endif
     adr     x16, .
 
     stp     x7, x6, [sp, #-16]!
@@ -70,6 +76,12 @@ ret_ctx:
     ldp     x16, x30, [sp], #16
     ret
 
+#if !defined(__APPLE__)
 .globl mmk_trampoline_end
 mmk_trampoline_end:
+#else
+.align 4
+.globl _mmk_trampoline_end
+_mmk_trampoline_end:
+#endif
     nop
