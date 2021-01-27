@@ -62,7 +62,7 @@ plt_fn *create_trampoline(void *ctx, plt_fn *routine)
             -1, 0);
 # elif defined HAVE_MMAP_MAP_ANON
     void **map = mmap(NULL, PAGE_SIZE,
-            PROT_READ | PROT_WRITE | PROT_EXEC,
+            PROT_READ | PROT_WRITE,
             MAP_PRIVATE | MAP_ANON,
             -1, 0);
 # else
