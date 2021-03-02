@@ -41,7 +41,9 @@ extern void mmk_trampoline_end();
 #  include <fcntl.h>
 # endif
 
-# if defined __clang__
+# if defined __APPLE__
+#  include <libkern/OSCacheControl.h> // LLVM __clear_cache seems not working on Mac ARM64
+# elif defined __clang__
 void __clear_cache(void *, void *);
 # endif
 
@@ -83,7 +85,9 @@ plt_fn *create_trampoline(void *ctx, plt_fn *routine)
     *(map + 1) = (void *) routine;
     memcpy(map + 2, mmk_trampoline, trampoline_sz);
     mmk_assert(!mmk_mprotect(map, PAGE_SIZE, PROT_READ | PROT_EXEC));
-# if defined __clang__  // Check for Clang first, it may set __GNUC__ too.
+# if defined __APPLE__
+    sys_icache_invalidate(map, PAGE_SIZE);
+# elif defined __clang__  // Check for Clang first, it may set __GNUC__ too.
     __clear_cache(map, map + PAGE_SIZE);
 # elif defined __GNUC__
     __builtin___clear_cache((char *)map, (char *)(map + PAGE_SIZE));

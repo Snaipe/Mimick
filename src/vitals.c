@@ -196,7 +196,7 @@ void mmk_init_vital_functions(plt_ctx ctx)
     INIT_VITAL_FUNC(malloc);
     INIT_VITAL_FUNC(realloc);
     INIT_VITAL_FUNC(free);
-#ifdef MMK_EXE_FMT_ELF
+#if defined(MMK_EXE_FMT_ELF) || defined(MMK_EXE_FMT_MACH_O)
     INIT_VITAL_FUNC(mprotect);
 #endif
 }
