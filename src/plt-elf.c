@@ -233,10 +233,24 @@ static size_t get_offsets(plt_ctx ctx, plt_lib lib, const char *name, plt_offset
     const char *strtab  = (const char*) lib_dt_lookup(lib, DT_STRTAB);
 
     ElfW(Rel)   *jmprel = lib_dt_lookup(lib, DT_JMPREL);
-    ElfW(Rel)   *rel    = lib_dt_lookup(lib, DT_RELA);
-    ElfWord rel_sz = lib_dt_lookup_val(lib, DT_RELASZ);
+
     ElfWord jmprel_sz = lib_dt_lookup_val(lib, DT_PLTRELSZ);
-    ElfWord relent_sz = lib_dt_lookup_val(lib, DT_RELAENT);
+    ElfWord relent_sz;
+    ElfWord rel_sz;
+
+    // For relocation sections try DT_RELA first, then DT_REL. We don't deal with
+    // addends anyway.
+    ElfW(Rel) *rel = lib_dt_lookup(lib, DT_RELA);
+    if (!rel) {
+        rel = lib_dt_lookup(lib, DT_REL);
+        if (!rel)
+            return 0;
+        rel_sz = lib_dt_lookup_val(lib, DT_RELSZ);
+        relent_sz = lib_dt_lookup_val(lib, DT_RELENT);
+    } else {
+        rel_sz = lib_dt_lookup_val(lib, DT_RELASZ);
+        relent_sz = lib_dt_lookup_val(lib, DT_RELAENT);
+    }
 
     if (!symtab || !strtab || !(rel || jmprel) || !(rel_sz || jmprel_sz) || !relent_sz)
         return 0;
