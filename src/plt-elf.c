@@ -349,15 +349,72 @@ static ElfW(Sym) *elf_hash_find(ElfW(Word) *hash, ElfW(Sym) *symtab,
     return NULL;
 }
 
+struct gnu_hash_header {
+    uint32_t nbuckets;
+    uint32_t symoffset;
+    uint32_t bloom_size;
+    uint32_t bloom_shift;
+};
+
+static uint32_t gnu_hash(const char *s)
+{
+    const uint8_t *name = (const uint8_t *)s;
+    uint32_t h = 5381;
+    while (*name)
+        h = (h << 5) + h + *name++;
+    return h;
+}
+
+static ElfW(Sym) *gnu_hash_find(struct gnu_hash_header *gnuhash, ElfW(Sym) *symtab,
+        const char *strtab, const char *name)
+{
+    ElfW(Off) *bloom = (ElfW(Off) *)(gnuhash + 1);
+    uint32_t *buckets = (uint32_t *)(bloom + gnuhash->bloom_size);
+    uint32_t *chains = buckets + gnuhash->nbuckets;
+
+    uint32_t symhash = gnu_hash(name);
+
+    // Grab the bloom filter entry, and test both h1 and h2 are present.
+    ElfW(Off) filter = bloom[(symhash / MMK_BITS) % gnuhash->bloom_size];
+    if ((filter & (1UL << symhash % MMK_BITS)) == 0)
+        return NULL;
+    if ((filter & (1UL << (symhash >> gnuhash->bloom_shift) % MMK_BITS)) == 0)
+        return NULL;
+
+    for (uint32_t idx = buckets[symhash % gnuhash->nbuckets];;++idx) {
+        uint32_t chainhash = chains[idx - gnuhash->symoffset];
+        if ((chainhash | 1) == (symhash | 1) &&
+                strcmp(strtab + symtab[idx].st_name, name) == 0)
+            return &symtab[idx];
+        if ((chainhash & 1) != 0)
+            break;
+    }
+    return NULL;
+}
+
 static ElfW(Sym) *sym_lookup_dyn(plt_lib lib, const char *name)
 {
-    ElfW(Word) *hash    = (ElfW(Word)*) lib_dt_lookup(lib, DT_HASH);
-    ElfW(Sym) *symtab   = (ElfW(Sym)*)  lib_dt_lookup(lib, DT_SYMTAB);
-    const char *strtab  = (const char*) lib_dt_lookup(lib, DT_STRTAB);
+    ElfW(Sym) *symtab  = lib_dt_lookup(lib, DT_SYMTAB);
+    const char *strtab = lib_dt_lookup(lib, DT_STRTAB);
 
-    if (!hash || !symtab || !strtab)
+    if (!symtab || !strtab)
         return NULL;
-    return elf_hash_find (hash, symtab, strtab, name);
+
+#ifdef DT_GNU_HASH
+    // trust GNU hash if we have it.
+    struct gnu_hash_header *gnu_hash = lib_dt_lookup(lib, DT_GNU_HASH);
+    if (gnu_hash)
+        return gnu_hash_find (gnu_hash, symtab, strtab, name);
+#endif
+
+    // Look up symbol table using traditional ELF hash.
+    ElfW(Word) *hash = lib_dt_lookup(lib, DT_HASH);
+    if (hash)
+        return elf_hash_find (hash, symtab, strtab, name);
+
+    // XXX: we could do a linear walk of the symbol table here...
+    return NULL;
+
 }
 
 plt_fn *plt_get_real_fn(plt_ctx ctx, const char *name)
