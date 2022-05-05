@@ -31,11 +31,19 @@
     movdqu (%rsp), Reg; \
     add $0x10, %rsp
 
+# if defined(__CET__)
+#  define mmk_cet endbr64
+# else
+#  define mmk_cet
+# endif
+
 .globl MANGLE(mmk_trampoline)
 MANGLE(mmk_trampoline):
 start:
+    mmk_cet
     call    next                                // Retrieve IP
 next:
+    mmk_cet
     pop     %r11
 
     push    %r11                                // Setup mock context
