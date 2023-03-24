@@ -34,5 +34,9 @@ FOO_API void fn_vli(long l, int i);
 FOO_API int fn_ili(long l, int i);
 FOO_API void fn_vi_va(int i, ...);
 FOO_API int fn_ii_va(int i, ...);
+FOO_API void fn_vf(float f);
+FOO_API float fn_ff(float f);
+FOO_API void fn_vd(double d);
+FOO_API double fn_dd(double d);
 
 #endif /* !LIBFOO_H_ */

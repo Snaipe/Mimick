@@ -37,7 +37,7 @@ MANGLE(mmk_trampoline):
 start:
 	jal	t0,	next			// 4 bytes for an instruction
 next:
-	add	sp,	sp,	-8 * 12		// a0 - a7 + t0 + ra +
+	add	sp,	sp,	-8 * 20		// a0 - a7 + t0 + ra +
 						// *struct mmk_stub aligned to
 						// 16bytes
 	sd	t0,	0(sp)			// 0(sp) label next
@@ -54,8 +54,15 @@ next:
 	sd	a5,	64(sp)
 	sd	a6,	72(sp)
 	sd	a7,	80(sp)
+	fsd	fa0,	88(sp)
+	fsd	fa1,	96(sp)
+	fsd	fa2,	104(sp)
+	fsd	fa3,	112(sp)
+	fsd	fa4,	120(sp)
+	fsd	fa5,	128(sp)
+	fsd	fa6,	136(sp)
+	fsd	fa7,	144(sp)
 	//	8 bytes padding
-	/*	TODO:	float registers		*/
 
 	mv	a0,	t0
 	ld	ra,	8(t0)			// ctx_set
@@ -76,13 +83,21 @@ next:
 	ld	a5,	64(sp)
 	ld	a6,	72(sp)
 	ld	a7,	80(sp)
+	fld	fa0,	88(sp)
+	fld	fa1,	96(sp)
+	fld	fa2,	104(sp)
+	fld	fa3,	112(sp)
+	fld	fa4,	120(sp)
+	fld	fa5,	128(sp)
+	fld	fa6,	136(sp)
+	fld	fa7,	144(sp)
 
 	bnez	t0,	return_context
 	/*	stub trampoline jump	*/
 	ld	t0,	0(sp)
 	ld	t0,	-12(t0)
 	ld	ra,	16(sp)
-	add	sp,	sp,	8 * 12
+	add	sp,	sp,	8 * 20
 	jr	t0
 
 return_context:
@@ -90,7 +105,7 @@ return_context:
 	ld	ra,	16(t0)			// struct mmk_stub* -> ctx_get()
 	jalr	ra
 	ld	ra,	16(sp)
-	add	sp,	sp,	8 * 12
+	add	sp,	sp,	8 * 20
 	ret
 
 MANGLE(mmk_trampoline_end):
