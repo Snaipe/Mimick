@@ -76,3 +76,67 @@ ret_ctx:
 .globl MANGLE(mmk_trampoline_end)
 MANGLE(mmk_trampoline_end):
     nop
+
+.align 8
+.globl MANGLE(mmk_clear_cache)
+MANGLE(mmk_clear_cache):
+cache_start:
+	sub	sp, sp, #80
+	str	x0, [sp, 8]
+	str	x1, [sp]
+	ldr	x0, [sp, 8]
+	str	x0, [sp, 56]
+	ldr	x1, [sp, 56]
+	ldr	x0, [sp]
+	add	x0, x1, x0
+	str	x0, [sp, 48]
+	mrs x0, ctr_el0                         // Fetching cache type for Data/Instruction Cache
+	str	x0, [sp, 40]
+	ldr	x0, [sp, 40]
+	lsr	x1, x0, 16
+	mov	w0, w1
+	and	w0, w0, 15
+	mov	w1, 4
+	lsl	w0, w1, w0
+	sxtw	x0, w0
+	str	x0, [sp, 32]
+	ldr	x0, [sp, 56]
+	b	cache_cvau
+cvau_loop:
+	ldr	x0, [sp, 72]
+	dc cvau, x0				// Invalidate Data cache line with 64 bits register
+	ldr	x1, [sp, 72]
+	ldr	x0, [sp, 32]
+	add	x0, x1, x0
+	str	x0, [sp, 72]
+cache_cvau:
+	ldr	x1, [sp, 72]
+	ldr	x0, [sp, 48]
+	cmp	x1, x0
+	bcc	cvau_loop
+	dsb ish
+	ldr	x0, [sp, 40]
+	and	w0, w0, 15
+	mov	w1, 4
+	lsl	w0, w1, w0
+	sxtw	x0, w0
+	str	x0, [sp, 24]
+	ldr	x0, [sp, 56]
+	str	x0, [sp, 64]
+	b	cache_isb
+cache_ivau:
+	ldr	x0, [sp, 64]
+	ic ivau, x0				// Invalidate Instruction cache line withh 64 bits register
+	ldr	x1, [sp, 64]
+	ldr	x0, [sp, 24]
+	add	x0, x1, x0
+	str	x0, [sp, 64]
+cache_isb:
+	ldr	x1, [sp, 64]
+	ldr	x0, [sp, 48]
+	cmp	x1, x0
+	bcc	cache_ivau
+	isb sy
+	mov	w0, 0
+	add	sp, sp, 80
+	ret
