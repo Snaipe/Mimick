@@ -90,6 +90,8 @@ Supported Compilers: GCC 4.6+, Clang 3.5+, MSVC 14+
 | ARM     | ✓ | ? | ✓ | ✕ |
 | ARM64   | ✓ | ? | ? | ∄ |
 | PPC     | ✕ | ✕ | ✕ | ∄ |
+| RISCV32 | ✕ | ∄ | ✕ | ∄ |
+| RISCV64 | ✓ | ∄ | ? | ∄ |
 
 ## F.A.Q.
 
