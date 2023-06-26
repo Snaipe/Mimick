@@ -64,13 +64,16 @@ int mmk_stub_create_static(struct mmk_stub *stub,
 
     plt_ctx pctx = mmk_plt_ctx();
     plt_lib lib = plt_get_lib(pctx, path);
-    if (!lib)
+    if (!lib){
+        mmk_free(name);
         return -ENOENT;
-
+    }
     size_t nb_off = 0;
     plt_offset *off = plt_get_offsets(pctx, lib, name, &nb_off);
-    if (!off || !nb_off)
+    if (!off || !nb_off){
+        mmk_free(name);
         return -ENOENT;
+    }
 
     *stub = (struct mmk_stub) {
         .ctx_asked = mmk_ctx_asked,
