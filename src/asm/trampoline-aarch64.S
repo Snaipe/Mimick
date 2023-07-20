@@ -76,3 +76,5 @@ ret_ctx:
 .globl MANGLE(mmk_trampoline_end)
 MANGLE(mmk_trampoline_end):
     nop
+
+.section  .note.GNU-stack, "", @progbits
