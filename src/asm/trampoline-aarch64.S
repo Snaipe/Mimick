@@ -77,4 +77,6 @@ ret_ctx:
 MANGLE(mmk_trampoline_end):
     nop
 
+#ifdef __ELF__
 .section  .note.GNU-stack, "", @progbits
+#endif
