@@ -111,3 +111,7 @@ ret_ctx:                                        // Return context
 .globl MANGLE(mmk_trampoline_end)
 MANGLE(mmk_trampoline_end):
     nop
+
+#ifdef __ELF__
+.section  .note.GNU-stack, "", @progbits
+#endif
