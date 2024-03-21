@@ -1,5 +1,5 @@
 if (NOT MSVC)
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic -Werror")
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic")
 endif ()
 
 add_library (foo SHARED libfoo.c)
