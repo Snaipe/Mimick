@@ -133,6 +133,7 @@ script:
       -Wno-dev
       -DCMAKE_BUILD_TYPE=${CONFIGURATION}
       -DCMAKE_INSTALL_PREFIX=mimick-${TRAVIS_TAG}
+      -DCMAKE_C_FLAGS="-Werror"
       ${CMAKE_OPTS}
       ..
   - TERM=dumb cmake --build . -- -j4

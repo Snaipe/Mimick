@@ -61,6 +61,7 @@ install:
       -DCMAKE_INSTALL_PREFIX="mimick-%RELEASE_NAME%"
       -DCMAKE_BUILD_TYPE="%CONFIGURATION%"
       -DCMAKE_SYSTEM_PROCESSOR="%PLATFORM%"
+      -DCMAKE_C_FLAGS="-Werror"
       %CMAKE_OPTS%
       -G "%GENERATOR%"
       ..
