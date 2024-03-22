@@ -28,6 +28,7 @@
 
 # if __STDC_VERSION__ >= 201112L
 #  include <stdnoreturn.h>
+#  define mmk_noreturn _Noreturn
 # elif defined __GNUC__
 #  define mmk_noreturn __attribute__((noreturn))
 # elif defined _MSC_VER
