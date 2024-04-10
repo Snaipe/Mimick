@@ -33,6 +33,10 @@
 extern void mmk_trampoline();
 extern void mmk_trampoline_end();
 
+#if defined(__aarch64__)
+extern void mmk_clear_cache(void *, size_t);
+#endif
+
 #if defined HAVE_MMAP
 # include <unistd.h>
 # include <sys/mman.h>
@@ -87,6 +91,8 @@ plt_fn *create_trampoline(void *ctx, plt_fn *routine)
     mmk_assert(!mmk_mprotect(map, PAGE_SIZE, PROT_READ | PROT_EXEC));
 # if defined __APPLE__
     sys_icache_invalidate(map, PAGE_SIZE);
+# elif defined(__aarch64__)
+    mmk_clear_cache(map, PAGE_SIZE);
 # elif defined __clang__  // Check for Clang first, it may set __GNUC__ too.
     __clear_cache(map, map + PAGE_SIZE);
 # elif defined __GNUC__
