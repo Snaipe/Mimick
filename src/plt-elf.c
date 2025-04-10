@@ -94,9 +94,9 @@ static ElfWord lib_dt_lookup_val(plt_lib lib, ElfSWord tag)
 #if !defined HAVE__R_DEBUG
 static int find_dynamic(struct dl_phdr_info *info, size_t size, void *data)
 {
-    ElfAddr *ctx = data;
+    ElfW(Addr) *ctx = data;
 
-    for (ElfOff i = 0; i < info->dlpi_phnum; ++i) {
+    for (ElfW(Off) i = 0; i < info->dlpi_phnum; ++i) {
         if (info->dlpi_phdr[i].p_type == PT_DYNAMIC) {
             *ctx = info->dlpi_addr + info->dlpi_phdr[i].p_vaddr;
             return 1;
@@ -132,7 +132,7 @@ static struct r_debug *get_r_debug(void)
 # if defined HAVE__DYNAMIC
     if (!dbg) {
 # endif
-        ElfAddr dynamic;
+        ElfW(Addr) dynamic;
         if (dl_iterate_phdr(find_dynamic, &dynamic) > 0)
             dbg = r_debug_from_dynamic((void *) dynamic);
 # if defined HAVE__DYNAMIC
