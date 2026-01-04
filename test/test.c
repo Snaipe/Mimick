@@ -43,6 +43,19 @@ int int_eq(int val) {
     return val == expected_int;
 }
 
+mmk_mock_define (fn_dd_mock, double, double);
+
+double mul_two(double d)
+{
+	return d * 2;
+}
+
+mmk_mock_define (fn_ff_mock, float, float);
+float mmk_f_abs(float f)
+{
+	return f < 0 ? -f : f;
+}
+
 #define check_called_exact(Expr, Times) do {                                   \
         size_t times = (Times);                                                \
         if (times == 0) {                                                      \
@@ -65,6 +78,8 @@ int int_eq(int val) {
             mmk_assert(!mmk_verify(Expr, .at_least = times + 1));              \
         }                                                                      \
     } while (0)
+
+#define mmk_abs(x) ((x) < 0 ? -(x) : (x))
 
 int main(void)
 {
@@ -129,6 +144,20 @@ int main(void)
     mmk_assert(fn_ii_va(1, 42) == 1);
 
     mmk_reset(fn_ii_va);
+
+    mmk_mock("fn_dd", fn_dd_mock);
+    mmk_when(fn_dd(mmk_any(double)), .then_call = (mmk_fn) mul_two);
+    mmk_assert(mmk_abs(fn_dd(2.) - 4.) < 1e-4);
+    mmk_assert(mmk_abs(fn_dd(10.) - 20.) < 1e-4);
+    mmk_reset(fn_dd);
+
+    mmk_mock("fn_ff", fn_ff_mock);
+    mmk_when(fn_ff(mmk_any(float)), .then_call = (mmk_fn) mmk_f_abs);
+    mmk_assert(mmk_abs(1.) == fn_ff(1.));
+    mmk_assert(mmk_abs(-42.) == fn_ff(-42.));
+    mmk_assert(mmk_abs(-21.) == fn_ff(21.));
+    mmk_assert(mmk_abs(4.) == fn_ff(-4.));
+    mmk_reset(fn_ff);
 
     return 0;
 }

@@ -49,3 +49,30 @@ int fn_ii_va(int i, ...)
     (void) i;
     abort();
 }
+
+void fn_vf(float f)
+{
+    (void)f;
+    abort();
+    return; 
+}
+
+float fn_ff(float f)
+{
+    (void)f;
+    abort();
+    return f;
+}
+
+void fn_vd(double d)
+{
+    (void)d;
+    abort();
+    return;
+}
+
+double fn_dd(double d)
+{
+    abort();
+    return d;
+}
