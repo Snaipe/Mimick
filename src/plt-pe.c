@@ -41,8 +41,17 @@ plt_ctx plt_init_ctx(void) {
 
 static plt_fn **plt_find_offset(const char *name, plt_lib *lib)
 {
-    HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,
+    DWORD errorMessageID;
+    HANDLE snap;
+    do {
+        snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,
             GetCurrentProcessId());
+        if (snap != INVALID_HANDLE_VALUE) {
+            break;
+        }
+        errorMessageID = GetLastError();
+    } while (errorMessageID == ERROR_BAD_LENGTH);
+
     mmk_assert(snap != INVALID_HANDLE_VALUE);
 
     MODULEENTRY32 mod = { .dwSize = sizeof(MODULEENTRY32) };
@@ -167,8 +176,17 @@ void plt_reset_offsets(plt_offset *offset, size_t nb_off)
 plt_fn *plt_get_real_fn(plt_ctx ctx, const char *name)
 {
     (void) ctx;
-    HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,
+    DWORD errorMessageID;
+    HANDLE snap;
+    do {
+        snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,
             GetCurrentProcessId());
+        if (snap != INVALID_HANDLE_VALUE) {
+            break;
+        }
+        errorMessageID = GetLastError();
+    } while (errorMessageID == ERROR_BAD_LENGTH);
+
     mmk_assert(snap != INVALID_HANDLE_VALUE);
 
     MODULEENTRY32 mod = { .dwSize = sizeof(MODULEENTRY32) };
